@@ -1,1 +1,814 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Heizkostenersparnis-Rechner</title>
+  <style>
+    /* Farbvariablen basierend auf dem Design */
+    :root {
+      --primary-color: #4DBCE9; /* Türkis */
+      --accent-color: #F39C12;  /* Orange */
+      --text-color-dark: #34495E; /* Dunkelgrau */
+      --text-color-light: #555;
+      --border-color: #bdc3c7; /* Helleres Grau für Grenzen */
+      --background-light: #f4f7f6;
+      --background-card: #ffffff;
+      --active-background: #e0f7fa; /* Sehr helles Türkis für aktive Hintergründe */
+    }
+
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      margin: 20px;
+      line-height: 1.6;
+      color: var(--text-color-dark);
+      background-color: var(--background-light);
+    }
+    .container {
+        max-width: 750px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: var(--background-card);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: var(--text-color-dark); 
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: 600;
+    }
+    h2 {
+      margin-top: 30px;
+      color: var(--primary-color); 
+      border-bottom: 2px solid #e0e0e0;
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+    form {
+      margin-bottom: 30px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      color: var(--text-color-light);
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 6px;
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+    input[type="range"] {
+        width: 100%;
+        margin-top: 8px;
+        accent-color: var(--accent-color); 
+    }
+    .slider-container {
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .slider-container input[type="range"] {
+        flex-grow: 1;
+        margin-top: 0;
+    }
+    .slider-container input[type="range"]:disabled + .slider-value {
+        color: #999;
+    }
+     .slider-container input[type="range"]:disabled {
+        background-color: #eee;
+        opacity: 0.7;
+    }
+    .slider-container .slider-value {
+        font-weight: bold;
+        color: var(--accent-color); 
+        min-width: 85px;
+        text-align: right;
+        white-space: nowrap;
+        font-size: 0.95em;
+    }
+
+    input:focus, input[type="range"]:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 0.2rem rgba(243, 156, 18, 0.25); 
+        outline: none;
+    }
+    
+    .calculation-method-selector {
+      display: flex;
+      gap: 15px;
+      justify-content: space-between;
+      margin-top: 10px;
+      margin-bottom: 25px;
+    }
+    .method-option-card {
+      flex: 1;
+      display: block;
+      padding: 15px;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.3s, background-color 0.3s, box-shadow 0.3s;
+      background-color: var(--background-card);
+      min-width: 0;
+    }
+    .method-option-card input[type="radio"] {
+      display: none;
+    }
+    .method-option-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .method-option-content svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 10px;
+      fill: var(--text-color-light);
+      transition: fill 0.3s;
+    }
+    .method-option-content span {
+      font-weight: bold;
+      color: var(--text-color-dark);
+      font-size: 0.95rem;
+    }
+    .method-option-card:hover {
+      border-color: var(--accent-color);
+      background-color: #fffaf0; 
+    }
+    label:has(input[type="radio"]:checked) { 
+        border-color: var(--primary-color) !important; 
+        background-color: var(--active-background) !important;
+        box-shadow: 0 0 8px rgba(77, 188, 233, 0.3) !important;
+    }
+    label:has(input[type="radio"]:checked) .method-option-content svg {
+        fill: var(--primary-color);
+    }
+    label:has(input[type="radio"]:checked) .method-option-content span {
+        color: var(--primary-color);
+    }
+
+
+    .input-block {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      background: #f9fafb; 
+    }
+    .input-group { 
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    .input-group input[type="number"] { 
+        flex-grow: 1;
+    }
+    .input-group span {
+        white-space: nowrap;
+        color: var(--text-color-light);
+    }
+
+    .icon-selection-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: space-around;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    .icon-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: border-color 0.3s, background-color 0.3s, box-shadow 0.3s;
+        text-align: center;
+        min-width: 100px;
+        background-color: var(--background-card);
+        flex-basis: calc(33.333% - 10px);
+        box-sizing: border-box;
+    }
+     .icon-option:hover {
+        border-color: var(--accent-color);
+        background-color: #fffaf0;
+    }
+    .icon-option.active {
+        border-color: var(--primary-color); 
+        background-color: var(--active-background);
+        box-shadow: 0 0 8px rgba(77, 188, 233, 0.3);
+    }
+    .icon-option svg {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 8px;
+        fill: var(--text-color-light);
+    }
+    .icon-option.active svg {
+        fill: var(--primary-color);
+    }
+    .icon-option .option-text {
+        font-size: 0.85em;
+        color: var(--text-color-dark);
+        line-height: 1.2;
+    }
+     .icon-option .option-text small {
+        font-size: 0.9em;
+        color: #6c757d;
+        display: block;
+    }
+    .icon-option.active .option-text {
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+    
+    #results {
+      margin-top: 30px;
+      padding: 20px;
+      border: 2px solid var(--primary-color); 
+      border-radius: 6px;
+      background: var(--active-background); 
+      display: none;
+    }
+    #results h2 {
+      margin-top: 0;
+      color: var(--primary-color);
+      border-bottom: none;
+    }
+    #results p {
+      margin: 10px 0;
+      font-size: 1.05rem;
+    }
+    .highlight {
+      font-weight: bold;
+      color: var(--accent-color); 
+    }
+    .disclaimer {
+      margin-top: 10px;
+      font-size: 0.85em;
+      color: #6c757d;
+    }
+    .price-update-info { 
+        font-size: 0.8em;
+        color: #7f8c8d;
+        text-align: center;
+        margin-top: 25px;
+        padding: 10px;
+        background-color: #ecf0f1;
+        border-radius: 4px;
+    }
+    
+    @media (max-width: 700px) {
+        .icon-selection-group { justify-content: center; }
+        .icon-option { min-width: 90px; flex-basis: calc(50% - 10px); }
+        .icon-option svg { width: 36px; height: 36px; }
+         .calculation-method-selector {
+            flex-direction: column;
+        }
+    }
+    @media (max-width: 600px) {
+        body { margin: 10px; }
+        .container { padding: 15px; }
+        h1 { font-size: 1.8rem; }
+        h2 { font-size: 1.5rem; }
+        .input-group, .slider-container { flex-direction: column; align-items: stretch; }
+        .input-group span, .slider-container .slider-value { margin-top: 5px; text-align: left; min-width: auto; }
+        .icon-option { min-width: 80px; }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Heizkostenersparnis-Rechner</h1>
+    <p>Finde heraus, wie viel du jährlich sparen kannst, wenn du von deinem aktuellen Heizsystem auf eine Wärmepumpe umsteigst. Wähle eine der beiden Methoden:</p>
+
+    <form id="calculatorForm">
+      <input type="hidden" id="gebaeudeklasseValue" name="gebaeudeklasseValue" value="alt_unsaniert">
+      <input type="hidden" id="system1Value" name="system1Value" value="heizoel">
+      <input type="hidden" id="system2Value" name="system2Value" value="heizoel">
+
+      <div class="calculation-method-selector">
+        <label class="method-option-card">
+            <input type="radio" name="method" value="flaeche" checked>
+            <div class="method-option-content">
+                <svg viewBox="0 0 64 64" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M54 20L32 6 10 20v30h44V20zM24 44h-4v-8h4v8zm8 0h-4v-8h4v8zm8 0h-4v-8h4v8zm0-12h-4v-8h4v8zm-8 0h-4v-8h4v8zm-8-8h4v-4H20l4 4zM44 24h-4v-4h4v4z"/></svg>
+                <span>Flächenbasierte Berechnung</span>
+            </div>
+        </label>
+        <label class="method-option-card">
+            <input type="radio" name="method" value="verbrauch">
+            <div class="method-option-content">
+                <svg viewBox="0 0 64 64" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M32 4C19.85 4 10 13.85 10 26c0 7.33 3.58 13.73 9 17.54V52c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8.46c5.42-3.81 9-10.21 9-17.54C54 13.85 44.15 4 32 4zm0 32c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm8-12.82C38.39 22.51 35.42 22 32 22s-6.39.51-8 1.18V20h16v3.18z"/></svg>
+                <span>Verbrauchsbasierte Berechnung</span>
+            </div>
+        </label>
+      </div>
+
+      <div id="blockVerbrauch" class="input-block">
+        <h2>Verbrauchsbasierte Berechnung</h2>
+        <label>Aktuelles Heizsystem</label>
+        <div id="heizsystem1IconGroup" class="icon-selection-group"></div>
+
+        <label for="wirkungsgradAlt1Slider">Wirkungsgrad Altanlage (%)</label>
+        <div class="slider-container">
+            <input type="range" id="wirkungsgradAlt1Slider" min="50" max="100" step="1" value="80" />
+            <span id="wirkungsgradAlt1Value" class="slider-value">80 %</span>
+        </div>
+        <div class="disclaimer">Typischer Wert wird je nach Heizsystem vorausgewählt.</div>
+
+        <label for="verbrauch1">Jährlicher Verbrauch</label>
+        <div class="input-group">
+          <input type="number" id="verbrauch1" min="0" step="0.1" value="2000" placeholder="z. B. 2000" />
+          <span id="einheitVerbrauch1">Liter</span>
+        </div>
+
+        <label for="preis1Slider">Aktueller Preis je Einheit</label>
+         <div class="slider-container">
+            <input type="range" id="preis1Slider" min="0.50" max="2.50" step="0.01" value="1.03" />
+            <span id="preis1Value" class="slider-value">1.03 €/Liter</span>
+        </div>
+      </div>
+
+      <div id="blockFlaeche" class="input-block">
+        <h2>Flächenbasierte Berechnung</h2>
+        <label>Gebäudeklasse</label>
+        <div id="gebaeudeklasseIconGroup" class="icon-selection-group"></div>
+        <div class="disclaimer">Wählen Sie die passende Gebäudeklasse aus.</div>
+
+        <label for="flaeche2Slider">Beheizbare Fläche (m²)</label>
+        <div class="slider-container">
+            <input type="range" id="flaeche2Slider" min="50" max="400" step="1" value="150" />
+            <span id="flaeche2Value" class="slider-value">150 m²</span>
+        </div>
+
+        <label for="anteilFussbodenheizungSlider">Anteil Fußbodenheizung an Wärmeabgabe (%)</label>
+        <div class="slider-container">
+            <input type="range" id="anteilFussbodenheizungSlider" min="0" max="100" step="1" value="50" />
+            <span id="anteilFussbodenheizungValue" class="slider-value">50 %</span>
+        </div>
+        <div class="disclaimer">Wird automatisch basierend auf Gebäudeklasse angepasst.</div>
+        
+        <label>Aktuelles Heizsystem (für Brennstoffkosten)</label>
+         <div id="heizsystem2IconGroup" class="icon-selection-group"></div>
+
+        <label for="wirkungsgradAlt2Slider">Wirkungsgrad Altanlage (%)</label>
+        <div class="slider-container">
+            <input type="range" id="wirkungsgradAlt2Slider" min="50" max="100" step="1" value="80" />
+            <span id="wirkungsgradAlt2Value" class="slider-value">80 %</span>
+        </div>
+         <div class="disclaimer">Typischer Wert wird je nach Heizsystem vorausgewählt.</div>
+
+        <label for="preis2Slider">Aktueller Preis je Einheit</label>
+        <div class="slider-container">
+            <input type="range" id="preis2Slider" min="0.50" max="2.50" step="0.01" value="1.03" />
+            <span id="preis2Value" class="slider-value">1.03 €/Liter</span>
+        </div>
+      </div>
+
+      <div class="input-block">
+        <h2>Daten für Wärmepumpe</h2>
+        <label for="strompreisSlider">Strompreis für Wärmepumpe (€/kWh)</label>
+        <div class="slider-container">
+            <input type="range" id="strompreisSlider" min="0.15" max="0.60" step="0.01" value="0.19" />
+            <span id="strompreisValue" class="slider-value">0.19 €/kWh</span>
+        </div>
+        <div class="disclaimer">Dieser Preis gilt auch für "Altanlage Strom".</div>
+
+
+        <label for="jazSlider">Basis JAZ/SCOP (Jahresarbeitszahl Wärmepumpe)</label>
+         <div class="slider-container">
+            <input type="range" id="jazSlider" min="2.0" max="5.5" step="0.1" value="3.0" />
+            <span id="jazValue" class="slider-value">3.0</span>
+        </div>
+        <div class="disclaimer">Wird je nach Gebäudeklasse vorausgewählt und ggf. durch Anteil Fußbodenheizung angepasst.</div>
+      </div>
+
+      <div class="input-block">
+        <h2>Investitionskosten & Förderung Wärmepumpe</h2>
+        <label for="investitionSlider">Investitionskosten (inkl. Einbau) in €</label>
+        <div class="slider-container">
+            <input type="range" id="investitionSlider" min="5000" max="50000" step="500" value="20000" />
+            <span id="investitionValue" class="slider-value">20000 €</span>
+        </div>
+        <div class="disclaimer">Durchschnitt: 15.000–30.000 €.</div>
+
+        <label for="foerderungenSlider">Erwartete Förderungen (einmalig) in €</label>
+        <div class="slider-container">
+            <input type="range" id="foerderungenSlider" min="0" max="25000" step="100" value="5000" />
+            <span id="foerderungenValue" class="slider-value">5000 €</span>
+        </div>
+        <div class="disclaimer">Reduziert die effektiven Investitionskosten für die Amortisationsrechnung.</div>
+      </div>
+    </form>
+
+    <div id="results">
+      <h2>Ergebnis Ihrer Berechnung</h2>
+      <p>Nutzwärmebedarf (Altanlage): <span class="highlight" id="nutzwaermeBedarf">0</span> kWh / Jahr</p>
+      <p>Aktuelle Heizkosten (Altanlage): <span class="highlight" id="kostenAktuell">0</span> € / Jahr</p>
+      <p>CO₂-Emissionen (Altanlage): <span class="highlight" id="co2Altanlage">0</span> kg / Jahr</p>
+      <hr style="border-color: var(--primary-color); opacity: 0.5;">
+      <p>Ungefähre Heizleistung Wärmepumpe: <span class="highlight" id="wpLeistung">0</span> kW</p>
+      <p>Angepasste JAZ/SCOP für WP: <span class="highlight" id="jazEffektiv">0</span></p>
+      <p>Heizkosten mit Wärmepumpe: <span class="highlight" id="kostenWP">0</span> € / Jahr</p>
+      <p>CO₂-Emissionen (Wärmepumpe): <span class="highlight" id="co2WP">0</span> kg / Jahr</p>
+      <hr style="border-color: var(--primary-color); opacity: 0.5;">
+      <p>Jährliche Ersparnis (Betriebskosten): <span class="highlight" id="ersparnis">0</span> €</p>
+      <p>Jährliche CO₂-Einsparung: <span class="highlight" id="co2Ersparnis">0</span> kg<br>
+         <small style="font-size:0.9em; color: var(--text-color-light);">entspricht ca. <span class="highlight" id="co2Fussballfelder">0</span> Fußballfeldern Waldfläche pro Jahr.</small>
+      </p>
+      <p>Amortisationszeit (nach Förderung): <span class="highlight" id="amortisation">–</span> Jahre</p>
+      <div class="disclaimer">* Alle Werte sind ungefähre Richtwerte. Die empfohlene Heizleistung ist eine grobe Schätzung; eine detaillierte Heizlastberechnung durch einen Fachbetrieb ist für die korrekte Dimensionierung unerlässlich.</div>
+    </div>
+    <div class="price-update-info">
+        Die Standard-Energiepreise im Rechner sind Richtwerte (Stand: Juni 2025) und sollten für eine genaue Berechnung mit Ihren aktuellen Tarifen abgeglichen werden.
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const form = document.getElementById('calculatorForm');
+      const radios = form.elements['method']; 
+      const blockVerbrauch = document.getElementById('blockVerbrauch');
+      const blockFlaeche = document.getElementById('blockFlaeche');
+      
+      const gebaeudeklasseValueInput = document.getElementById('gebaeudeklasseValue');
+      const system1ValueInput = document.getElementById('system1Value');
+      const system2ValueInput = document.getElementById('system2Value');
+
+      function toggleBlocks() {
+        const isVerbrauch = radios.value === 'verbrauch'; 
+        blockVerbrauch.style.display = isVerbrauch ? 'block' : 'none';
+        blockFlaeche.style.display = isVerbrauch ? 'none' : 'block';
+        
+        if (isVerbrauch) {
+            configurePreisSlider(system1ValueInput.value, preis1Slider, preis1Value, einheitVerbrauch1);
+        } else {
+            configurePreisSlider(system2ValueInput.value, preis2Slider, preis2Value, null);
+        }
+        calculateAll();
+      }
+
+      const energyFactors = { heizoel: 9.9, erdgas_h: 10.6, erdgas_l: 9.2, fluessiggas: 6.7, pellets: 4.9, strom: 1.0 };
+      const defaultPrices = { 
+        heizoel: 1.03, erdgas_h: (0.11 * energyFactors.erdgas_h).toFixed(3), erdgas_l: (0.11 * energyFactors.erdgas_l).toFixed(3),
+        fluessiggas: 0.70, pellets: 0.30, strom: 0.19
+      };
+      const priceSliderConfigs = {
+        heizoel:     { min: 0.50, max: 2.50, step: 0.01, unit: "€/Liter" },
+        erdgas_h:    { min: 0.50, max: 3.00, step: 0.01, unit: "€/m³" }, 
+        erdgas_l:    { min: 0.50, max: 3.00, step: 0.01, unit: "€/m³" },
+        fluessiggas: { min: 0.40, max: 2.00, step: 0.01, unit: "€/Liter" },
+        pellets:     { min: 0.15, max: 0.80, step: 0.01, unit: "€/kg" },
+        strom:       { min: 0.15, max: 0.60, step: 0.01, unit: "€/kWh" } 
+      };
+       const defaultWirkungsgrade = { 
+        heizoel: 80, erdgas_h: 82, erdgas_l: 82, fluessiggas: 85, pellets: 88, strom: 100
+      };
+      const stromCo2Faktor = 0.12; // kg CO2 pro kWh Strom (Österreich-Mix, anpassbar)
+      const co2FactorsKwhInput = { // kg CO2 pro kWh Endenergie des Altsystems
+        heizoel: 0.269,     // ca. 2.66 kg/l / 9.9 kWh/l
+        erdgas_h: 0.202,    // Standardwert für Erdgas
+        erdgas_l: 0.202,    // Ähnlich wie H-Gas
+        fluessiggas: 0.230, // Standardwert für Flüssiggas
+        pellets: 0.02,      // Gering, nicht null (Transport, Produktion)
+        strom: stromCo2Faktor 
+      };
+      const kgCo2ProFussballfeldWaldProJahr = 5600; // Ungefährer Wert (0.7ha * 8000kg/ha)
+
+
+      const klasseFactors = { alt_unsaniert: 200, alt_teilsaniert: 150, alt_saniert: 100, neubau: 70, niedrigenergie: 30 };
+
+      const gebaeudeklasseDefinitions = [
+        { value: "alt_unsaniert", text: "Altbau, unsaniert", kWhText: "(~200 kWh/m²·a)", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 22v30h12V32h8v20h24V22L32 4zm-4 36h-8v-8h8v8zm16 0h-8v-8h8v8z" stroke="#555" stroke-width="1.5" opacity="0.7" fill="#d3a17d"/><path d="M10 20 L10 15 L15 15 M54 20 L54 15 L49 15 M20 10 L15 15 M44 10 L49 15" stroke="#8b4513" stroke-width="2.5" fill="none" opacity="0.6"/><rect x="26" y="42" width="12" height="10" fill="#a0522d" opacity="0.8"/></svg>` },
+        { value: "alt_teilsaniert", text: "Altbau, teilsaniert", kWhText: "(~150 kWh/m²·a)", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 22v30h56V22L32 4zM16 50H8V30h8v20zm32 0h-8V30h8v20zM28 34h8v16h-8V34z" stroke="#555" stroke-width="1.5" fill="#e0c9a6"/><rect x="20" y="24" width="24" height="8" fill="#66bb6a" opacity="0.8"/><path d="M32 6 L10 20 M32 6 L54 20" stroke="#a0522d" stroke-width="2.5" fill="none"/></svg>` },
+        { value: "alt_saniert", text: "Altbau, saniert", kWhText: "(~100 kWh/m²·a)", svg: `<svg viewBox="0 0 64 64"><path d="M32 2L2 20v34h60V20L32 2zm0 4.5L54.8 20H9.2L32 6.5zM58 50H6V22h52v28z" fill="#f5f5f5" stroke="#555" stroke-width="1.5"/><rect x="16" y="28" width="8" height="12" fill="#b3e5fc" stroke="#333" stroke-width="1.2"/><rect x="40" y="28" width="8" height="12" fill="#b3e5fc" stroke="#333" stroke-width="1.2"/><rect x="28" y="40" width="8" height="10" fill="#ffcc80" stroke="#333" stroke-width="1.2"/></svg>` },
+        { value: "neubau", text: "Neubau", kWhText: "(~70 kWh/m²·a)", svg: `<svg viewBox="0 0 64 64"><rect x="6" y="18" width="52" height="36" fill="#e3f2fd" stroke="#555" stroke-width="1.5"/><polygon points="4,18 32,6 60,18" fill="#cfd8dc" stroke="#555" stroke-width="1.5"/><rect x="16" y="30" width="10" height="18" fill="#ffffff" stroke="#444" stroke-width="1.2"/><rect x="38" y="30" width="10" height="10" fill="#ffffff" stroke="#444" stroke-width="1.2"/><line x1="6" y1="28" x2="58" y2="28" stroke="#90a4ae" stroke-width="2.5"/></svg>` },
+        { value: "niedrigenergie", text: "Niedrigenergiehaus", kWhText: "(~30 kWh/m²·a)", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 20v30h56V20L32 4z" fill="#dcedc8" stroke="#4caf50" stroke-width="1.5"/><rect x="24" y="32" width="16" height="16" fill="#c8e6c9" stroke="#4caf50" stroke-width="1.2"/><path d="M32 12 A12 12 0 0 1 44 24 A12 12 0 0 1 32 36 A12 12 0 0 1 20 24 A12 12 0 0 1 32 12 M32 16 A4 4 0 0 0 28 20 L36 28 A4 4 0 0 0 32 16" fill="#ffee58" opacity="0.9"/><path d="M28 40 L36 40 L32 48 Z" fill="#66bb6a"/></svg>`}
+      ];
+      const heizsystemDefinitions = [
+        { value: "heizoel", text: "Heizöl (EL)", svg: `<svg viewBox="0 0 64 64"><path d="M32 6C20.9 6 12 14.9 12 26c0 7.8 4.9 14.5 11.9 17.3l-.6 9.3h17.4l-.6-9.3C47.1 40.5 52 33.8 52 26c0-11.1-8.9-20-20-20zm0 32c-6.6 0-12-5.4-12-12s5.4-12 12-12 12 5.4 12 12-5.4 12-12 12z" fill="#795548"/><circle cx="32" cy="26" r="8" fill="#a1887f"/></svg>` },
+        { value: "erdgas_h", text: "Erdgas (H-Gas)", svg: `<svg viewBox="0 0 64 64"><path d="M32 2C19.7 2 9.8 10.1 7 21.3c4.6-3.2 10.1-5.3 16-5.3 11.8 0 21.4 8.6 23.7 19.9C51.2 42.8 56 37.2 56 30.6c0-10.3-8.9-18.7-20-19.9V2c-1.3 0-2.6.1-4 .3zm11.1 34.8C40.6 46.2 32.9 52 24 52c-4.4 0-8.5-1.3-12-3.5 3.2 6.7 10 11.5 17.9 11.5 10.5 0 19.1-7.7 20.1-17.9z" fill="#ff9800"/><path d="M27.4 30.1c-2.4-1.2-5.2-1.8-8-1.8-6.5 0-12.3 2.7-16.4 7C7.1 21.9 18.4 12 32 12c.7 0 1.3.1 2 .1-3.6 5.5-5.5 12.1-4.6 18z" fill="#f57c00"/></svg>` },
+        { value: "erdgas_l", text: "Erdgas (L-Gas)", svg: `<svg viewBox="0 0 64 64"><path d="M32 2C19.7 2 9.8 10.1 7 21.3c4.6-3.2 10.1-5.3 16-5.3 11.8 0 21.4 8.6 23.7 19.9C51.2 42.8 56 37.2 56 30.6c0-10.3-8.9-18.7-20-19.9V2c-1.3 0-2.6.1-4 .3zm11.1 34.8C40.6 46.2 32.9 52 24 52c-4.4 0-8.5-1.3-12-3.5 3.2 6.7 10 11.5 17.9 11.5 10.5 0 19.1-7.7 20.1-17.9z" fill="#ffb74d"/><path d="M27.4 30.1c-2.4-1.2-5.2-1.8-8-1.8-6.5 0-12.3 2.7-16.4 7C7.1 21.9 18.4 12 32 12c.7 0 1.3.1 2 .1-3.6 5.5-5.5 12.1-4.6 18z" fill="#ffa726"/></svg>` },
+        { value: "fluessiggas", text: "Flüssiggas", svg: `<svg viewBox="0 0 64 64"><rect x="18" y="10" width="28" height="44" rx="8" fill="#bdbdbd" stroke="#757575" stroke-width="1.5"/><rect x="22" y="12" width="20" height="8" fill="#9e9e9e"/><line x1="32" y1="20" x2="32" y2="28" stroke="#757575" stroke-width="2.5"/><path d="M26 32h12l-2 6h-8z" fill="#f44336" /></svg>` },
+        { value: "pellets", text: "Holzpellets", svg: `<svg viewBox="0 0 64 64"><path d="M12 52h40v4H12zM16 48l4-10h24l4 10zM20 34l4-10h16l4 10zM24 20l4-10h8l4 10z" fill="#c8b7a1" stroke="#8d6e63" stroke-width="1"/><circle cx="22" cy="42" r="3" fill="#a1887f"/><circle cx="32" cy="46" r="3" fill="#a1887f"/><circle cx="42" cy="42" r="3" fill="#a1887f"/><circle cx="28" cy="30" r="3" fill="#a1887f"/><circle cx="36" cy="30" r="3" fill="#a1887f"/><circle cx="32" cy="18" r="3" fill="#a1887f"/></svg>` },
+        { value: "strom", text: "Strom", svg: `<svg viewBox="0 0 64 64"><path d="M32 2L12 32h12l-4 20 24-30H32l4-20z" fill="#ffea00" stroke="#fbc02d" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>` }
+      ];
+
+      const gebaeudeklasseIconGroup = document.getElementById('gebaeudeklasseIconGroup');
+      const heizsystem1IconGroup = document.getElementById('heizsystem1IconGroup');
+      const heizsystem2IconGroup = document.getElementById('heizsystem2IconGroup');
+
+      function createIconOptions(definitions, groupElement, hiddenInputElement, callbackOnSelect) {
+          groupElement.innerHTML = '';
+          definitions.forEach(def => {
+              const optionDiv = document.createElement('div');
+              optionDiv.classList.add('icon-option');
+              optionDiv.dataset.value = def.value;
+              optionDiv.innerHTML = `${def.svg}<span class="option-text">${def.text}${def.kWhText ? `<small>${def.kWhText}</small>` : ''}</span>`;
+              if (def.value === hiddenInputElement.value) {
+                  optionDiv.classList.add('active');
+              }
+              optionDiv.addEventListener('click', function() {
+                  groupElement.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
+                  this.classList.add('active');
+                  hiddenInputElement.value = this.dataset.value;
+                  if (callbackOnSelect) {
+                      const isBlock1 = groupElement.id === 'heizsystem1IconGroup';
+                      const relevantWirkungsgradSlider = isBlock1 ? wirkungsgradAlt1Slider : wirkungsgradAlt2Slider;
+                      const relevantPreisSlider = isBlock1 ? preis1Slider : preis2Slider;
+                      const relevantPreisSpan = isBlock1 ? preis1Value : preis2Value;
+                      const relevantVerbrauchSpan = isBlock1 ? einheitVerbrauch1 : null;
+
+                      if (hiddenInputElement.id === "gebaeudeklasseValue") {
+                         callbackOnSelect(this.dataset.value);
+                      } else {
+                         callbackOnSelect(this.dataset.value, relevantWirkungsgradSlider, relevantPreisSlider, relevantPreisSpan, relevantVerbrauchSpan);
+                      }
+                  }
+                  calculateAll();
+              });
+              groupElement.appendChild(optionDiv);
+          });
+      }
+      
+      const wirkungsgradAlt1Slider = document.getElementById('wirkungsgradAlt1Slider');
+      const wirkungsgradAlt1Value = document.getElementById('wirkungsgradAlt1Value');
+      const verbrauch1 = document.getElementById('verbrauch1');
+      const einheitVerbrauch1 = document.getElementById('einheitVerbrauch1');
+      const preis1Slider = document.getElementById('preis1Slider');
+      const preis1Value = document.getElementById('preis1Value');
+
+      const flaeche2Slider = document.getElementById('flaeche2Slider');
+      const flaeche2Value = document.getElementById('flaeche2Value');
+      const anteilFussbodenheizungSlider = document.getElementById('anteilFussbodenheizungSlider');
+      const anteilFussbodenheizungValue = document.getElementById('anteilFussbodenheizungValue');
+      
+      const wirkungsgradAlt2Slider = document.getElementById('wirkungsgradAlt2Slider');
+      const wirkungsgradAlt2Value = document.getElementById('wirkungsgradAlt2Value');
+      const preis2Slider = document.getElementById('preis2Slider');
+      const preis2Value = document.getElementById('preis2Value');
+
+      const strompreisSlider = document.getElementById('strompreisSlider');
+      const strompreisValue = document.getElementById('strompreisValue');
+      const jazSlider = document.getElementById('jazSlider');
+      const jazValue = document.getElementById('jazValue');
+      const investitionSlider = document.getElementById('investitionSlider');
+      const investitionValue = document.getElementById('investitionValue');
+      const foerderungenSlider = document.getElementById('foerderungenSlider'); 
+      const foerderungenValue = document.getElementById('foerderungenValue'); 
+
+
+      const resultsDiv = document.getElementById('results');
+      const nutzwaermeBedarfElem = document.getElementById('nutzwaermeBedarf');
+      const kostenAktuellElem = document.getElementById('kostenAktuell');
+      const co2AltanlageElem = document.getElementById('co2Altanlage'); 
+      const wpLeistungElem = document.getElementById('wpLeistung'); 
+      const jazEffektivElem = document.getElementById('jazEffektiv'); 
+      const kostenWPElem = document.getElementById('kostenWP');
+      const co2WPElem = document.getElementById('co2WP'); 
+      const ersparnisElem = document.getElementById('ersparnis');
+      const co2ErsparnisElem = document.getElementById('co2Ersparnis'); 
+      const co2FussballfelderElem = document.getElementById('co2Fussballfelder'); // NEU
+      const amortisationElem = document.getElementById('amortisation');
+
+      function setupSlider(sliderElement, valueElement, unit = "", decimals = 0, isPreisSlider = false, systemKeyForPreis = null) {
+          if (!sliderElement || !valueElement) return;
+          
+          const updateDisplay = () => {
+              let displayValue = parseFloat(sliderElement.value);
+              let displayUnit = unit;
+              if (isPreisSlider && systemKeyForPreis) {
+                  const config = priceSliderConfigs[systemKeyForPreis];
+                  if (config) {
+                      displayUnit = config.unit;
+                      decimals = config.step.toString().split('.')[1]?.length || 0;
+                  }
+              }
+              valueElement.textContent = displayValue.toFixed(decimals) + " " + displayUnit;
+          };
+
+          updateDisplay(); 
+          sliderElement.addEventListener('input', function() {
+              updateDisplay();
+              calculateAll();
+          });
+      }
+      
+      setupSlider(wirkungsgradAlt1Slider, wirkungsgradAlt1Value, "%");
+      setupSlider(wirkungsgradAlt2Slider, wirkungsgradAlt2Value, "%");
+      setupSlider(flaeche2Slider, flaeche2Value, "m²");
+      setupSlider(anteilFussbodenheizungSlider, anteilFussbodenheizungValue, "%");
+      setupSlider(strompreisSlider, strompreisValue, "€/kWh", 2);
+      setupSlider(jazSlider, jazValue, "", 1);
+      setupSlider(investitionSlider, investitionValue, "€");
+      setupSlider(foerderungenSlider, foerderungenValue, "€"); 
+      setupSlider(preis1Slider, preis1Value, "", 2, true, system1ValueInput.value); 
+      setupSlider(preis2Slider, preis2Value, "", 2, true, system2ValueInput.value);
+
+
+      function getEinheitText(sysKey) {
+          const config = priceSliderConfigs[sysKey] || { unit: "€/Einheit" };
+          let verbrauchTxt = '';
+           switch (sysKey) {
+            case 'heizoel': case 'fluessiggas': verbrauchTxt = 'Liter'; break;
+            case 'erdgas_h': case 'erdgas_l': verbrauchTxt = 'm³'; break;
+            case 'pellets': verbrauchTxt = 'kg'; break;
+            case 'strom': verbrauchTxt = 'kWh'; break;
+            default: verbrauchTxt = 'Einheit';
+          }
+          return { verbrauch: verbrauchTxt, preisUnit: config.unit };
+      }
+
+      function configurePreisSlider(systemValue, preisSlider, preisValueSpan, zugehoerigeEinheitVerbrauchSpan) {
+          const einheiten = getEinheitText(systemValue);
+          if (zugehoerigeEinheitVerbrauchSpan) { 
+              zugehoerigeEinheitVerbrauchSpan.textContent = einheiten.verbrauch;
+          }
+
+          if (systemValue === 'strom') {
+              preisSlider.min = strompreisSlider.min;
+              preisSlider.max = strompreisSlider.max;
+              preisSlider.step = strompreisSlider.step;
+              preisSlider.value = strompreisSlider.value; 
+              preisSlider.disabled = true;
+              preisValueSpan.textContent = parseFloat(preisSlider.value).toFixed(2) + " " + priceSliderConfigs.strom.unit;
+          } else {
+              preisSlider.disabled = false;
+              const config = priceSliderConfigs[systemValue];
+              if (config) {
+                  preisSlider.min = config.min;
+                  preisSlider.max = config.max;
+                  preisSlider.step = config.step;
+                  
+                  if (preisSlider.dataset.currentSystem !== systemValue || !parseFloat(preisSlider.value) ) {
+                       preisSlider.value = defaultPrices[systemValue] || config.min;
+                  }
+                  preisValueSpan.textContent = parseFloat(preisSlider.value).toFixed(config.step.toString().split('.')[1]?.length || 2) + " " + config.unit;
+                  preisSlider.dataset.currentSystem = systemValue; 
+              }
+          }
+          preisSlider.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+      }
+      
+      function handleHeizsystemChange(selectedValue, wirkungsgradSlider, preisSliderElement, preisValueSpanElement, einheitVerbrauchSpanElement) {
+          if (wirkungsgradSlider) {
+              const defaultWg = defaultWirkungsgrade[selectedValue] || 85;
+              wirkungsgradSlider.value = defaultWg;
+              wirkungsgradSlider.dispatchEvent(new Event('input'));
+          }
+          configurePreisSlider(selectedValue, preisSliderElement, preisValueSpanElement, einheitVerbrauchSpanElement);
+      }
+
+      function handleGebaeudeklasseChange(selectedValue) {
+          let fbhAnteil = 50;
+          let defaultJazVal = 3.0; 
+          switch(selectedValue) {
+              case "alt_unsaniert":   fbhAnteil = 0;  defaultJazVal = 3.0; break;
+              case "alt_teilsaniert": fbhAnteil = 10; defaultJazVal = 3.3; break;
+              case "alt_saniert":     fbhAnteil = 30; defaultJazVal = 3.7; break;
+              case "neubau":          fbhAnteil = 90; defaultJazVal = 4.2; break;
+              case "niedrigenergie":  fbhAnteil = 100;defaultJazVal = 4.8; break;
+          }
+          anteilFussbodenheizungSlider.value = fbhAnteil;
+          anteilFussbodenheizungSlider.dispatchEvent(new Event('input'));
+
+          jazSlider.value = defaultJazVal;
+          jazSlider.dispatchEvent(new Event('input'));
+      }
+
+      strompreisSlider.addEventListener('input', function() {
+        if (system1ValueInput.value === 'strom') {
+            configurePreisSlider('strom', preis1Slider, preis1Value, einheitVerbrauch1);
+        }
+        if (system2ValueInput.value === 'strom') {
+            configurePreisSlider('strom', preis2Slider, preis2Value, null);
+        }
+      });
+
+
+      function calculateAll() {
+        resultsDiv.style.display = 'none'; 
+        const basisJAZ = parseFloat(jazSlider.value) || 0; let JAZ_final = basisJAZ; 
+        const inv = parseFloat(investitionSlider.value) || 0; 
+        const foerderungen = parseFloat(foerderungenSlider.value) || 0; 
+        const effektiveInvestition = Math.max(0, inv - foerderungen); 
+
+        const strompreisVal = parseFloat(strompreisSlider.value) || 0;
+        let energieInputAltanlage_kWh = 0, nutzwaermebedarf_kWh = 0, preisAktuellGesamt = 0, wirkungsgradAlt = 0;
+        let aktuellesSystemValue, aktuellerPreis;
+        let co2Altanlage = 0, co2WP = 0; 
+
+        if (radios.value === 'verbrauch') {
+          aktuellesSystemValue = system1ValueInput.value;
+          aktuellerPreis = parseFloat(preis1Slider.value) || 0;
+          wirkungsgradAlt = parseFloat(wirkungsgradAlt1Slider.value) / 100 || 0;
+          const verb = parseFloat(verbrauch1.value) || 0; 
+          const faktor = energyFactors[aktuellesSystemValue] || 0; 
+          if(aktuellesSystemValue === 'strom') wirkungsgradAlt = 1.0; 
+          energieInputAltanlage_kWh = verb * faktor; 
+          nutzwaermebedarf_kWh = energieInputAltanlage_kWh * wirkungsgradAlt;
+          preisAktuellGesamt = verb * aktuellerPreis; 
+          if (jazEffektivElem) jazEffektivElem.textContent = basisJAZ.toFixed(1); 
+        } else { 
+          aktuellesSystemValue = system2ValueInput.value;
+          aktuellerPreis = parseFloat(preis2Slider.value) || 0;
+          wirkungsgradAlt = parseFloat(wirkungsgradAlt2Slider.value) / 100 || 0;
+          const klasse = gebaeudeklasseValueInput.value;
+          const flaeche = parseFloat(flaeche2Slider.value) || 0; 
+          const anteilFbhProzent = parseFloat(anteilFussbodenheizungSlider.value) || 0; 
+          const faktorEinheit = energyFactors[aktuellesSystemValue] || 0; 
+          
+          energieInputAltanlage_kWh = flaeche * (klasseFactors[klasse] || 0); 
+          if(aktuellesSystemValue === 'strom') wirkungsgradAlt = 1.0;
+          nutzwaermebedarf_kWh = energieInputAltanlage_kWh * wirkungsgradAlt;
+
+          if (aktuellesSystemValue === 'strom') { 
+             preisAktuellGesamt = energieInputAltanlage_kWh * aktuellerPreis;
+          } else if (faktorEinheit > 0) { 
+            preisAktuellGesamt = (energieInputAltanlage_kWh / faktorEinheit) * aktuellerPreis; 
+          } else { preisAktuellGesamt = 0; }
+
+          if (basisJAZ > 0) {
+            if (anteilFbhProzent >= 75) JAZ_final = basisJAZ + 0.3;
+            else if (anteilFbhProzent <= 25) JAZ_final = basisJAZ - 0.3;
+            JAZ_final = Math.max(2.0, JAZ_final); 
+          }
+          if (jazEffektivElem) jazEffektivElem.textContent = JAZ_final.toFixed(1);
+        }
+
+        co2Altanlage = energieInputAltanlage_kWh * (co2FactorsKwhInput[aktuellesSystemValue] || 0);
+        const wpLeistung = nutzwaermebedarf_kWh > 0 ? (nutzwaermebedarf_kWh / 2000) : 0; 
+
+        let kostenWPVal = 0; 
+        let stromverbrauchWP_kWh = 0;
+        if (JAZ_final > 0 && strompreisVal > 0 && nutzwaermebedarf_kWh > 0) {
+          stromverbrauchWP_kWh = nutzwaermebedarf_kWh / JAZ_final;
+          kostenWPVal = stromverbrauchWP_kWh * strompreisVal;
+        }
+        co2WP = stromverbrauchWP_kWh * stromCo2Faktor;
+        const co2EinsparungKg = co2Altanlage - co2WP;
+        const co2Fussballfelder = co2EinsparungKg > 0 ? (co2EinsparungKg / kgCo2ProFussballfeldWaldProJahr) : 0;
+
+
+        const ersparnisVal = preisAktuellGesamt - kostenWPVal; 
+        let amort = '–';
+        if (ersparnisVal > 0 && effektiveInvestition >= 0) { 
+          amort = (effektiveInvestition / ersparnisVal).toFixed(1);
+        } else if (ersparnisVal <= 0 && effektiveInvestition > 0) {
+             amort = "Keine Amortisation";
+        } else if (effektiveInvestition < 0) { 
+            amort = "Prüfen: Förderung > Kosten";
+        }
+        
+        if ((nutzwaermebedarf_kWh > 0 && preisAktuellGesamt >= 0) || (radios.value === 'verbrauch' && parseFloat(verbrauch1.value) > 0)) {
+            if(nutzwaermeBedarfElem) nutzwaermeBedarfElem.textContent = nutzwaermebedarf_kWh.toFixed(0);
+            if(kostenAktuellElem) kostenAktuellElem.textContent = preisAktuellGesamt.toFixed(2);
+            if(co2AltanlageElem) co2AltanlageElem.textContent = co2Altanlage.toFixed(0);
+            if(wpLeistungElem) wpLeistungElem.textContent = wpLeistung.toFixed(1); 
+
+            if(kostenWPElem) kostenWPElem.textContent = kostenWPVal.toFixed(2);
+            if(co2WPElem) co2WPElem.textContent = co2WP.toFixed(0);
+
+            if(ersparnisElem) ersparnisElem.textContent = (ersparnisVal > 0 ? ersparnisVal.toFixed(2) : '0.00 (Mehrkosten: ' + Math.abs(ersparnisVal).toFixed(2) + ')');
+            if(co2ErsparnisElem) co2ErsparnisElem.textContent = co2EinsparungKg.toFixed(0); 
+            if(co2FussballfelderElem) co2FussballfelderElem.textContent = co2Fussballfelder.toFixed(1);
+            if(amortisationElem) amortisationElem.textContent = amort; 
+            if(resultsDiv) resultsDiv.style.display = 'block';
+        } else { 
+           if(resultsDiv) resultsDiv.style.display = 'none'; 
+        }
+      }
+
+      // Event Listeners
+      document.querySelectorAll('input[name="method"]').forEach(radio => {
+          radio.addEventListener('change', toggleBlocks);
+      });
+      if(verbrauch1) verbrauch1.addEventListener('input', calculateAll);
+      
+      // Init
+      createIconOptions(gebaeudeklasseDefinitions, gebaeudeklasseIconGroup, gebaeudeklasseValueInput, handleGebaeudeklasseChange);
+      createIconOptions(heizsystemDefinitions, heizsystem1IconGroup, system1ValueInput, (selectedValue, wgSlider, pSlider, pValSpan, eVbSpan) => handleHeizsystemChange(selectedValue, wgSlider, pSlider, pValSpan, eVbSpan));
+      createIconOptions(heizsystemDefinitions, heizsystem2IconGroup, system2ValueInput, (selectedValue, wgSlider, pSlider, pValSpan, eVbSpan) => handleHeizsystemChange(selectedValue, wgSlider, pSlider, pValSpan, eVbSpan));
+      
+      handleGebaeudeklasseChange(gebaeudeklasseValueInput.value); 
+      handleHeizsystemChange(system1ValueInput.value, wirkungsgradAlt1Slider, preis1Slider, preis1Value, einheitVerbrauch1);
+      handleHeizsystemChange(system2ValueInput.value, wirkungsgradAlt2Slider, preis2Slider, preis2Value, null);
+      
+      toggleBlocks(); 
+    });
+  </script>
+</body>
+</html>
 
