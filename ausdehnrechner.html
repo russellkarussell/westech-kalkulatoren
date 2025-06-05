@@ -156,10 +156,15 @@
           selectedVessel = 24;
           linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-24l-ar24-wandhalterung";
           imgUrl = "https://cdn.shopify.com/s/files/1/0537/8127/7757/products/beispielbild24l.jpg";
+        } else if (V_G <= 35) {
+          selectedVessel = 35;
+          linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-35l-ar35-wandhalterung";
+          imgUrl = "https://www.westech.shop/media/image/product/175/xs/trinkwasser-ausdehnungsgefaess-35l-ar35-wandhalterung.jpg";
         } else {
-          selectedVessel = Math.ceil(V_G / 6) * 6;
-          linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaesse"; 
-          imgUrl = "https://cdn.shopify.com/s/files/1/0537/8127/7757/products/grossesgefaess.jpg";
+          // Kein passendes Gefäß vorhanden
+          const resultDiv = document.getElementById('result');
+          resultDiv.innerHTML = `<p>Kein passendes Ausdehnungsgefäß gefunden.</p>`;
+          return;
         }
 
         const resultDiv = document.getElementById('result');
