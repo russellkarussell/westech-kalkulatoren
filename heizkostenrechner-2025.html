@@ -250,6 +250,12 @@
       margin: 10px 0;
       font-size: 1.05rem;
     }
+    .derived-scop-info { /* NEU: Für den abgeleiteten SCOP Wert */
+        font-size: 0.9em;
+        color: var(--text-color-light);
+        margin-top: -5px; /* Etwas näher an den Slider */
+        margin-bottom: 5px;
+    }
     .highlight {
       font-weight: bold;
       color: var(--accent-color); 
@@ -386,13 +392,17 @@
         </div>
         <div class="disclaimer">Dieser Preis gilt auch für "Altanlage Strom".</div>
 
-
-        <label for="jazSlider">Basis JAZ/SCOP (Jahresarbeitszahl Wärmepumpe)</label>
+        <label for="vorlauftemperaturSlider">Vorlauftemperatur (°C)</label>
          <div class="slider-container">
-            <input type="range" id="jazSlider" min="2.0" max="5.5" step="0.1" value="3.0" />
-            <span id="jazValue" class="slider-value">3.0</span>
+            <input type="range" id="vorlauftemperaturSlider" min="30" max="75" step="1" value="55" />
+            <span id="vorlauftemperaturValue" class="slider-value">55 °C</span>
         </div>
-        <div class="disclaimer">Wird je nach Gebäudeklasse vorausgewählt und ggf. durch Anteil Fußbodenheizung angepasst.</div>
+        <p class="derived-scop-info">Abgeleiteter Basis-SCOP: <span id="basisSCOPValue" style="font-weight:bold; color: var(--accent-color);">3.0</span></p>
+        <div class="disclaimer">
+            Der SCOP (Seasonal Coefficient of Performance) ist die Jahresarbeitszahl der Wärmepumpe.
+            Niedrigere Vorlauftemperaturen führen zu höherem SCOP (z.B. 35°C VL ≈ SCOP 5; 55°C VL ≈ SCOP 3).
+            Wird je nach Gebäudeklasse vorausgewählt und ggf. durch Anteil Fußbodenheizung angepasst.
+        </div>
       </div>
 
       <div class="input-block">
@@ -485,7 +495,7 @@
         pellets: 0.02,      // Gering, nicht null (Transport, Produktion)
         strom: stromCo2Faktor 
       };
-      const kgCo2ProFussballfeldWaldProJahr = 5600; // Ungefährer Wert (0.7ha * 8000kg/ha)
+      const kgCo2ProFussballfeldWaldProJahr = 5600; 
 
 
       const klasseFactors = { alt_unsaniert: 200, alt_teilsaniert: 150, alt_saniert: 100, neubau: 70, niedrigenergie: 30 };
@@ -562,8 +572,12 @@
 
       const strompreisSlider = document.getElementById('strompreisSlider');
       const strompreisValue = document.getElementById('strompreisValue');
-      const jazSlider = document.getElementById('jazSlider');
-      const jazValue = document.getElementById('jazValue');
+      const vorlauftemperaturSlider = document.getElementById('vorlauftemperaturSlider'); // NEU
+      const vorlauftemperaturValue = document.getElementById('vorlauftemperaturValue'); // NEU
+      const basisSCOPValueElem = document.getElementById('basisSCOPValue'); // NEU
+      // const jazSlider = document.getElementById('jazSlider'); // Alt, jetzt vorlauftemperaturSlider
+      // const jazValue = document.getElementById('jazValue'); // Alt
+
       const investitionSlider = document.getElementById('investitionSlider');
       const investitionValue = document.getElementById('investitionValue');
       const foerderungenSlider = document.getElementById('foerderungenSlider'); 
@@ -580,7 +594,7 @@
       const co2WPElem = document.getElementById('co2WP'); 
       const ersparnisElem = document.getElementById('ersparnis');
       const co2ErsparnisElem = document.getElementById('co2Ersparnis'); 
-      const co2FussballfelderElem = document.getElementById('co2Fussballfelder'); // NEU
+      const co2FussballfelderElem = document.getElementById('co2Fussballfelder'); 
       const amortisationElem = document.getElementById('amortisation');
 
       function setupSlider(sliderElement, valueElement, unit = "", decimals = 0, isPreisSlider = false, systemKeyForPreis = null) {
@@ -597,6 +611,13 @@
                   }
               }
               valueElement.textContent = displayValue.toFixed(decimals) + " " + displayUnit;
+
+              // Spezielle Logik für Vorlauftemperatur-Slider, um Basis-SCOP anzuzeigen
+              if (sliderElement.id === 'vorlauftemperaturSlider' && basisSCOPValueElem) {
+                const vl = parseFloat(sliderElement.value);
+                const basisSCOP = Math.max(2.0, 5 - 0.1 * (vl - 35));
+                basisSCOPValueElem.textContent = basisSCOP.toFixed(1);
+              }
           };
 
           updateDisplay(); 
@@ -611,7 +632,8 @@
       setupSlider(flaeche2Slider, flaeche2Value, "m²");
       setupSlider(anteilFussbodenheizungSlider, anteilFussbodenheizungValue, "%");
       setupSlider(strompreisSlider, strompreisValue, "€/kWh", 2);
-      setupSlider(jazSlider, jazValue, "", 1);
+      setupSlider(vorlauftemperaturSlider, vorlauftemperaturValue, "°C", 0); // NEU
+      // setupSlider(jazSlider, jazValue, "", 1); // Alt
       setupSlider(investitionSlider, investitionValue, "€");
       setupSlider(foerderungenSlider, foerderungenValue, "€"); 
       setupSlider(preis1Slider, preis1Value, "", 2, true, system1ValueInput.value); 
@@ -673,19 +695,20 @@
 
       function handleGebaeudeklasseChange(selectedValue) {
           let fbhAnteil = 50;
-          let defaultJazVal = 3.0; 
+          let defaultVorlauf = 55; // °C
+          
           switch(selectedValue) {
-              case "alt_unsaniert":   fbhAnteil = 0;  defaultJazVal = 3.0; break;
-              case "alt_teilsaniert": fbhAnteil = 10; defaultJazVal = 3.3; break;
-              case "alt_saniert":     fbhAnteil = 30; defaultJazVal = 3.7; break;
-              case "neubau":          fbhAnteil = 90; defaultJazVal = 4.2; break;
-              case "niedrigenergie":  fbhAnteil = 100;defaultJazVal = 4.8; break;
+              case "alt_unsaniert":   fbhAnteil = 0;  defaultVorlauf = 55; break;
+              case "alt_teilsaniert": fbhAnteil = 10; defaultVorlauf = 52; break;
+              case "alt_saniert":     fbhAnteil = 30; defaultVorlauf = 48; break;
+              case "neubau":          fbhAnteil = 90; defaultVorlauf = 43; break;
+              case "niedrigenergie":  fbhAnteil = 100;defaultVorlauf = 37; break;
           }
           anteilFussbodenheizungSlider.value = fbhAnteil;
           anteilFussbodenheizungSlider.dispatchEvent(new Event('input'));
 
-          jazSlider.value = defaultJazVal;
-          jazSlider.dispatchEvent(new Event('input'));
+          vorlauftemperaturSlider.value = defaultVorlauf;
+          vorlauftemperaturSlider.dispatchEvent(new Event('input')); // Triggert auch Basis-SCOP Anzeige
       }
 
       strompreisSlider.addEventListener('input', function() {
@@ -700,7 +723,12 @@
 
       function calculateAll() {
         resultsDiv.style.display = 'none'; 
-        const basisJAZ = parseFloat(jazSlider.value) || 0; let JAZ_final = basisJAZ; 
+        const vorlaufTemp = parseFloat(vorlauftemperaturSlider.value);
+        let basisSCOP = Math.max(2.0, 5 - 0.1 * (vorlaufTemp - 35));
+        if (basisSCOPValueElem) basisSCOPValueElem.textContent = basisSCOP.toFixed(1); // Zeige den Basis-SCOP an
+        
+        let JAZ_final = basisSCOP; 
+
         const inv = parseFloat(investitionSlider.value) || 0; 
         const foerderungen = parseFloat(foerderungenSlider.value) || 0; 
         const effektiveInvestition = Math.max(0, inv - foerderungen); 
@@ -720,7 +748,8 @@
           energieInputAltanlage_kWh = verb * faktor; 
           nutzwaermebedarf_kWh = energieInputAltanlage_kWh * wirkungsgradAlt;
           preisAktuellGesamt = verb * aktuellerPreis; 
-          if (jazEffektivElem) jazEffektivElem.textContent = basisJAZ.toFixed(1); 
+          // JAZ_final bleibt basisSCOP, da keine FBH-Anpassung im Verbrauchsblock
+          if (jazEffektivElem) jazEffektivElem.textContent = JAZ_final.toFixed(1); 
         } else { 
           aktuellesSystemValue = system2ValueInput.value;
           aktuellerPreis = parseFloat(preis2Slider.value) || 0;
@@ -740,9 +769,11 @@
             preisAktuellGesamt = (energieInputAltanlage_kWh / faktorEinheit) * aktuellerPreis; 
           } else { preisAktuellGesamt = 0; }
 
-          if (basisJAZ > 0) {
-            if (anteilFbhProzent >= 75) JAZ_final = basisJAZ + 0.3;
-            else if (anteilFbhProzent <= 25) JAZ_final = basisJAZ - 0.3;
+          // Anpassung des JAZ_final basierend auf FBH-Anteil
+          if (basisSCOP > 0) { // basisSCOP ist jetzt JAZ_final bevor FBH Anpassung
+            if (anteilFbhProzent >= 75) JAZ_final = basisSCOP + 0.3;
+            else if (anteilFbhProzent <= 25) JAZ_final = basisSCOP - 0.3;
+            // JAZ_final bleibt basisSCOP wenn FBH Anteil dazwischen
             JAZ_final = Math.max(2.0, JAZ_final); 
           }
           if (jazEffektivElem) jazEffektivElem.textContent = JAZ_final.toFixed(1);
@@ -811,4 +842,3 @@
   </script>
 </body>
 </html>
-
