@@ -64,19 +64,33 @@
     .action-container { display: flex; align-items: center; margin-top: 20px; }
     .disclaimer { margin-left: 20px; font-size: 0.9em; color: #666; }
 
-    #result {
-      background: #fff;
-      padding: 15px;
+    /* Abschnitt für Ergebnisübersicht */
+    #summary {
+      background: #f9f9f9;
       border: 1px solid #ddd;
+      padding: 15px;
       max-width: 600px;
       margin-top: 20px;
+      display: none;
     }
+    #summary p { margin: 5px 0; font-size: 1em; }
 
-    /* Flex container für Text-Ergebnisse */
-    .result-container { display: flex; flex-direction: column; margin-bottom: 15px; }
-    .result-container a { color: #0066cc; text-decoration: none; }
-    .result-container a:hover { text-decoration: underline; }
-    .result-details p { margin: 4px 0; }
+    /* Grid für Heizstab-Liste */
+    #stabList {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-gap: 15px;
+      margin-top: 15px;
+    }
+    .stab-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 10px;
+      text-align: center;
+    }
+    .stab-card a { color: #0066cc; text-decoration: none; font-weight: bold; }
+    .stab-card a:hover { text-decoration: underline; }
+    .stab-info { margin-top: 8px; font-size: 0.95em; }
 
     .field-group { margin-bottom: 15px; }
 
@@ -86,12 +100,13 @@
       .slider-container { flex-direction: column; align-items: flex-start; }
       .slider-container input[type="range"] { margin-right: 0; margin-bottom: 5px; }
       .slider-value { width: 100%; text-align: left; font-size: 0.9em; }
+      #stabList { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
   <h2>Heizstab-Konfigurator</h2>
-  <p>Wähle Speichervolumen, Start- und Zieltemperatur sowie Strompreis – der Rechner zeigt dir passende Heizstäbe mit Aufheizzeit, Verbrauch und Kosten.</p>
+  <p>Wähle Speichervolumen, Start- und Zieltemperatur sowie Strompreis – der Rechner zeigt dir passende Heizstäbe. Verbrauch und Kosten erreichen alle Heizstäbe gemeinsam, die Heizdauer unterscheidet sich je nach Leistung.</p>
 
   <form id="heaterForm">
     <!-- Volumen-Slider -->
@@ -132,11 +147,16 @@
 
     <div class="action-container">
       <button type="button" id="calcButton">Berechnen</button>
-      <span class="disclaimer">* Wirkungsgrad intern 90 %.</span>
+      <span class="disclaimer">* Wirkungsgrad intern 90 %.</span>
     </div>
   </form>
 
-  <div id="result"></div>
+  <div id="summary">
+    <p><strong>Verbrauch:</strong> <span id="summaryEnergy"></span> kWh</p>
+    <p><strong>Kosten:</strong> <span id="summaryCost"></span> €</p>
+  </div>
+
+  <div id="stabList"></div>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -183,12 +203,12 @@
 
       // 5) Heizstäbe
       const heizstaebe = [
-        { name: "WPI-25 (2,5 kW, 230 V)", leistung: 2.5, laenge: 370, link: "https://www.westech.shop/heizstab-wpi-25-25kw-230v-g64-l-370-tr30-75c" },
-        { name: "WPI-30 (3,0 kW, 230 V)", leistung: 3.0, laenge: 390, link: "https://www.westech.shop/heizstab-wpi-30-30kw-230v-g64-l-390-tr30-75c" },
-        { name: "WPI-45 (4,5 kW, 400 V)", leistung: 4.5, laenge: 470, link: "https://www.westech.shop/heizstab-wpi-45-45kw-400v-g64-l-470-tr30-75c-hs" },
-        { name: "WPI-60 (6,0 kW, 400 V)", leistung: 6.0, laenge: 560, link: "https://www.westech.shop/heizstab-wpi-60-60kw-400v-g64-l-560-tr30-75c-hs" },
-        { name: "WPI-75 (7,5 kW, 400 V)", leistung: 7.5, laenge: 650, link: "https://www.westech.shop/heizstab-wpi-75-75kw-400v-g64-l-650-tr30-75c" },
-        { name: "WPI-90 (9,0 kW, 400 V)", leistung: 9.0, laenge: 720, link: "https://www.westech.shop/heizstab-wpi-90kw-400v-g64-l-720-tr30-75c" }
+        { name: "WPI-25 (2,5 kW, 230 V)", leistung: 2.5, laenge: 370, link: "https://www.westech.shop/heizstab-wpi-25-25kw-230v-g64-l-370-tr30-75c" },
+        { name: "WPI-30 (3,0 kW, 230 V)", leistung: 3.0, laenge: 390, link: "https://www.westech.shop/heizstab-wpi-30-30kw-230v-g64-l-390-tr30-75c" },
+        { name: "WPI-45 (4,5 kW, 400 V)", leistung: 4.5, laenge: 470, link: "https://www.westech.shop/heizstab-wpi-45-45kw-400v-g64-l-470-tr30-75c-hs" },
+        { name: "WPI-60 (6,0 kW, 400 V)", leistung: 6.0, laenge: 560, link: "https://www.westech.shop/heizstab-wpi-60-60kw-400v-g64-l-560-tr30-75c-hs" },
+        { name: "WPI-75 (7,5 kW, 400 V)", leistung: 7.5, laenge: 650, link: "https://www.westech.shop/heizstab-wpi-75-75kw-400v-g64-l-650-tr30-75c" },
+        { name: "WPI-90 (9,0 kW, 400 V)", leistung: 9.0, laenge: 720, link: "https://www.westech.shop/heizstab-wpi-90kw-400v-g64-l-720-tr30-75c" }
       ];
 
       // Hilfsfunktion: Minuten in Stunden+Minuten konvertieren
@@ -196,7 +216,7 @@
         const totalMin = Math.round(hours * 60);
         const h = Math.floor(totalMin / 60);
         const m = totalMin % 60;
-        return h + " h " + m + " min";
+        return h + " h " + m + " min";
       }
 
       // Hauptfunktion zur Berechnung
@@ -208,8 +228,12 @@
         const kostenProKWh = parseFloat(priceSlider.value);
         const eff = 0.9; // Wirkungsgrad
 
-        const resultDiv = document.getElementById('result');
-        resultDiv.innerHTML = '';
+        const summaryDiv = document.getElementById('summary');
+        const energySpan = document.getElementById('summaryEnergy');
+        const costSpan = document.getElementById('summaryCost');
+        const stabListDiv = document.getElementById('stabList');
+        summaryDiv.style.display = 'none';
+        stabListDiv.innerHTML = '';
 
         // Finde Eintauchtiefe basierend auf Volumen
         const currentSpeicher = speicher.find(s => s.volumen === V);
@@ -218,39 +242,45 @@
         // Berechnung Energiebedarf (kWh)
         const deltaT = Ttarget - Tstart;
         if (deltaT <= 0) {
-          resultDiv.innerHTML = '<p style="color: #c00;"><strong>Fehler:</strong> Die Zieltemperatur muss größer sein als die Starttemperatur.</p>';
+          summaryDiv.innerHTML = '<p style="color: #c00;"><strong>Fehler:</strong> Die Zieltemperatur muss größer sein als die Starttemperatur.</p>';
+          summaryDiv.style.display = 'block';
           return;
         }
-        // E_Wasser in Wh = V [kg] * 1.163 [Wh/(kg·K)] * deltaT
         const E_wasser_Wh = V * 1.163 * deltaT;
         const E_wasser_kWh = E_wasser_Wh / 1000;
         const E_gesamt_kWh = E_wasser_kWh / eff;
+        const costText = (E_gesamt_kWh * kostenProKWh).toFixed(2);
+
+        // Zusammenfassung anzeigen
+        energySpan.textContent = E_gesamt_kWh.toFixed(2);
+        costSpan.textContent = costText;
+        summaryDiv.style.display = 'block';
 
         // Filter Heizstäbe nach Einbautiefe
         const passendeStäbe = heizstaebe.filter(stab => stab.laenge <= eintiefe);
         if (passendeStäbe.length === 0) {
-          resultDiv.innerHTML = '<p>Kein passender Heizstab gefunden.</p>';
+          const noMatch = document.createElement('p');
+          noMatch.textContent = 'Kein passender Heizstab gefunden.';
+          stabListDiv.appendChild(noMatch);
           return;
         }
 
-        // Ergebnisse für jeden passenden Stab
+        // Liste der passenden Heizstäbe generieren
         passendeStäbe.forEach(stab => {
           const t_h = E_gesamt_kWh / stab.leistung; // h
-          const kosten = E_gesamt_kWh * kostenProKWh;
-          const zeitenText = formatTime(t_h);
+          const timeText = formatTime(t_h);
 
-          const container = document.createElement('div');
-          container.className = 'result-container';
-          container.innerHTML = `
-            <a href="${stab.link}" target="_blank"><strong>${stab.name}</strong></a>
-            <div class="result-details">
-              <p>Leistung: ${stab.leistung.toFixed(1)} kW, Länge: ${stab.laenge} mm</p>
-              <p>Heizdauer: ${zeitenText}</p>
-              <p>Verbrauch: ${E_gesamt_kWh.toFixed(2)} kWh</p>
-              <p>Kosten: ${kosten.toFixed(2)} €</p>
+          const card = document.createElement('div');
+          card.className = 'stab-card';
+          card.innerHTML = `
+            <a href="${stab.link}" target="_blank">${stab.name}</a>
+            <div class="stab-info">
+              <p>Leistung: ${stab.leistung.toFixed(1)} kW</p>
+              <p>Länge: ${stab.laenge} mm</p>
+              <p>Heizdauer: ${timeText}</p>
             </div>
           `;
-          resultDiv.appendChild(container);
+          stabListDiv.appendChild(card);
         });
       }
 
