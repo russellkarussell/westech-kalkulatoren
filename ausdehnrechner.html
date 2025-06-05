@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trinkwasser-Ausdehnungsgefäß-Rechner (Vollständige Vorschau)</title>
+  <title>Trinkwasser-Ausdehnungsgefäß-Rechner (Vorschau)</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     h1 { color: #333; }
@@ -21,7 +21,7 @@
   </style>
 </head>
 <body>
-  <h1>Trinkwasser-Ausdehnungsgefäß-Rechner (Vollständige Vorschau)</h1>
+  <h1>Trinkwasser-Ausdehnungsgefäß-Rechner</h1>
   <p>Wähle dein Speichervolumen, Temperaturen und Drücke per Slider – der Rechner zeigt dir direkt das passende Ausdehnungsgefäß mit Link und kleinem Bild.</p>
 
   <form id="calculatorForm">
@@ -32,7 +32,7 @@
         <input type="range" id="volumeSlider" min="0" max="5" step="1" value="2" />
         <div class="slider-value" id="volumeValue">300</div>
       </div>
-      <small>Optionen: 170, 200, 300, 500, 800, 1000 L</small>
+      <small>Optionen: 170, 200, 300, 500, 800, 1000</small>
     </div>
 
     <!-- Maximale Temperatur-Slider -->
@@ -42,7 +42,7 @@
         <input type="range" id="tMaxSlider" min="40" max="75" step="5" value="55" />
         <div class="slider-value" id="tMaxValue">55</div>
       </div>
-      <small>In 5er-Schritten (40 bis 75 °C)</small>
+      <small>40 bis 75 °C in 5er-Schritten</small>
     </div>
 
     <!-- Ausgangstemperatur-Slider -->
@@ -52,7 +52,7 @@
         <input type="range" id="tFillSlider" min="8" max="15" step="1" value="10" />
         <div class="slider-value" id="tFillValue">10</div>
       </div>
-      <small>In 1er-Schritten (8 bis 15 °C)</small>
+      <small>8 bis 15 °C in 1er-Schritten</small>
     </div>
 
     <!-- Vordruck-Slider -->
@@ -62,7 +62,7 @@
         <input type="range" id="p0Slider" min="1" max="5" step="0.5" value="2.5" />
         <div class="slider-value" id="p0Value">2.5</div>
       </div>
-      <small>In 0,5er-Schritten (1 bis 5 bar)</small>
+      <small>1 bis 5 bar in 0,5er-Schritten</small>
     </div>
 
     <!-- Maximaldruck-Slider -->
@@ -72,7 +72,7 @@
         <input type="range" id="pMaxSlider" min="1" max="6" step="0.5" value="6" />
         <div class="slider-value" id="pMaxValue">6.0</div>
       </div>
-      <small>In 0,5er-Schritten (1 bis 6 bar)</small>
+      <small>1 bis 6 bar in 0,5er-Schritten</small>
     </div>
 
     <button type="button" id="calcButton">Berechnen</button>
@@ -143,25 +143,20 @@
         const factor = pressure_ratio >= 1 ? 1 : 1 / (1 - pressure_ratio);
         const V_G = delta_V_abs * factor;
 
-        let selectedVessel, linkUrl, imgUrl;
+        let linkUrl, imgUrl;
         if (V_G <= 12) {
-          selectedVessel = 12;
           linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-12l-ar12-wandhalterung";
           imgUrl = "https://cdn.shopify.com/s/files/1/0537/8127/7757/products/812f7f35.jpg";
         } else if (V_G <= 18) {
-          selectedVessel = 18;
           linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-18l-ar18-wandhalterung";
           imgUrl = "https://cdn.shopify.com/s/files/1/0537/8127/7757/products/ccf08025.jpg";
         } else if (V_G <= 24) {
-          selectedVessel = 24;
           linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-24l-ar24-wandhalterung";
           imgUrl = "https://cdn.shopify.com/s/files/1/0537/8127/7757/products/beispielbild24l.jpg";
         } else if (V_G <= 35) {
-          selectedVessel = 35;
           linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-35l-ar35-wandhalterung";
           imgUrl = "https://www.westech.shop/media/image/product/175/xs/trinkwasser-ausdehnungsgefaess-35l-ar35-wandhalterung.jpg";
         } else {
-          // Kein passendes Gefäß vorhanden
           const resultDiv = document.getElementById('result');
           resultDiv.innerHTML = `<p>Kein passendes Ausdehnungsgefäß gefunden.</p>`;
           return;
@@ -169,11 +164,11 @@
 
         const resultDiv = document.getElementById('result');
         resultDiv.innerHTML = `
-          <p>Benötigtes Ausdehnungsgefäß: <strong>${selectedVessel} Liter</strong></p>
+          <p>Benötigtes Ausdehnungsgefäß gefunden:</p>
           <p>
             <a href="${linkUrl}" target="_blank">
-              <img src="${imgUrl}" alt="Gefäß ${selectedVessel} L" />
-              Hier klicken für weitere Details
+              <img src="${imgUrl}" alt="Ausdehnungsgefäß" />
+              ${linkUrl}
             </a>
           </p>
         `;
@@ -181,7 +176,6 @@
 
       const calcButton = document.getElementById('calcButton');
       calcButton.addEventListener('click', calculateVessel);
-
     });
   </script>
 </body>
