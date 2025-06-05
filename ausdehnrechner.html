@@ -1,13 +1,9 @@
-import os
-
-# Define the HTML content with the corrected and complete code
-html_content = """
 <!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trinkwasser-Ausdehnungsgefäß-Rechner (Vorschau)</title>
+  <title>Trinkwasser-Ausdehnungsgefäß-Rechner (Vollständige Vorschau)</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     h1 { color: #333; }
@@ -25,7 +21,7 @@ html_content = """
   </style>
 </head>
 <body>
-  <h1>Trinkwasser-Ausdehnungsgefäß-Rechner (Vorschau)</h1>
+  <h1>Trinkwasser-Ausdehnungsgefäß-Rechner (Vollständige Vorschau)</h1>
   <p>Wähle dein Speichervolumen, Temperaturen und Drücke per Slider – der Rechner zeigt dir direkt das passende Ausdehnungsgefäß mit Link und kleinem Bild.</p>
 
   <form id="calculatorForm">
@@ -170,8 +166,8 @@ html_content = """
         resultDiv.innerHTML = `
           <p>Benötigtes Ausdehnungsgefäß: <strong>${selectedVessel} Liter</strong></p>
           <p>
-            <a href="\${linkUrl}" target="_blank">
-              <img src="\${imgUrl}" alt="Gefäß \${selectedVessel} L" />
+            <a href="${linkUrl}" target="_blank">
+              <img src="${imgUrl}" alt="Gefäß ${selectedVessel} L" />
               Hier klicken für weitere Details
             </a>
           </p>
@@ -185,11 +181,3 @@ html_content = """
   </script>
 </body>
 </html>
-"""
-
-# Write the HTML content to a file in the /mnt/data directory
-file_path = "/mnt/data/preview.html"
-with open(file_path, "w", encoding="utf-8") as f:
-    f.write(html_content)
-
-file_path
