@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trinkwasser-Ausdehnungsgefäß-Rechner (Vorschau)</title>
+  <title>Kalkulator Trinkwasserausdehnungsgefäß</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     h1 { color: #333; }
@@ -22,7 +22,7 @@
 </head>
 <body>
   <h1>Trinkwasser-Ausdehnungsgefäß-Rechner</h1>
-  <p>Wähle dein Speichervolumen, Temperaturen und Drücke per Slider – der Rechner zeigt dir direkt das passende Ausdehnungsgefäß mit Link und kleinem Bild.</p>
+  <p>Wähle dein Speichervolumen, Temperaturen und Drücke per Slider – der Rechner zeigt dir direkt das passende Ausdehnungsgefäß.</p>
 
   <form id="calculatorForm">
     <!-- Volumen-Slider -->
@@ -37,7 +37,7 @@
 
     <!-- Maximale Temperatur-Slider -->
     <div class="field-group">
-      <label for="tMaxSlider">Maximale Speichertemperatur (°C)</label>
+      <label for="tMaxSlider">max. Temperatur im Trinkwasserspeicher (°C)</label>
       <div class="slider-container">
         <input type="range" id="tMaxSlider" min="40" max="75" step="5" value="55" />
         <div class="slider-value" id="tMaxValue">55</div>
@@ -47,7 +47,7 @@
 
     <!-- Ausgangstemperatur-Slider -->
     <div class="field-group">
-      <label for="tFillSlider">Ausgangstemperatur bei Füllung (°C)</label>
+      <label for="tFillSlider">Temperatur Kaltwasser (°C)</label>
       <div class="slider-container">
         <input type="range" id="tFillSlider" min="8" max="15" step="1" value="10" />
         <div class="slider-value" id="tFillValue">10</div>
@@ -72,7 +72,7 @@
         <input type="range" id="pMaxSlider" min="1" max="6" step="0.5" value="6" />
         <div class="slider-value" id="pMaxValue">6.0</div>
       </div>
-      <small>1 bis 6 bar in 0,5er-Schritten</small>
+      <small>empfohlener Wert 6bar</small>
     </div>
 
     <button type="button" id="calcButton">Berechnen</button>
