@@ -1,7 +1,4 @@
-import re
-
-# Load the current content from the textdoc provided in prompt
-content = r"""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
@@ -17,15 +14,20 @@ content = r"""<!DOCTYPE html>
     .slider-value { width: 60px; text-align: center; }
     button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
     #result { background: #f9f9f9; padding: 15px; border: 1px solid #ddd; max-width: 600px; margin-top: 20px; }
-    #result img { vertical-align: middle; width: 60px; height: auto; margin-right: 10px; }
-    #result a { font-size: 1.1em; font-weight: bold; color: #0066cc; text-decoration: none; }
-    #result a:hover { text-decoration: underline; }
+    /* Flex container für Bild und Text */
+    .result-container { display: flex; align-items: center; }
+    .result-img { width: 150px; height: 150px; margin-right: 15px; flex-shrink: 0; }
+    .result-details { display: flex; flex-direction: column; }
+    .result-details p { margin: 5px 0; }
+    .price { font-size: 1.1em; font-weight: bold; color: #333; }
+    .info-link { font-size: 1em; color: #0066cc; text-decoration: none; margin-top: 5px; }
+    .info-link:hover { text-decoration: underline; }
     .field-group { margin-bottom: 15px; }
   </style>
 </head>
 <body>
   <h1>Trinkwasser-Ausdehnungsgefäß-Rechner</h1>
-  <p>Wähle dein Speichervolumen, Temperaturen und Drücke per Slider – der Rechner zeigt dir direkt das passende Ausdehnungsgefäß mit Link und kleinem Bild.</p>
+  <p>Wähle dein Speichervolumen, Temperaturen und Drücke per Slider – der Rechner zeigt dir direkt das passende Ausdehnungsgefäß mit Bild, Name, Preis und Link.</p>
 
   <form id="calculatorForm">
     <!-- Volumen-Slider -->
@@ -64,7 +66,7 @@ content = r"""<!DOCTYPE html>
       <div class="slider-container">
         <input type="range" id="p0Slider" min="1" max="5" step="0.5" value="2.5" />
         <div class="slider-value" id="p0Value">2.5</div>
-      </div>
+      </ndiv>
       <small>1 bis 5 bar in 0,5er-Schritten</small>
     </div>
 
@@ -146,13 +148,55 @@ content = r"""<!DOCTYPE html>
         const factor = pressure_ratio >= 1 ? 1 : 1 / (1 - pressure_ratio);
         const V_G = delta_V_abs * factor;
 
-        let linkUrl, imgUrl;
+        let linkUrl = '';
+        let imgUrl = '';
+        let productTitle = '';
+        let productPrice = '';
+
         if (V_G <= 12) {
           linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-12l-ar12-wandhalterung";
           imgUrl = "https://www.westech.shop/media/image/product/139/lg/trinkwasser-ausdehnungsgefaess-12l-ar12-wandhalterung.webp";
+          productTitle = 'Trinkwasser-Ausdehnungsgefäß 12L AR12 mit Wandhalterung';
+          productPrice = 'Preis: 59,90 €';
         } else if (V_G <= 18) {
           linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-18l-ar18-wandhalterung";
           imgUrl = "https://www.westech.shop/media/image/product/140/lg/trinkwasser-ausdehnungsgefaess-18l-ar18-wandhalterung.webp";
+          productTitle = 'Trinkwasser-Ausdehnungsgefäß 18L AR18 mit Wandhalterung';
+          productPrice = 'Preis: 69,90 €';
         } else if (V_G <= 24) {
-          linkUrl = "https://www
+          linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-24l-ar24-wandhalterung";
+          imgUrl = "https://www.westech.shop/media/image/product/174/lg/trinkwasser-ausdehnungsgefaess-24l-ar24-wandhalterung.webp";
+          productTitle = 'Trinkwasser-Ausdehnungsgefäß 24L AR24 mit Wandhalterung';
+          productPrice = 'Preis: 79,90 €';
+        } else if (V_G <= 35) {
+          linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-35l-ar35-wandhalterung";
+          imgUrl = "https://www.westech.shop/media/image/product/175/lg/trinkwasser-ausdehnungsgefaess-35l-ar35-wandhalterung.webp";
+          productTitle = 'Trinkwasser-Ausdehnungsgefäß 35L AR35 mit Wandhalterung';
+          productPrice = 'Preis: 99,90 €';
+        } else {
+          const resultDiv = document.getElementById('result');
+          resultDiv.innerHTML = `<p>Kein passendes Ausdehnungsgefäß gefunden.</p>`;
+          return;
+        }
 
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = `
+          <div class="result-container">
+            <a href="${linkUrl}" target="_blank">
+              <img class="result-img" src="${imgUrl}" alt="${productTitle}" />
+            </a>
+            <div class="result-details">
+              <p><strong>${productTitle}</strong></p>
+              <p class="price">${productPrice}</p>
+              <a class="info-link" href="${linkUrl}" target="_blank">Weitere Informationen</a>
+            </div>
+          </div>
+        `;
+      }
+
+      const calcButton = document.getElementById('calcButton');
+      calcButton.addEventListener('click', calculateVessel);
+    });
+  </script>
+</body>
+</html>
