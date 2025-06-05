@@ -72,6 +72,7 @@
       max-width: 600px;
       margin-top: 20px;
       display: none;
+      text-align: center;
     }
     #summary p { margin: 5px 0; font-size: 1em; }
 
@@ -106,7 +107,7 @@
 </head>
 <body>
   <h2>Heizstab-Konfigurator</h2>
-  <p>Wähle Speichervolumen, Start- und Zieltemperatur sowie Strompreis – der Rechner zeigt dir passende Heizstäbe. Verbrauch und Kosten erreichen alle Heizstäbe gemeinsam, die Heizdauer unterscheidet sich je nach Leistung.</p>
+  <p>Wähle Speichervolumen, Start- und Zieltemperatur sowie Strompreis – der Rechner zeigt dir passende Heizstäbe. Verbrauch und Kosten werden in einer Zeile angezeigt, die Heizdauer unterscheidet sich je nach Leistung.</p>
 
   <form id="heaterForm">
     <!-- Volumen-Slider -->
@@ -147,13 +148,12 @@
 
     <div class="action-container">
       <button type="button" id="calcButton">Berechnen</button>
-      <span class="disclaimer">* Wirkungsgrad intern 90 %.</span>
+      <span class="disclaimer">* Richtwerte ohne Gewähr.</span>
     </div>
   </form>
 
   <div id="summary">
-    <p><strong>Verbrauch:</strong> <span id="summaryEnergy"></span> kWh</p>
-    <p><strong>Kosten:</strong> <span id="summaryCost"></span> €</p>
+    <p><strong>Verbrauch & Kosten:</strong> <span id="summaryEnergy"></span> kWh | <span id="summaryCost"></span> €</p>
   </div>
 
   <div id="stabList"></div>
@@ -242,7 +242,7 @@
         // Berechnung Energiebedarf (kWh)
         const deltaT = Ttarget - Tstart;
         if (deltaT <= 0) {
-          summaryDiv.innerHTML = '<p style="color: #c00;"><strong>Fehler:</strong> Die Zieltemperatur muss größer sein als die Starttemperatur.</p>';
+          summaryDiv.innerHTML = '<p style="color: #c00;"></p>';
           summaryDiv.style.display = 'block';
           return;
         }
@@ -275,8 +275,6 @@
           card.innerHTML = `
             <a href="${stab.link}" target="_blank">${stab.name}</a>
             <div class="stab-info">
-              <p>Leistung: ${stab.leistung.toFixed(1)} kW</p>
-              <p>Länge: ${stab.laenge} mm</p>
               <p>Heizdauer: ${timeText}</p>
             </div>
           `;
