@@ -97,6 +97,16 @@
     .info-link:hover { text-decoration: underline; }
 
     .field-group { margin-bottom: 15px; }
+
+    /* Beispielhafte Media-Query für kleinere Bildschirme */
+    @media (max-width: 480px) {
+      body { margin: 10px; }
+      h2 { font-size: 1.4em; }
+      .result-img { width: 100px; height: 100px; }
+      .slider-container { flex-direction: column; align-items: flex-start; }
+      .slider-container input[type="range"] { margin-right: 0; margin-bottom: 5px; }
+      .slider-value { width: 100%; text-align: left; font-size: 0.9em; }
+    }
   </style>
 </head>
 <body>
@@ -109,16 +119,16 @@
       <label for="volumeSlider">Volumen Trinkwasserspeicher (Liter)</label>
       <div class="slider-container">
         <input type="range" id="volumeSlider" min="0" max="5" step="1" value="2" />
-        <div class="slider-value" id="volumeValue">300</div>
+        <div class="slider-value" id="volumeValue" aria-live="polite">300</div>
       </div>
     </div>
 
-    <!-- Maximale Temperatur-Slider -->
+    <!-- Maximale Temperatur-Slider (Standardwert 50 °C) -->
     <div class="field-group">
       <label for="tMaxSlider">Maximale Speichertemperatur (°C)</label>
       <div class="slider-container">
-        <input type="range" id="tMaxSlider" min="40" max="75" step="5" value="55" />
-        <div class="slider-value" id="tMaxValue">55</div>
+        <input type="range" id="tMaxSlider" min="40" max="75" step="5" value="50" />
+        <div class="slider-value" id="tMaxValue" aria-live="polite">50</div>
       </div>
     </div>
 
@@ -159,14 +169,17 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // 1) Mapping der Volumina
       const volumeOptions = [170, 200, 300, 500, 800, 1000];
       const volumeSlider = document.getElementById('volumeSlider');
       const volumeValueDisplay = document.getElementById('volumeValue');
+      // Initialer Text
       volumeValueDisplay.textContent = volumeOptions[parseInt(volumeSlider.value, 10)];
       volumeSlider.addEventListener('input', function() {
         volumeValueDisplay.textContent = volumeOptions[parseInt(this.value, 10)];
       });
 
+      // 2) tMax-Slider, Standardwert 50 °C
       const tMaxSlider = document.getElementById('tMaxSlider');
       const tMaxValueDisplay = document.getElementById('tMaxValue');
       tMaxValueDisplay.textContent = tMaxSlider.value;
@@ -174,6 +187,7 @@
         tMaxValueDisplay.textContent = this.value;
       });
 
+      // 3) tFill-Slider
       const tFillSlider = document.getElementById('tFillSlider');
       const tFillValueDisplay = document.getElementById('tFillValue');
       tFillValueDisplay.textContent = tFillSlider.value;
@@ -181,6 +195,7 @@
         tFillValueDisplay.textContent = this.value;
       });
 
+      // 4) p0-Slider
       const p0Slider = document.getElementById('p0Slider');
       const p0ValueDisplay = document.getElementById('p0Value');
       p0ValueDisplay.textContent = parseFloat(p0Slider.value).toFixed(1);
@@ -188,6 +203,7 @@
         p0ValueDisplay.textContent = parseFloat(this.value).toFixed(1);
       });
 
+      // 5) pMax-Slider
       const pMaxSlider = document.getElementById('pMaxSlider');
       const pMaxValueDisplay = document.getElementById('pMaxValue');
       pMaxValueDisplay.textContent = parseFloat(pMaxSlider.value).toFixed(1);
@@ -195,6 +211,7 @@
         pMaxValueDisplay.textContent = parseFloat(this.value).toFixed(1);
       });
 
+      // Hilfsfunktion: Beta-Wert je nach Temperatur
       function getBeta(t) {
         if (t <= 10) return 1.0000;
         if (t <= 20) return 1.0012;
@@ -206,20 +223,58 @@
         return 1.0480;
       }
 
+      // Renderer-Funktion für das Ergebnis-HTML
+      function renderResult(link, img, title, price) {
+        return `
+          <div class="result-container">
+            <a href="${link}" target="_blank">
+              <img class="result-img" src="${img}" alt="${title}" loading="lazy" />
+            </a>
+            <div class="result-details">
+              <p><strong>${title}</strong></p>
+              <p class="price">${price}</p>
+              <a class="info-link" href="${link}" target="_blank">Weitere Informationen</a>
+            </div>
+          </div>
+        `;
+      }
+
+      // Hauptfunktion zur Berechnung und Auswahl des Ausdehnungsgefäßes
       function calculateVessel() {
-        const V0 = volumeOptions[parseInt(volumeSlider.value, 10)];
-        const t_max = parseFloat(tMaxSlider.value) || 0;
-        const t_fill = parseFloat(tFillSlider.value) || 0;
-        const p0 = parseFloat(p0Slider.value) || 0;
-        const p_max = parseFloat(pMaxSlider.value) || 1;
+        const V0 = volumeOptions[parseInt(volumeSlider.value, 10)]; // z.B. 500
+        const t_max = parseFloat(tMaxSlider.value) || 0;             // z.B. 55
+        const t_fill = parseFloat(tFillSlider.value) || 0;           // z.B. 10
+        const p0 = parseFloat(p0Slider.value) || 0;                  // z.B. 2.5
+        const p_max = parseFloat(pMaxSlider.value) || 1;             // z.B. 6
+
+        const resultDiv = document.getElementById('result');
+
+        // Sonderregel: Wenn V0 = 500L & t_max = 55 oder 60 => AR35
+        if (V0 === 500 && (t_max === 55 || t_max === 60)) {
+          const linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-35l-ar35-wandhalterung";
+          const imgUrl = "https://www.westech.shop/media/image/product/175/lg/trinkwasser-ausdehnungsgefaess-35l-ar35-wandhalterung.webp";
+          const productTitle = 'Trinkwasser-Ausdehnungsgefäß 35L AR35 mit Wandhalterung';
+          const productPrice = 'Preis: 99,90 €';
+          resultDiv.innerHTML = renderResult(linkUrl, imgUrl, productTitle, productPrice);
+          return;
+        }
+
+        // Standard-Logik: Beta-Werte und Druckfaktor
         const beta_fill = getBeta(t_fill);
         const beta_max = getBeta(t_max);
-        const delta_V_rel = beta_max - beta_fill;
-        const delta_V_abs = V0 * delta_V_rel;
-        const pressure_ratio = p0 / p_max;
-        const factor = pressure_ratio >= 1 ? 1 : 1 / (1 - pressure_ratio);
-        const V_G = delta_V_abs * factor;
+        const delta_V_rel = beta_max - beta_fill;       
+        const delta_V_abs = V0 * delta_V_rel;           
 
+        // Absicherung: Fülldruck < Maximaldruck
+        const pressure_ratio = p0 / p_max;
+        if (pressure_ratio >= 1) {
+          resultDiv.innerHTML = `<p style="color: #c00;"><strong>Fehler:</strong> Der Fülldruck darf nicht größer oder gleich dem maximalen Systemdruck sein. Bitte Werte anpassen.</p>`;
+          return;
+        }
+        const factor = 1 / (1 - pressure_ratio);
+        const V_G = delta_V_abs * factor; 
+
+        // Auswahl anhand von V_G
         let linkUrl = '';
         let imgUrl = '';
         let productTitle = '';
@@ -246,26 +301,15 @@
           productTitle = 'Trinkwasser-Ausdehnungsgefäß 35L AR35 mit Wandhalterung';
           productPrice = 'Preis: 99,90 €';
         } else {
-          const resultDiv = document.getElementById('result');
           resultDiv.innerHTML = `<p>Kein passendes Ausdehnungsgefäß gefunden.</p>`;
           return;
         }
 
-        const resultDiv = document.getElementById('result');
-        resultDiv.innerHTML = `
-          <div class="result-container">
-            <a href="${linkUrl}" target="_blank">
-              <img class="result-img" src="${imgUrl}" alt="${productTitle}" />
-            </a>
-            <div class="result-details">
-              <p><strong>${productTitle}</strong></p>
-              <p class="price">${productPrice}</p>
-              <a class="info-link" href="${linkUrl}" target="_blank">Weitere Informationen</a>
-            </div>
-          </div>
-        `;
+        // Ergebnis ausgeben
+        resultDiv.innerHTML = renderResult(linkUrl, imgUrl, productTitle, productPrice);
       }
 
+      // Event-Listener für den Button
       const calcButton = document.getElementById('calcButton');
       calcButton.addEventListener('click', calculateVessel);
     });
