@@ -3,17 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trinkwasser-Ausdehnungsgefäß-Rechner </title>
+  <title>Trinkwasser-Ausdehnungsgefäß-Rechner (Vorschau)</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     h1 { color: #333; }
     form { max-width: 600px; margin-bottom: 20px; }
     label { display: block; margin-top: 10px; }
+    /* Angepasste Slider-Farbe: Orange */
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      background: transparent;
+    }
+    input[type="range"]:focus { outline: none; }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      background: #e67e22;
+      border-radius: 3px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: #e67e22;
+      border-radius: 50%;
+      margin-top: -5px;
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-track {
+      height: 6px;
+      background: #e67e22;
+      border-radius: 3px;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: #e67e22;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
     .slider-container { display: flex; align-items: center; margin-top: 5px; }
     .slider-container input[type="range"] { flex: 1; margin-right: 10px; }
     .slider-value { width: 60px; text-align: center; }
-    button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
-    #result { background: #f9f9f9; padding: 15px; border: 1px solid #ddd; max-width: 600px; margin-top: 20px; }
+    button { padding: 10px 20px; font-size: 16px; background-color: #e67e22; border: none; color: #fff; cursor: pointer; border-radius: 4px; }
+    button:hover { background-color: #cf711c; }
+    .action-container { display: flex; align-items: center; margin-top: 20px; }
+    .disclaimer { margin-left: 20px; font-size: 0.9em; color: #666; }
+    #result { background: #fff; padding: 15px; border: 1px solid #ddd; max-width: 600px; margin-top: 20px; }
     /* Flex container für Bild und Text */
     .result-container { display: flex; align-items: center; }
     .result-img { width: 150px; height: 150px; margin-right: 15px; flex-shrink: 0; }
@@ -27,7 +64,7 @@
 </head>
 <body>
   <h1>Trinkwasser-Ausdehnungsgefäß-Rechner</h1>
-  <p>Wähle dein Speichervolumen, Temperaturen und Drücke per Slider – der Rechner zeigt dir direkt das passende Ausdehnungsgefäß mit Bild, Name, Preis und Link.</p>
+  <p>Wähle dein Speichervolumen, Temperaturen und Drücke per Slider – der Rechner zeigt dir direkt das passende Ausdehnungsgefäß.</p>
 
   <form id="calculatorForm">
     <!-- Volumen-Slider -->
@@ -37,7 +74,6 @@
         <input type="range" id="volumeSlider" min="0" max="5" step="1" value="2" />
         <div class="slider-value" id="volumeValue">300</div>
       </div>
-      <small>Optionen: 170, 200, 300, 500, 800, 1000</small>
     </div>
 
     <!-- Maximale Temperatur-Slider -->
@@ -47,7 +83,6 @@
         <input type="range" id="tMaxSlider" min="40" max="75" step="5" value="55" />
         <div class="slider-value" id="tMaxValue">55</div>
       </div>
-      <small>40 bis 75 °C in 5er-Schritten</small>
     </div>
 
     <!-- Ausgangstemperatur-Slider -->
@@ -57,7 +92,6 @@
         <input type="range" id="tFillSlider" min="8" max="15" step="1" value="10" />
         <div class="slider-value" id="tFillValue">10</div>
       </div>
-      <small>8 bis 15 °C in 1er-Schritten</small>
     </div>
 
     <!-- Vordruck-Slider -->
@@ -66,8 +100,7 @@
       <div class="slider-container">
         <input type="range" id="p0Slider" min="1" max="5" step="0.5" value="2.5" />
         <div class="slider-value" id="p0Value">2.5</div>
-      </ndiv>
-      <small>1 bis 5 bar in 0,5er-Schritten</small>
+      </div>
     </div>
 
     <!-- Maximaldruck-Slider -->
@@ -77,10 +110,12 @@
         <input type="range" id="pMaxSlider" min="1" max="6" step="0.5" value="6" />
         <div class="slider-value" id="pMaxValue">6.0</div>
       </div>
-      <small>1 bis 6 bar in 0,5er-Schritten</small>
     </div>
 
-    <button type="button" id="calcButton">Berechnen</button>
+    <div class="action-container">
+      <button type="button" id="calcButton">Berechnen</button>
+      <span class="disclaimer">* Ungefähre Werte, kein Anspruch auf Genauigkeit.</span>
+    </div>
   </form>
 
   <div id="result"></div>
@@ -157,46 +192,5 @@
           linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-12l-ar12-wandhalterung";
           imgUrl = "https://www.westech.shop/media/image/product/139/lg/trinkwasser-ausdehnungsgefaess-12l-ar12-wandhalterung.webp";
           productTitle = 'Trinkwasser-Ausdehnungsgefäß 12L AR12 mit Wandhalterung';
-          productPrice = 'Preis: 59,90 €';
-        } else if (V_G <= 18) {
-          linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-18l-ar18-wandhalterung";
-          imgUrl = "https://www.westech.shop/media/image/product/140/lg/trinkwasser-ausdehnungsgefaess-18l-ar18-wandhalterung.webp";
-          productTitle = 'Trinkwasser-Ausdehnungsgefäß 18L AR18 mit Wandhalterung';
-          productPrice = 'Preis: 69,90 €';
-        } else if (V_G <= 24) {
-          linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-24l-ar24-wandhalterung";
-          imgUrl = "https://www.westech.shop/media/image/product/174/lg/trinkwasser-ausdehnungsgefaess-24l-ar24-wandhalterung.webp";
-          productTitle = 'Trinkwasser-Ausdehnungsgefäß 24L AR24 mit Wandhalterung';
-          productPrice = 'Preis: 79,90 €';
-        } else if (V_G <= 35) {
-          linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-35l-ar35-wandhalterung";
-          imgUrl = "https://www.westech.shop/media/image/product/175/lg/trinkwasser-ausdehnungsgefaess-35l-ar35-wandhalterung.webp";
-          productTitle = 'Trinkwasser-Ausdehnungsgefäß 35L AR35 mit Wandhalterung';
-          productPrice = 'Preis: 99,90 €';
-        } else {
-          const resultDiv = document.getElementById('result');
-          resultDiv.innerHTML = `<p>Kein passendes Ausdehnungsgefäß gefunden.</p>`;
-          return;
-        }
-
-        const resultDiv = document.getElementById('result');
-        resultDiv.innerHTML = `
-          <div class="result-container">
-            <a href="${linkUrl}" target="_blank">
-              <img class="result-img" src="${imgUrl}" alt="${productTitle}" />
-            </a>
-            <div class="result-details">
-              <p><strong>${productTitle}</strong></p>
-              <p class="price">${productPrice}</p>
-              <a class="info-link" href="${linkUrl}" target="_blank">Weitere Informationen</a>
-            </div>
-          </div>
-        `;
-      }
-
-      const calcButton = document.getElementById('calcButton');
-      calcButton.addEventListener('click', calculateVessel);
-    });
-  </script>
-</body>
-</html>
+          productPrice = 'Preis: 59,90 €';
+        } else if (V
