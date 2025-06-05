@@ -1,9 +1,13 @@
+import os
+
+# Define the HTML content with the corrected and complete code
+html_content = """
 <!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trinkwasser-Ausdehnungsgefäß-Rechner</title>
+  <title>Trinkwasser-Ausdehnungsgefäß-Rechner (Vorschau)</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     h1 { color: #333; }
@@ -21,7 +25,7 @@
   </style>
 </head>
 <body>
-  <h1>Trinkwasser-Ausdehnungsgefäß-Rechner</h1>
+  <h1>Trinkwasser-Ausdehnungsgefäß-Rechner (Vorschau)</h1>
   <p>Wähle dein Speichervolumen, Temperaturen und Drücke per Slider – der Rechner zeigt dir direkt das passende Ausdehnungsgefäß mit Link und kleinem Bild.</p>
 
   <form id="calculatorForm">
@@ -142,6 +146,7 @@
         const pressure_ratio = p0 / p_max;
         const factor = pressure_ratio >= 1 ? 1 : 1 / (1 - pressure_ratio);
         const V_G = delta_V_abs * factor;
+
         let selectedVessel, linkUrl, imgUrl;
         if (V_G <= 12) {
           selectedVessel = 12;
@@ -154,4 +159,37 @@
         } else if (V_G <= 24) {
           selectedVessel = 24;
           linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-24l-ar24-wandhalterung";
-          img
+          imgUrl = "https://cdn.shopify.com/s/files/1/0537/8127/7757/products/beispielbild24l.jpg";
+        } else {
+          selectedVessel = Math.ceil(V_G / 6) * 6;
+          linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaesse"; 
+          imgUrl = "https://cdn.shopify.com/s/files/1/0537/8127/7757/products/grossesgefaess.jpg";
+        }
+
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = `
+          <p>Benötigtes Ausdehnungsgefäß: <strong>${selectedVessel} Liter</strong></p>
+          <p>
+            <a href="\${linkUrl}" target="_blank">
+              <img src="\${imgUrl}" alt="Gefäß \${selectedVessel} L" />
+              Hier klicken für weitere Details
+            </a>
+          </p>
+        `;
+      }
+
+      const calcButton = document.getElementById('calcButton');
+      calcButton.addEventListener('click', calculateVessel);
+
+    });
+  </script>
+</body>
+</html>
+"""
+
+# Write the HTML content to a file in the /mnt/data directory
+file_path = "/mnt/data/preview.html"
+with open(file_path, "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+file_path
