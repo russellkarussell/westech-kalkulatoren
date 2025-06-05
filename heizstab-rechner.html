@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heizstab-Konfigurator (Vorschau)</title>
+  <title>Heizstab-Konfigurator</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     h1 { color: #333; }
@@ -49,21 +49,6 @@
     .slider-container input[type="range"] { flex: 1; margin-right: 10px; }
     .slider-value { width: 60px; text-align: center; }
 
-    button {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #e67e22;
-      border: none;
-      color: #fff;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    button:hover { background-color: #cf711c; }
-
-    .action-container { display: flex; align-items: center; margin-top: 20px; }
-    .disclaimer { margin-left: 20px; font-size: 0.9em; color: #666; }
-
     /* Abschnitt für Ergebnisübersicht */
     #summary {
       background: #f9f9f9;
@@ -75,6 +60,7 @@
       text-align: center;
     }
     #summary p { margin: 5px 0; font-size: 1em; }
+    #summary .disclaimer { margin-top: 10px; font-size: 0.9em; color: #666; }
 
     /* Grid für Heizstab-Liste */
     #stabList {
@@ -107,7 +93,7 @@
 </head>
 <body>
   <h2>Heizstab-Konfigurator</h2>
-  <p>Wähle Speichervolumen, Start- und Zieltemperatur sowie Strompreis – der Rechner zeigt dir passende Heizstäbe. Verbrauch und Kosten werden in einer Zeile angezeigt, die Heizdauer unterscheidet sich je nach Leistung.</p>
+  <p>Wähle Speichervolumen, Start- und Zieltemperatur sowie Strompreis – die Ergebnisse werden direkt beim Verschieben der Regler aktualisiert.</p>
 
   <form id="heaterForm">
     <!-- Volumen-Slider -->
@@ -142,18 +128,14 @@
       <label for="priceSlider">Strompreis (€/kWh)</label>
       <div class="slider-container">
         <input type="range" id="priceSlider" min="0.10" max="0.50" step="0.01" value="0.30" />
-        <div class="slider-value" id="priceValue">0.30 €/kWh</div>
+        <div class="slider-value" id="priceValue">0.30 €/kWh</div>
       </div>
-    </div>
-
-    <div class="action-container">
-      <button type="button" id="calcButton">Berechnen</button>
-      <span class="disclaimer">* Richtwerte ohne Gewähr.</span>
     </div>
   </form>
 
   <div id="summary">
     <p><strong>Verbrauch & Kosten:</strong> <span id="summaryEnergy"></span> kWh | <span id="summaryCost"></span> €</p>
+    <p class="disclaimer">* Richtwerte ohne Gewähr.</p>
   </div>
 
   <div id="stabList"></div>
@@ -170,45 +152,25 @@
         { volumen: 1000, eintiefe: 790 }
       ];
       const volumeOptions = [170, 200, 300, 500, 800, 1000];
+
+      // Slider- und Werte-Elemente abrufen
       const volumeSlider = document.getElementById('volumeSlider');
       const volumeValueDisplay = document.getElementById('volumeValue');
-      volumeValueDisplay.textContent = volumeOptions[parseInt(volumeSlider.value, 10)];
-      volumeSlider.addEventListener('input', function() {
-        volumeValueDisplay.textContent = volumeOptions[parseInt(this.value, 10)];
-      });
-
-      // 2) tStart-Slider
       const tStartSlider = document.getElementById('tStartSlider');
       const tStartValueDisplay = document.getElementById('tStartValue');
-      tStartValueDisplay.textContent = tStartSlider.value;
-      tStartSlider.addEventListener('input', function() {
-        tStartValueDisplay.textContent = this.value;
-      });
-
-      // 3) tTarget-Slider
       const tTargetSlider = document.getElementById('tTargetSlider');
       const tTargetValueDisplay = document.getElementById('tTargetValue');
-      tTargetValueDisplay.textContent = tTargetSlider.value;
-      tTargetSlider.addEventListener('input', function() {
-        tTargetValueDisplay.textContent = this.value;
-      });
-
-      // 4) price-Slider
       const priceSlider = document.getElementById('priceSlider');
       const priceValueDisplay = document.getElementById('priceValue');
-      priceValueDisplay.textContent = parseFloat(priceSlider.value).toFixed(2) + ' €/kWh';
-      priceSlider.addEventListener('input', function() {
-        priceValueDisplay.textContent = parseFloat(this.value).toFixed(2) + ' €/kWh';
-      });
 
-      // 5) Heizstäbe
+      // Heizstäbe-Daten
       const heizstaebe = [
-        { name: "WPI-25 (2,5 kW, 230 V)", leistung: 2.5, laenge: 370, link: "https://www.westech.shop/heizstab-wpi-25-25kw-230v-g64-l-370-tr30-75c" },
-        { name: "WPI-30 (3,0 kW, 230 V)", leistung: 3.0, laenge: 390, link: "https://www.westech.shop/heizstab-wpi-30-30kw-230v-g64-l-390-tr30-75c" },
-        { name: "WPI-45 (4,5 kW, 400 V)", leistung: 4.5, laenge: 470, link: "https://www.westech.shop/heizstab-wpi-45-45kw-400v-g64-l-470-tr30-75c-hs" },
-        { name: "WPI-60 (6,0 kW, 400 V)", leistung: 6.0, laenge: 560, link: "https://www.westech.shop/heizstab-wpi-60-60kw-400v-g64-l-560-tr30-75c-hs" },
-        { name: "WPI-75 (7,5 kW, 400 V)", leistung: 7.5, laenge: 650, link: "https://www.westech.shop/heizstab-wpi-75-75kw-400v-g64-l-650-tr30-75c" },
-        { name: "WPI-90 (9,0 kW, 400 V)", leistung: 9.0, laenge: 720, link: "https://www.westech.shop/heizstab-wpi-90kw-400v-g64-l-720-tr30-75c" }
+        { name: "WPI-25 (2,5 kW, 230 V)", leistung: 2.5, laenge: 370, link: "https://www.westech.shop/heizstab-wpi-25-25kw-230v-g64-l-370-tr30-75c" },
+        { name: "WPI-30 (3,0 kW, 230 V)", leistung: 3.0, laenge: 390, link: "https://www.westech.shop/heizstab-wpi-30-30kw-230v-g64-l-390-Tr30-75c" },
+        { name: "WPI-45 (4,5 kW, 400 V)", leistung: 4.5, laenge: 470, link: "https://www.westech.shop/heizstab-wpi-45-45kw-400v-g64-l-470-Tr30-75c-hs" },
+        { name: "WPI-60 (6,0 kW, 400 V)", leistung: 6.0, laenge: 560, link: "https://www.westech.shop/heizstab-wpi-60-60kw-400v-g64-l-560-Tr30-75c-hs" },
+        { name: "WPI-75 (7,5 kW, 400 V)", leistung: 7.5, laenge: 650, link: "https://www.westech.shop/heizstab-wpi-75-75kw-400v-g64-l-650-Tr30-75c" },
+        { name: "WPI-90 (9,0 kW, 400 V)", leistung: 9.0, laenge: 720, link: "https://www.westech.shop/heizstab-wpi-90kw-400v-g64-l-720-Tr30-75c" }
       ];
 
       // Hilfsfunktion: Minuten in Stunden+Minuten konvertieren
@@ -216,18 +178,27 @@
         const totalMin = Math.round(hours * 60);
         const h = Math.floor(totalMin / 60);
         const m = totalMin % 60;
-        return h + " h " + m + " min";
+        return h + " h " + m + " min";
       }
 
       // Hauptfunktion zur Berechnung
       function calculateHeater() {
+        // Volume-Anzeige aktualisieren
         const idxVol = parseInt(volumeSlider.value, 10);
-        const V = volumeOptions[idxVol];             // Liter
-        const Tstart = parseFloat(tStartSlider.value);
-        const Ttarget = parseFloat(tTargetSlider.value);
-        const kostenProKWh = parseFloat(priceSlider.value);
-        const eff = 0.9; // Wirkungsgrad
+        const V = volumeOptions[idxVol]; // Liter
+        volumeValueDisplay.textContent = V;
 
+        // Start- und Zieltemperatur-Anzeigen aktualisieren
+        const Tstart = parseFloat(tStartSlider.value);
+        tStartValueDisplay.textContent = Tstart;
+        const Ttarget = parseFloat(tTargetSlider.value);
+        tTargetValueDisplay.textContent = Ttarget;
+
+        // Strompreis-Anzeige aktualisieren
+        const kostenProKWh = parseFloat(priceSlider.value);
+        priceValueDisplay.textContent = kostenProKWh.toFixed(2) + ' €/kWh';
+
+        // Ergebnis-Bereich und Liste leeren
         const summaryDiv = document.getElementById('summary');
         const energySpan = document.getElementById('summaryEnergy');
         const costSpan = document.getElementById('summaryCost');
@@ -235,17 +206,21 @@
         summaryDiv.style.display = 'none';
         stabListDiv.innerHTML = '';
 
-        // Finde Eintauchtiefe basierend auf Volumen
+        // Eintauchtiefe ermitteln
         const currentSpeicher = speicher.find(s => s.volumen === V);
         const eintiefe = currentSpeicher ? currentSpeicher.eintiefe : 0;
 
-        // Berechnung Energiebedarf (kWh)
+        // Temperaturdifferenz prüfen
         const deltaT = Ttarget - Tstart;
         if (deltaT <= 0) {
-          summaryDiv.innerHTML = '<p style="color: #c00;"></p>';
+          // Falsche Eingabe: Ziel ≤ Start
+          summaryDiv.innerHTML = '<p style="color: #c00;">Zieltemperatur muss größer sein als Starttemperatur!</p>';
           summaryDiv.style.display = 'block';
           return;
         }
+
+        // Berechnung Energiebedarf (kWh)
+        const eff = 0.9; // Wirkungsgrad
         const E_wasser_Wh = V * 1.163 * deltaT;
         const E_wasser_kWh = E_wasser_Wh / 1000;
         const E_gesamt_kWh = E_wasser_kWh / eff;
@@ -282,9 +257,14 @@
         });
       }
 
-      // Event-Listener für den Button
-      const calcButton = document.getElementById('calcButton');
-      calcButton.addEventListener('click', calculateHeater);
+      // 1) Event-Listener: Bei jeder Änderung eines Sliders berechnen
+      volumeSlider.addEventListener('input', calculateHeater);
+      tStartSlider.addEventListener('input', calculateHeater);
+      tTargetSlider.addEventListener('input', calculateHeater);
+      priceSlider.addEventListener('input', calculateHeater);
+
+      // 2) Gleich nach Laden der Seite einmal berechnen, damit etwas angezeigt wird
+      calculateHeater();
     });
   </script>
 </body>
