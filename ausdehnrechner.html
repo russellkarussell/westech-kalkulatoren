@@ -1,9 +1,12 @@
-<!DOCTYPE html>
+import re
+
+# Load the current content from the textdoc provided in prompt
+content = r"""<!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kalkulator Trinkwasserausdehnungsgefäß</title>
+  <title>Trinkwasser-Ausdehnungsgefäß-Rechner (Vorschau)</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     h1 { color: #333; }
@@ -22,7 +25,7 @@
 </head>
 <body>
   <h1>Trinkwasser-Ausdehnungsgefäß-Rechner</h1>
-  <p>Wähle dein Speichervolumen, Temperaturen und Drücke per Slider – der Rechner zeigt dir direkt das passende Ausdehnungsgefäß.</p>
+  <p>Wähle dein Speichervolumen, Temperaturen und Drücke per Slider – der Rechner zeigt dir direkt das passende Ausdehnungsgefäß mit Link und kleinem Bild.</p>
 
   <form id="calculatorForm">
     <!-- Volumen-Slider -->
@@ -37,7 +40,7 @@
 
     <!-- Maximale Temperatur-Slider -->
     <div class="field-group">
-      <label for="tMaxSlider">max. Temperatur im Trinkwasserspeicher (°C)</label>
+      <label for="tMaxSlider">Maximale Speichertemperatur (°C)</label>
       <div class="slider-container">
         <input type="range" id="tMaxSlider" min="40" max="75" step="5" value="55" />
         <div class="slider-value" id="tMaxValue">55</div>
@@ -47,7 +50,7 @@
 
     <!-- Ausgangstemperatur-Slider -->
     <div class="field-group">
-      <label for="tFillSlider">Temperatur Kaltwasser (°C)</label>
+      <label for="tFillSlider">Ausgangstemperatur bei Füllung (°C)</label>
       <div class="slider-container">
         <input type="range" id="tFillSlider" min="8" max="15" step="1" value="10" />
         <div class="slider-value" id="tFillValue">10</div>
@@ -72,7 +75,7 @@
         <input type="range" id="pMaxSlider" min="1" max="6" step="0.5" value="6" />
         <div class="slider-value" id="pMaxValue">6.0</div>
       </div>
-      <small>empfohlener Wert 6bar</small>
+      <small>1 bis 6 bar in 0,5er-Schritten</small>
     </div>
 
     <button type="button" id="calcButton">Berechnen</button>
@@ -146,37 +149,10 @@
         let linkUrl, imgUrl;
         if (V_G <= 12) {
           linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-12l-ar12-wandhalterung";
-          imgUrl = "https://cdn.shopify.com/s/files/1/0537/8127/7757/products/812f7f35.jpg";
+          imgUrl = "https://www.westech.shop/media/image/product/139/lg/trinkwasser-ausdehnungsgefaess-12l-ar12-wandhalterung.webp";
         } else if (V_G <= 18) {
           linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-18l-ar18-wandhalterung";
-          imgUrl = "https://cdn.shopify.com/s/files/1/0537/8127/7757/products/ccf08025.jpg";
+          imgUrl = "https://www.westech.shop/media/image/product/140/lg/trinkwasser-ausdehnungsgefaess-18l-ar18-wandhalterung.webp";
         } else if (V_G <= 24) {
-          linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-24l-ar24-wandhalterung";
-          imgUrl = "https://cdn.shopify.com/s/files/1/0537/8127/7757/products/beispielbild24l.jpg";
-        } else if (V_G <= 35) {
-          linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-35l-ar35-wandhalterung";
-          imgUrl = "https://www.westech.shop/media/image/product/175/xs/trinkwasser-ausdehnungsgefaess-35l-ar35-wandhalterung.jpg";
-        } else {
-          const resultDiv = document.getElementById('result');
-          resultDiv.innerHTML = `<p>Kein passendes Ausdehnungsgefäß gefunden.</p>`;
-          return;
-        }
+          linkUrl = "https://www
 
-        const resultDiv = document.getElementById('result');
-        resultDiv.innerHTML = `
-          <p>Benötigtes Ausdehnungsgefäß gefunden:</p>
-          <p>
-            <a href="${linkUrl}" target="_blank">
-              <img src="${imgUrl}" alt="Ausdehnungsgefäß" />
-              ${linkUrl}
-            </a>
-          </p>
-        `;
-      }
-
-      const calcButton = document.getElementById('calcButton');
-      calcButton.addEventListener('click', calculateVessel);
-    });
-  </script>
-</body>
-</html>
