@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Heizstab-Konfigurator (Vorschau)</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #333; }
+    form { max-width: 600px; margin-bottom: 20px; }
+    label { display: block; margin-top: 10px; }
+
+    /* Angepasste Slider-Farbe: Orange */
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      background: transparent;
+    }
+    input[type="range"]:focus { outline: none; }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      background: #e67e22;
+      border-radius: 3px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: #e67e22;
+      border-radius: 50%;
+      margin-top: -5px;
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-track {
+      height: 6px;
+      background: #e67e22;
+      border-radius: 3px;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: #e67e22;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+
+    .slider-container { display: flex; align-items: center; margin-top: 5px; }
+    .slider-container input[type="range"] { flex: 1; margin-right: 10px; }
+    .slider-value { width: 60px; text-align: center; }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #e67e22;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover { background-color: #cf711c; }
+
+    .action-container { display: flex; align-items: center; margin-top: 20px; }
+    .disclaimer { margin-left: 20px; font-size: 0.9em; color: #666; }
+
+    #result {
+      background: #fff;
+      padding: 15px;
+      border: 1px solid #ddd;
+      max-width: 600px;
+      margin-top: 20px;
+    }
+
+    /* Flex container für Text-Ergebnisse */
+    .result-container { display: flex; flex-direction: column; margin-bottom: 15px; }
+    .result-container a { color: #0066cc; text-decoration: none; }
+    .result-container a:hover { text-decoration: underline; }
+    .result-details p { margin: 4px 0; }
+
+    .field-group { margin-bottom: 15px; }
+
+    @media (max-width: 480px) {
+      body { margin: 10px; }
+      h2 { font-size: 1.4em; }
+      .slider-container { flex-direction: column; align-items: flex-start; }
+      .slider-container input[type="range"] { margin-right: 0; margin-bottom: 5px; }
+      .slider-value { width: 100%; text-align: left; font-size: 0.9em; }
+    }
+  </style>
+</head>
+<body>
+  <h2>Heizstab-Konfigurator</h2>
+  <p>Wähle Speichervolumen, Start- und Zieltemperatur sowie Strompreis – der Rechner zeigt dir passende Heizstäbe mit Aufheizzeit, Verbrauch und Kosten.</p>
+
+  <form id="heaterForm">
+    <!-- Volumen-Slider -->
+    <div class="field-group">
+      <label for="volumeSlider">Volumen Speicher (Liter)</label>
+      <div class="slider-container">
+        <input type="range" id="volumeSlider" min="0" max="5" step="1" value="2" />
+        <div class="slider-value" id="volumeValue" aria-live="polite">300</div>
+      </div>
+    </div>
+
+    <!-- Starttemperatur-Slider -->
+    <div class="field-group">
+      <label for="tStartSlider">Starttemperatur (°C)</label>
+      <div class="slider-container">
+        <input type="range" id="tStartSlider" min="5" max="25" step="1" value="10" />
+        <div class="slider-value" id="tStartValue">10</div>
+      </div>
+    </div>
+
+    <!-- Zieltemperatur-Slider -->
+    <div class="field-group">
+      <label for="tTargetSlider">Zieltemperatur (°C)</label>
+      <div class="slider-container">
+        <input type="range" id="tTargetSlider" min="30" max="75" step="5" value="60" />
+        <div class="slider-value" id="tTargetValue">60</div>
+      </div>
+    </div>
+
+    <!-- Strompreis-Slider -->
+    <div class="field-group">
+      <label for="priceSlider">Strompreis (€/kWh)</label>
+      <div class="slider-container">
+        <input type="range" id="priceSlider" min="0.10" max="0.50" step="0.01" value="0.30" />
+        <div class="slider-value" id="priceValue">0.30 €/kWh</div>
+      </div>
+    </div>
+
+    <div class="action-container">
+      <button type="button" id="calcButton">Berechnen</button>
+      <span class="disclaimer">* Wirkungsgrad intern 90 %.</span>
+    </div>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 1) Mapping der Volumina und zugehörige Eintauchtiefen
+      const speicher = [
+        { volumen: 170, eintiefe: 500 },
+        { volumen: 200, eintiefe: 500 },
+        { volumen: 300, eintiefe: 500 },
+        { volumen: 500, eintiefe: 650 },
+        { volumen: 800, eintiefe: 790 },
+        { volumen: 1000, eintiefe: 790 }
+      ];
+      const volumeOptions = [170, 200, 300, 500, 800, 1000];
+      const volumeSlider = document.getElementById('volumeSlider');
+      const volumeValueDisplay = document.getElementById('volumeValue');
+      volumeValueDisplay.textContent = volumeOptions[parseInt(volumeSlider.value, 10)];
+      volumeSlider.addEventListener('input', function() {
+        volumeValueDisplay.textContent = volumeOptions[parseInt(this.value, 10)];
+      });
+
+      // 2) tStart-Slider
+      const tStartSlider = document.getElementById('tStartSlider');
+      const tStartValueDisplay = document.getElementById('tStartValue');
+      tStartValueDisplay.textContent = tStartSlider.value;
+      tStartSlider.addEventListener('input', function() {
+        tStartValueDisplay.textContent = this.value;
+      });
+
+      // 3) tTarget-Slider
+      const tTargetSlider = document.getElementById('tTargetSlider');
+      const tTargetValueDisplay = document.getElementById('tTargetValue');
+      tTargetValueDisplay.textContent = tTargetSlider.value;
+      tTargetSlider.addEventListener('input', function() {
+        tTargetValueDisplay.textContent = this.value;
+      });
+
+      // 4) price-Slider
+      const priceSlider = document.getElementById('priceSlider');
+      const priceValueDisplay = document.getElementById('priceValue');
+      priceValueDisplay.textContent = parseFloat(priceSlider.value).toFixed(2) + ' €/kWh';
+      priceSlider.addEventListener('input', function() {
+        priceValueDisplay.textContent = parseFloat(this.value).toFixed(2) + ' €/kWh';
+      });
+
+      // 5) Heizstäbe
+      const heizstaebe = [
+        { name: "WPI-25 (2,5 kW, 230 V)", leistung: 2.5, laenge: 370, link: "https://www.westech.shop/heizstab-wpi-25-25kw-230v-g64-l-370-tr30-75c" },
+        { name: "WPI-30 (3,0 kW, 230 V)", leistung: 3.0, laenge: 390, link: "https://www.westech.shop/heizstab-wpi-30-30kw-230v-g64-l-390-tr30-75c" },
+        { name: "WPI-45 (4,5 kW, 400 V)", leistung: 4.5, laenge: 470, link: "https://www.westech.shop/heizstab-wpi-45-45kw-400v-g64-l-470-tr30-75c-hs" },
+        { name: "WPI-60 (6,0 kW, 400 V)", leistung: 6.0, laenge: 560, link: "https://www.westech.shop/heizstab-wpi-60-60kw-400v-g64-l-560-tr30-75c-hs" },
+        { name: "WPI-75 (7,5 kW, 400 V)", leistung: 7.5, laenge: 650, link: "https://www.westech.shop/heizstab-wpi-75-75kw-400v-g64-l-650-tr30-75c" },
+        { name: "WPI-90 (9,0 kW, 400 V)", leistung: 9.0, laenge: 720, link: "https://www.westech.shop/heizstab-wpi-90kw-400v-g64-l-720-tr30-75c" }
+      ];
+
+      // Hilfsfunktion: Minuten in Stunden+Minuten konvertieren
+      function formatTime(hours) {
+        const totalMin = Math.round(hours * 60);
+        const h = Math.floor(totalMin / 60);
+        const m = totalMin % 60;
+        return h + " h " + m + " min";
+      }
+
+      // Hauptfunktion zur Berechnung
+      function calculateHeater() {
+        const idxVol = parseInt(volumeSlider.value, 10);
+        const V = volumeOptions[idxVol];             // Liter
+        const Tstart = parseFloat(tStartSlider.value);
+        const Ttarget = parseFloat(tTargetSlider.value);
+        const kostenProKWh = parseFloat(priceSlider.value);
+        const eff = 0.9; // Wirkungsgrad
+
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = '';
+
+        // Finde Eintauchtiefe basierend auf Volumen
+        const currentSpeicher = speicher.find(s => s.volumen === V);
+        const eintiefe = currentSpeicher ? currentSpeicher.eintiefe : 0;
+
+        // Berechnung Energiebedarf (kWh)
+        const deltaT = Ttarget - Tstart;
+        if (deltaT <= 0) {
+          resultDiv.innerHTML = '<p style="color: #c00;"><strong>Fehler:</strong> Die Zieltemperatur muss größer sein als die Starttemperatur.</p>';
+          return;
+        }
+        // E_Wasser in Wh = V [kg] * 1.163 [Wh/(kg·K)] * deltaT
+        const E_wasser_Wh = V * 1.163 * deltaT;
+        const E_wasser_kWh = E_wasser_Wh / 1000;
+        const E_gesamt_kWh = E_wasser_kWh / eff;
+
+        // Filter Heizstäbe nach Einbautiefe
+        const passendeStäbe = heizstaebe.filter(stab => stab.laenge <= eintiefe);
+        if (passendeStäbe.length === 0) {
+          resultDiv.innerHTML = '<p>Kein passender Heizstab gefunden.</p>';
+          return;
+        }
+
+        // Ergebnisse für jeden passenden Stab
+        passendeStäbe.forEach(stab => {
+          const t_h = E_gesamt_kWh / stab.leistung; // h
+          const kosten = E_gesamt_kWh * kostenProKWh;
+          const zeitenText = formatTime(t_h);
+
+          const container = document.createElement('div');
+          container.className = 'result-container';
+          container.innerHTML = `
+            <a href="${stab.link}" target="_blank"><strong>${stab.name}</strong></a>
+            <div class="result-details">
+              <p>Leistung: ${stab.leistung.toFixed(1)} kW, Länge: ${stab.laenge} mm</p>
+              <p>Heizdauer: ${zeitenText}</p>
+              <p>Verbrauch: ${E_gesamt_kWh.toFixed(2)} kWh</p>
+              <p>Kosten: ${kosten.toFixed(2)} €</p>
+            </div>
+          `;
+          resultDiv.appendChild(container);
+        });
+      }
+
+      // Event-Listener für den Button
+      const calcButton = document.getElementById('calcButton');
+      calcButton.addEventListener('click', calculateHeater);
+    });
+  </script>
+</body>
+</html>
