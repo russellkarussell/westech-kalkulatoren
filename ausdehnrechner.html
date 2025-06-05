@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trinkwasser-Ausdehnungsgefäß-Rechner</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #333; }
+    form { max-width: 600px; margin-bottom: 20px; }
+    label { display: block; margin-top: 10px; }
+    .slider-container { display: flex; align-items: center; margin-top: 5px; }
+    .slider-container input[type="range"] { flex: 1; margin-right: 10px; }
+    .slider-value { width: 60px; text-align: center; }
+    button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
+    #result { background: #f9f9f9; padding: 15px; border: 1px solid #ddd; max-width: 600px; margin-top: 20px; }
+    #result img { vertical-align: middle; width: 60px; height: auto; margin-right: 10px; }
+    #result a { font-size: 1.1em; font-weight: bold; color: #0066cc; text-decoration: none; }
+    #result a:hover { text-decoration: underline; }
+    .field-group { margin-bottom: 15px; }
+  </style>
+</head>
+<body>
+  <h1>Trinkwasser-Ausdehnungsgefäß-Rechner</h1>
+  <p>Wähle dein Speichervolumen, Temperaturen und Drücke per Slider – der Rechner zeigt dir direkt das passende Ausdehnungsgefäß mit Link und kleinem Bild.</p>
+
+  <form id="calculatorForm">
+    <!-- Volumen-Slider -->
+    <div class="field-group">
+      <label for="volumeSlider">Volumen Trinkwasserspeicher (Liter)</label>
+      <div class="slider-container">
+        <input type="range" id="volumeSlider" min="0" max="5" step="1" value="2" />
+        <div class="slider-value" id="volumeValue">300</div>
+      </div>
+      <small>Optionen: 170, 200, 300, 500, 800, 1000 L</small>
+    </div>
+
+    <!-- Maximale Temperatur-Slider -->
+    <div class="field-group">
+      <label for="tMaxSlider">Maximale Speichertemperatur (°C)</label>
+      <div class="slider-container">
+        <input type="range" id="tMaxSlider" min="40" max="75" step="5" value="55" />
+        <div class="slider-value" id="tMaxValue">55</div>
+      </div>
+      <small>In 5er-Schritten (40 bis 75 °C)</small>
+    </div>
+
+    <!-- Ausgangstemperatur-Slider -->
+    <div class="field-group">
+      <label for="tFillSlider">Ausgangstemperatur bei Füllung (°C)</label>
+      <div class="slider-container">
+        <input type="range" id="tFillSlider" min="8" max="15" step="1" value="10" />
+        <div class="slider-value" id="tFillValue">10</div>
+      </div>
+      <small>In 1er-Schritten (8 bis 15 °C)</small>
+    </div>
+
+    <!-- Vordruck-Slider -->
+    <div class="field-group">
+      <label for="p0Slider">System-Fülldruck (Vordruck) in bar</label>
+      <div class="slider-container">
+        <input type="range" id="p0Slider" min="1" max="5" step="0.5" value="2.5" />
+        <div class="slider-value" id="p0Value">2.5</div>
+      </div>
+      <small>In 0,5er-Schritten (1 bis 5 bar)</small>
+    </div>
+
+    <!-- Maximaldruck-Slider -->
+    <div class="field-group">
+      <label for="pMaxSlider">Maximal zulässiger Systemdruck (bar)</label>
+      <div class="slider-container">
+        <input type="range" id="pMaxSlider" min="1" max="6" step="0.5" value="6" />
+        <div class="slider-value" id="pMaxValue">6.0</div>
+      </div>
+      <small>In 0,5er-Schritten (1 bis 6 bar)</small>
+    </div>
+
+    <button type="button" id="calcButton">Berechnen</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const volumeOptions = [170, 200, 300, 500, 800, 1000];
+      const volumeSlider = document.getElementById('volumeSlider');
+      const volumeValueDisplay = document.getElementById('volumeValue');
+      volumeValueDisplay.textContent = volumeOptions[parseInt(volumeSlider.value, 10)];
+      volumeSlider.addEventListener('input', function() {
+        volumeValueDisplay.textContent = volumeOptions[parseInt(this.value, 10)];
+      });
+
+      const tMaxSlider = document.getElementById('tMaxSlider');
+      const tMaxValueDisplay = document.getElementById('tMaxValue');
+      tMaxValueDisplay.textContent = tMaxSlider.value;
+      tMaxSlider.addEventListener('input', function() {
+        tMaxValueDisplay.textContent = this.value;
+      });
+
+      const tFillSlider = document.getElementById('tFillSlider');
+      const tFillValueDisplay = document.getElementById('tFillValue');
+      tFillValueDisplay.textContent = tFillSlider.value;
+      tFillSlider.addEventListener('input', function() {
+        tFillValueDisplay.textContent = this.value;
+      });
+
+      const p0Slider = document.getElementById('p0Slider');
+      const p0ValueDisplay = document.getElementById('p0Value');
+      p0ValueDisplay.textContent = parseFloat(p0Slider.value).toFixed(1);
+      p0Slider.addEventListener('input', function() {
+        p0ValueDisplay.textContent = parseFloat(this.value).toFixed(1);
+      });
+
+      const pMaxSlider = document.getElementById('pMaxSlider');
+      const pMaxValueDisplay = document.getElementById('pMaxValue');
+      pMaxValueDisplay.textContent = parseFloat(pMaxSlider.value).toFixed(1);
+      pMaxSlider.addEventListener('input', function() {
+        pMaxValueDisplay.textContent = parseFloat(this.value).toFixed(1);
+      });
+
+      function getBeta(t) {
+        if (t <= 10) return 1.0000;
+        if (t <= 20) return 1.0012;
+        if (t <= 30) return 1.0035;
+        if (t <= 40) return 1.0080;
+        if (t <= 50) return 1.0170;
+        if (t <= 60) return 1.0420;
+        if (t <= 65) return 1.0450;
+        return 1.0480;
+      }
+
+      function calculateVessel() {
+        const V0 = volumeOptions[parseInt(volumeSlider.value, 10)];
+        const t_max = parseFloat(tMaxSlider.value) || 0;
+        const t_fill = parseFloat(tFillSlider.value) || 0;
+        const p0 = parseFloat(p0Slider.value) || 0;
+        const p_max = parseFloat(pMaxSlider.value) || 1;
+        const beta_fill = getBeta(t_fill);
+        const beta_max = getBeta(t_max);
+        const delta_V_rel = beta_max - beta_fill;
+        const delta_V_abs = V0 * delta_V_rel;
+        const pressure_ratio = p0 / p_max;
+        const factor = pressure_ratio >= 1 ? 1 : 1 / (1 - pressure_ratio);
+        const V_G = delta_V_abs * factor;
+        let selectedVessel, linkUrl, imgUrl;
+        if (V_G <= 12) {
+          selectedVessel = 12;
+          linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-12l-ar12-wandhalterung";
+          imgUrl = "https://cdn.shopify.com/s/files/1/0537/8127/7757/products/812f7f35.jpg";
+        } else if (V_G <= 18) {
+          selectedVessel = 18;
+          linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-18l-ar18-wandhalterung";
+          imgUrl = "https://cdn.shopify.com/s/files/1/0537/8127/7757/products/ccf08025.jpg";
+        } else if (V_G <= 24) {
+          selectedVessel = 24;
+          linkUrl = "https://www.westech.shop/trinkwasser-ausdehnungsgefaess-24l-ar24-wandhalterung";
+          img
