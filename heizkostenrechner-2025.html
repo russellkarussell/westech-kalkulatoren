@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Heizkostenersparnis-Rechner</title>
+  <!-- Hinzugefügte Bibliotheken für den PDF-Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <style>
     /* Farbvariablen basierend auf dem Design */
     :root {
@@ -274,6 +278,29 @@
         background-color: #ecf0f1;
         border-radius: 4px;
     }
+
+    /* Styles für den PDF-Export-Button */
+    .export-button-container {
+        text-align: center;
+        margin-top: 20px;
+        display: none; /* Wird per JS sichtbar gemacht */
+    }
+    #exportPdfButton {
+        background-color: var(--accent-color);
+        color: white;
+        padding: 12px 25px;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s, box-shadow 0.3s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    #exportPdfButton:hover {
+        background-color: #e68a00; /* Darker orange */
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
     
     @media (max-width: 700px) {
         .icon-selection-group { justify-content: center; }
@@ -441,6 +468,12 @@
       <p>Amortisationszeit (nach Förderung): <span class="highlight" id="amortisation">–</span> Jahre</p>
       <div class="disclaimer">* Alle Werte sind ungefähre Richtwerte. Die empfohlene Heizleistung ist eine grobe Schätzung; eine detaillierte Heizlastberechnung durch einen Fachbetrieb ist für die korrekte Dimensionierung unerlässlich.</div>
     </div>
+    
+    <!-- Neuer Container für den PDF-Export-Button -->
+    <div id="exportContainer" class="export-button-container">
+        <button id="exportPdfButton">PDF Exportieren</button>
+    </div>
+
     <div class="price-update-info">
         Die Standard-Energiepreise im Rechner sind Richtwerte (Stand: Juni 2025) und sollten für eine genaue Berechnung mit Ihren aktuellen Tarifen abgeglichen werden.
     </div>
@@ -583,6 +616,7 @@
 
 
       const resultsDiv = document.getElementById('results');
+      const exportContainer = document.getElementById('exportContainer');
       const nutzwaermeBedarfElem = document.getElementById('nutzwaermeBedarf');
       const kostenAktuellElem = document.getElementById('kostenAktuell');
       const co2AltanlageElem = document.getElementById('co2Altanlage'); 
@@ -646,7 +680,7 @@
             case 'pellets': verbrauchTxt = 'kg'; break;
             case 'strom': verbrauchTxt = 'kWh'; break;
             default: verbrauchTxt = 'Einheit';
-          }
+           }
           return { verbrauch: verbrauchTxt, preisUnit: config.unit };
       }
 
@@ -720,6 +754,7 @@
 
       function calculateAll() {
         resultsDiv.style.display = 'none'; 
+        exportContainer.style.display = 'none';
         const vorlaufTemp = parseFloat(vorlauftemperaturSlider.value);
         let basisSCOP = Math.max(2.0, 5 - 0.1 * (vorlaufTemp - 35));
         if (basisSCOPValueElem) basisSCOPValueElem.textContent = basisSCOP.toFixed(1); 
@@ -792,9 +827,9 @@
         if (ersparnisVal > 0 && effektiveInvestition >= 0) { 
           amort = (effektiveInvestition / ersparnisVal).toFixed(1);
         } else if (ersparnisVal <= 0 && effektiveInvestition > 0) {
-             amort = "Keine Amortisation";
+           amort = "Keine Amortisation";
         } else if (effektiveInvestition < 0) { 
-            amort = "Prüfen: Förderung > Kosten";
+           amort = "Prüfen: Förderung > Kosten";
         }
         
         if ((nutzwaermebedarf_kWh > 0 && preisAktuellGesamt >= 0) || (radios.value === 'verbrauch' && parseFloat(verbrauch1.value) > 0)) {
@@ -811,16 +846,133 @@
             if(co2FussballfelderElem) co2FussballfelderElem.textContent = co2Fussballfelder.toFixed(1);
             if(amortisationElem) amortisationElem.textContent = amort; 
             if(resultsDiv) resultsDiv.style.display = 'block';
+            if(exportContainer) exportContainer.style.display = 'block'; // Export-Button anzeigen
         } else { 
            if(resultsDiv) resultsDiv.style.display = 'none'; 
+           if(exportContainer) exportContainer.style.display = 'none'; // Export-Button ausblenden
         }
       }
+
+      // *** ÜBERARBEITETE FUNKTION FÜR PDF-EXPORT ***
+      function exportResultsToPDF() {
+          const { jsPDF } = window.jspdf;
+          const resultsToCapture = document.getElementById('results');
+
+          // Helper-Funktion zum Finden des Anzeigetextes für einen gegebenen Wert
+          const findDefText = (definitions, value) => {
+              const def = definitions.find(d => d.value === value);
+              return def ? def.text : value;
+          };
+
+          // PDF-Dokument erstellen
+          const pdf = new jsPDF({
+              orientation: 'portrait',
+              unit: 'mm',
+              format: 'a4'
+          });
+
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const margin = 15;
+          const contentWidth = pdfWidth - (2 * margin);
+          let currentHeight = margin;
+
+          // Haupttitel
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(18);
+          pdf.text('Analyse der Heizkostenersparnis', pdfWidth / 2, currentHeight, { align: 'center' });
+          currentHeight += 12;
+
+          // Abschnitt: Ihre Eingaben
+          pdf.setFontSize(14);
+          pdf.text('Ihre Eingaben', margin, currentHeight);
+          currentHeight += 7;
+          
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(10);
+
+          const addLine = (label, value) => {
+              pdf.setFont('helvetica', 'bold');
+              pdf.text(label, margin, currentHeight);
+              pdf.setFont('helvetica', 'normal');
+              pdf.text(value, margin + 55, currentHeight);
+              currentHeight += 6;
+          };
+          
+          const method = document.querySelector('input[name="method"]:checked').value;
+
+          if (method === 'verbrauch') {
+              addLine("Berechnungsmethode:", "Verbrauchsbasierte Berechnung");
+              addLine("Aktuelles Heizsystem:", findDefText(heizsystemDefinitions, system1ValueInput.value));
+              addLine("Jährlicher Verbrauch:", `${verbrauch1.value} ${einheitVerbrauch1.textContent}`);
+              addLine("Wirkungsgrad Altanlage:", `${wirkungsgradAlt1Slider.value} %`);
+              addLine("Preis Altanlage:", preis1Value.textContent);
+          } else { // 'flaeche'
+              addLine("Berechnungsmethode:", "Flächenbasierte Berechnung");
+              addLine("Gebäudeklasse:", findDefText(gebaeudeklasseDefinitions, gebaeudeklasseValueInput.value));
+              addLine("Beheizbare Fläche:", `${flaeche2Slider.value} m²`);
+              addLine("Anteil Fußbodenheizung:", `${anteilFussbodenheizungSlider.value} %`);
+              addLine("Altes Heizsystem:", findDefText(heizsystemDefinitions, system2ValueInput.value));
+              addLine("Wirkungsgrad Altanlage:", `${wirkungsgradAlt2Slider.value} %`);
+              addLine("Preis Altanlage:", preis2Value.textContent);
+          }
+
+          currentHeight += 4; // Extra Abstand
+          
+          // Abschnitt: Daten Wärmepumpe
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(12);
+          pdf.text('Annahmen für Wärmepumpe & Investition', margin, currentHeight);
+          currentHeight += 7;
+          pdf.setFontSize(10);
+          
+          addLine("Strompreis für WP:", strompreisValue.textContent);
+          addLine("Mittlere Vorlauftemp.:", vorlauftemperaturValue.textContent);
+          addLine("Investitionskosten:", investitionValue.textContent);
+          addLine("Erwartete Förderung:", foerderungenValue.textContent);
+          
+          currentHeight += 6; // Größerer Abstand zum Ergebnis-Bild
+
+          // Abschnitt: Ergebnisse (als Bild)
+          html2canvas(resultsToCapture, { scale: 2, backgroundColor: null, useCORS: true }).then(canvas => {
+              const imgData = canvas.toDataURL('image/png');
+              const aspectRatio = canvas.width / canvas.height;
+              const imgHeight = contentWidth / aspectRatio;
+
+              // Prüfen, ob das Bild auf die aktuelle Seite passt, sonst neue Seite
+              if (currentHeight + imgHeight > pdf.internal.pageSize.getHeight() - margin) {
+                  pdf.addPage();
+                  currentHeight = margin;
+              }
+
+              pdf.addImage(imgData, 'PNG', margin, currentHeight, contentWidth, imgHeight);
+              currentHeight += imgHeight + 10;
+
+              // Fußzeile
+              const pdfHeight = pdf.internal.pageSize.getHeight();
+              pdf.setFont('helvetica', 'normal');
+              pdf.setFontSize(9);
+              const today = new Date().toLocaleDateString('de-DE');
+              const footerText = `Exportiert am ${today}. Alle Werte sind Schätzungen basierend auf den eingegebenen Daten und dienen nur zur Orientierung.`;
+              const splitFooter = pdf.splitTextToSize(footerText, contentWidth);
+              pdf.text(splitFooter, margin, pdfHeight - margin - 5);
+
+              // PDF speichern
+              pdf.save('Heizkosten-Analyse.pdf');
+          });
+      }
+
 
       // Event Listeners
       document.querySelectorAll('input[name="method"]').forEach(radio => {
           radio.addEventListener('change', toggleBlocks);
       });
       if(verbrauch1) verbrauch1.addEventListener('input', calculateAll);
+      
+      // *** NEUER EVENT LISTENER FÜR DEN EXPORT-BUTTON ***
+      const exportPdfButton = document.getElementById('exportPdfButton');
+      if(exportPdfButton) {
+        exportPdfButton.addEventListener('click', exportResultsToPDF);
+      }
       
       // Init
       createIconOptions(gebaeudeklasseDefinitions, gebaeudeklasseIconGroup, gebaeudeklasseValueInput, handleGebaeudeklasseChange);
