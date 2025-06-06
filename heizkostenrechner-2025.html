@@ -1596,5 +1596,34 @@
     window.addEventListener('load', sendHeight);
   </script>
 
+  <script>
+  function sendHeightToParent() {
+    // Ermittelt die tatsächliche Höhe des <body>
+    const body = document.body;
+    const html = document.documentElement;
+    // scrollHeight von documentElement liefert oft den gesamten Content-Bereich
+    const height = Math.max(
+      body.scrollHeight, body.offsetHeight,
+      html.clientHeight, html.scrollHeight, html.offsetHeight
+    );
+    // Per postMessage an die Elternseite senden
+    window.parent.postMessage(
+      { iframeHeight: height },
+      '*' // Idealerweise hier die konkrete Parent-Domain statt '*'
+    );
+  }
+
+  // Beim ersten Laden direkt senden
+  window.addEventListener('load', sendHeightToParent);
+
+  // Falls der Inhalt sich verändert (z. B. durch dynamisches Nachladen), wiederholt senden
+  // z. B. mit MutationObserver:
+  const observer = new MutationObserver(sendHeightToParent);
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+  });
+</script>
 </body>
 </html>
