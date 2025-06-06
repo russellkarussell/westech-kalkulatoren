@@ -438,6 +438,7 @@
       <p>Jährliche CO₂-Einsparung: <span class="highlight" id="co2Ersparnis">0</span> kg<br>
          <small style="font-size:0.9em; color: var(--text-color-light);">entspricht ca. <span class="highlight" id="co2Fussballfelder">0</span> Fußballfeldern Waldfläche pro Jahr.</small>
       </p>
+      <p>Amortisationszeit (nach Förderung): <span class="highlight" id="amortisation">–</span> Jahre</p>
       <div class="disclaimer">* Alle Werte sind ungefähre Richtwerte. Die empfohlene Heizleistung ist eine grobe Schätzung; eine detaillierte Heizlastberechnung durch einen Fachbetrieb ist für die korrekte Dimensionierung unerlässlich.</div>
     </div>
     <div class="price-update-info">
@@ -592,8 +593,7 @@
       const ersparnisElem = document.getElementById('ersparnis');
       const co2ErsparnisElem = document.getElementById('co2Ersparnis'); 
       const co2FussballfelderElem = document.getElementById('co2Fussballfelder'); 
-      const amortisationElem = document.getElementById('amortisation'); 
-
+      
       function setupSlider(sliderElement, valueElement, unit = "", decimals = 0, isPreisSlider = false, systemKeyForPreis = null) {
           if (!sliderElement || !valueElement) return;
           
@@ -787,14 +787,6 @@
 
 
         const ersparnisVal = preisAktuellGesamt - kostenWPVal; 
-        let amort = '–';
-        if (ersparnisVal > 0 && effektiveInvestition >= 0) { 
-          amort = (effektiveInvestition / ersparnisVal).toFixed(1);
-        } else if (ersparnisVal <= 0 && effektiveInvestition > 0) {
-             amort = "Keine Amortisation";
-        } else if (effektiveInvestition < 0) { 
-            amort = "Prüfen: Förderung > Kosten";
-        }
         
         if ((nutzwaermebedarf_kWh > 0 && preisAktuellGesamt >= 0) || (radios.value === 'verbrauch' && parseFloat(verbrauch1.value) > 0)) {
             if(nutzwaermeBedarfElem) nutzwaermeBedarfElem.textContent = nutzwaermebedarf_kWh.toFixed(0);
@@ -808,7 +800,6 @@
             if(ersparnisElem) ersparnisElem.textContent = (ersparnisVal > 0 ? ersparnisVal.toFixed(2) : '0.00 (Mehrkosten: ' + Math.abs(ersparnisVal).toFixed(2) + ')');
             if(co2ErsparnisElem) co2ErsparnisElem.textContent = co2EinsparungKg.toFixed(0); 
             if(co2FussballfelderElem) co2FussballfelderElem.textContent = co2Fussballfelder.toFixed(1);
-            if(amortisationElem) amortisationElem.textContent = amort; 
             if(resultsDiv) resultsDiv.style.display = 'block';
         } else { 
            if(resultsDiv) resultsDiv.style.display = 'none'; 
