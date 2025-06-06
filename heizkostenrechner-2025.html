@@ -751,6 +751,7 @@
              dom.navigationButtons.style.justifyContent = 'space-between';
         }
         updateProgressBar();
+        document.querySelector('.container').scrollIntoView({ behavior: 'smooth' });
       }
 
       function updateProgressBar() {
