@@ -503,6 +503,15 @@
           <p>Wählen Sie optionale Komponenten aus, um die Berechnung zu verfeinern.</p>
           <div id="optimizationSelectionGroup" class="icon-selection-group"></div>
           <div id="pvOptions" class="sub-options hidden">
+              <label for="pvLeistungSlider">Installierte PV-Leistung (kWp)</label>
+              <div class="slider-container">
+                  <input type="range" id="pvLeistungSlider" min="1" max="20" step="0.5" value="5" />
+                  <span id="pvLeistungValue" class="slider-value">5.0 kWp</span>
+              </div>
+              <div class="derived-value-display">
+                  Geschätzter Jahresertrag: <span id="pvErtragValue">5000</span> kWh
+              </div>
+              <hr style="margin: 15px 0; border-style: dashed; border-color: #ccc;">
               <label for="pvAnteilSlider">Anteil des WP-Stroms durch PV gedeckt (%)</label>
               <div class="slider-container">
                   <input type="range" id="pvAnteilSlider" min="0" max="100" step="1" value="30" />
@@ -513,7 +522,7 @@
                   <input type="number" id="pvStrompreisInput" min="0" max="0.5" step="0.01" value="0.08" />
                   <span>€/kWh</span>
               </div>
-              <div class="disclaimer">Geben Sie hier Ihre Gestehungskosten an.</div>
+              <div class="disclaimer">Geben Sie hier Ihre Gestehungskosten an. Passen Sie den Deckungsgrad an, falls Sie z.B. einen Batteriespeicher haben.</div>
           </div>
           <div id="solarthermieOptions" class="sub-options hidden">
               <label>Kollektortyp</label>
@@ -629,7 +638,8 @@
           kgCo2ProFussballfeldWaldProJahr: 5600,
           klasseFactors: { alt_unsaniert: 200, alt_teilsaniert: 150, alt_saniert: 100, neubau: 70, niedrigenergie: 30 },
           heizkoerperventilatorEffekt: 8,
-          solarYieldFactors: { flach: 350, roehren: 450 } 
+          solarYieldFactors: { flach: 350, roehren: 450 },
+          pvYieldFactor: 1000 // kWh pro kWp pro Jahr
       };
 
       const dom = {
@@ -671,6 +681,9 @@
         wartungskostenWPSlider: document.getElementById('wartungskostenWPSlider'),
         wartungskostenWPValue: document.getElementById('wartungskostenWPValue'),
         pvOptions: document.getElementById('pvOptions'),
+        pvLeistungSlider: document.getElementById('pvLeistungSlider'),
+        pvLeistungValue: document.getElementById('pvLeistungValue'),
+        pvErtragValue: document.getElementById('pvErtragValue'),
         pvAnteilSlider: document.getElementById('pvAnteilSlider'),
         pvAnteilValue: document.getElementById('pvAnteilValue'),
         pvStrompreisInput: document.getElementById('pvStrompreisInput'),
@@ -902,6 +915,10 @@
         const solarErtrag = solarFlaeche * (config.solarYieldFactors[solarTyp] || 0);
         dom.solarthermieErtragValue.textContent = solarErtrag.toFixed(0);
 
+        // Update PV Ertrag
+        const pvLeistung = parseFloat(dom.pvLeistungSlider.value);
+        dom.pvErtragValue.textContent = (pvLeistung * config.pvYieldFactor).toFixed(0);
+
         // Update SCOP display dynamically
         const vorlaufTemp = parseFloat(dom.vorlauftemperaturSlider.value);
         const useFans = fanIcon?.classList.contains('active');
@@ -1025,6 +1042,7 @@
           {el: dom.foerderungenSlider, val: dom.foerderungenValue, unit: "€"},
           {el: dom.wartungskostenAltSlider, val: dom.wartungskostenAltValue, unit: "€"},
           {el: dom.wartungskostenWPSlider, val: dom.wartungskostenWPValue, unit: "€"},
+          {el: dom.pvLeistungSlider, val: dom.pvLeistungValue, unit: "kWp", dec: 1},
           {el: dom.pvAnteilSlider, val: dom.pvAnteilValue, unit: "%"},
           {el: dom.solarthermieFlaecheSlider, val: dom.solarthermieFlaecheValue, unit: "m²"},
       ];
