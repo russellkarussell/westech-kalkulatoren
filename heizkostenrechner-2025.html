@@ -59,7 +59,7 @@
       font-weight: bold;
       color: var(--text-color-light);
     }
-    input[type="number"] {
+    input[type="number"], input[type="text"] {
       width: 100%;
       padding: 10px 12px;
       margin-top: 6px;
@@ -160,7 +160,6 @@
         color: var(--primary-color);
     }
 
-
     .input-block {
       margin-top: 20px;
       padding: 15px;
@@ -179,6 +178,26 @@
     .input-group span {
         white-space: nowrap;
         color: var(--text-color-light);
+    }
+
+    .hidden {
+        display: none;
+    }
+    .sub-options {
+        padding-left: 25px;
+        border-left: 3px solid #e0e0e0;
+        margin-left: 10px;
+        margin-top: 10px;
+    }
+    .derived-value-display {
+        text-align: center;
+        font-size: 0.9em;
+        color: var(--text-color-light);
+        margin-top: 8px;
+    }
+    .derived-value-display span {
+        font-weight: bold;
+        color: var(--text-color-dark);
     }
 
     .icon-selection-group {
@@ -264,6 +283,10 @@
       font-weight: bold;
       color: var(--accent-color); 
     }
+    .highlight.negative {
+        color: #e74c3c; /* Rote Farbe für negative Werte */
+    }
+
     .disclaimer {
       margin-top: 10px;
       font-size: 0.85em;
@@ -279,7 +302,6 @@
         border-radius: 4px;
     }
 
-    /* Styles für den PDF-Export-Button */
     .export-button-container {
         text-align: center;
         margin-top: 20px;
@@ -301,10 +323,14 @@
         background-color: #e68a00; /* Darker orange */
         box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
+    #exportPdfButton:disabled {
+        background-color: #bdc3c7;
+        cursor: not-allowed;
+    }
     
     @media (max-width: 700px) {
         .icon-selection-group { justify-content: center; }
-        .icon-option { min-width: 90px; flex-basis: calc(50% - 10px); }
+        .icon-option { min-width: 90px; flex-basis: calc(48% - 10px); }
         .icon-option svg { width: 36px; height: 36px; }
          .calculation-method-selector {
             flex-direction: column;
@@ -317,7 +343,7 @@
         h2 { font-size: 1.5rem; }
         .input-group, .slider-container { flex-direction: column; align-items: stretch; }
         .input-group span, .slider-container .slider-value { margin-top: 5px; text-align: left; min-width: auto; }
-        .icon-option { min-width: 80px; }
+        .icon-option { min-width: 80px; flex-basis: calc(50% - 5px);}
     }
 
   </style>
@@ -331,6 +357,7 @@
       <input type="hidden" id="gebaeudeklasseValue" name="gebaeudeklasseValue" value="alt_unsaniert">
       <input type="hidden" id="system1Value" name="system1Value" value="heizoel">
       <input type="hidden" id="system2Value" name="system2Value" value="heizoel">
+      <input type="hidden" id="solarthermieTypeValue" name="solarthermieTypeValue" value="flach">
 
       <div class="calculation-method-selector">
         <label class="method-option-card">
@@ -412,7 +439,7 @@
 
       <div class="input-block">
         <h2>Daten für Wärmepumpe</h2>
-        <label for="strompreisSlider">Strompreis für Wärmepumpe (€/kWh)</label>
+        <label for="strompreisSlider">Netz-Strompreis für Wärmepumpe (€/kWh)</label>
         <div class="slider-container">
             <input type="range" id="strompreisSlider" min="0.15" max="0.60" step="0.01" value="0.19" />
             <span id="strompreisValue" class="slider-value">0.19 €/kWh</span>
@@ -426,20 +453,73 @@
         </div>
         <p class="derived-scop-info">Abgeleiteter Basis-SCOP: <span id="basisSCOPValue" style="font-weight:bold; color: var(--accent-color);">3.0</span></p>
         <div class="disclaimer">
-            Der SCOP (Seasonal Coefficient of Performance) ist die Jahresarbeitszahl der Wärmepumpe.
-            Niedrigere Vorlauftemperaturen führen zu höherem SCOP (z.B. 35°C VL ≈ SCOP 5; 55°C VL ≈ SCOP 3).
-            Wird je nach Gebäudeklasse vorausgewählt und ggf. durch Anteil Fußbodenheizung angepasst.
+            Der SCOP (Seasonal Coefficient of Performance) ist die Jahresarbeitszahl. Niedrigere Vorlauftemperaturen führen zu höherem SCOP.
         </div>
       </div>
 
+      <!-- BLOCK: ZUSÄTZLICHE OPTIMIERUNGEN -->
+      <div class="input-block">
+          <h2>Zusätzliche Optimierungen</h2>
+
+          <label for="wartungskostenAltSlider">Jährliche Wartungskosten Altanlage (€)</label>
+          <div class="slider-container">
+              <input type="range" id="wartungskostenAltSlider" min="0" max="1000" step="10" value="150" />
+              <span id="wartungskostenAltValue" class="slider-value">150 €</span>
+          </div>
+
+          <label for="wartungskostenWPSlider">Jährliche Wartungskosten Wärmepumpe (€)</label>
+          <div class="slider-container">
+              <input type="range" id="wartungskostenWPSlider" min="0" max="1000" step="10" value="250" />
+              <span id="wartungskostenWPValue" class="slider-value">250 €</span>
+          </div>
+
+          <hr style="margin: 25px 0;">
+
+          <div id="optimizationSelectionGroup" class="icon-selection-group">
+            <!-- Icons werden hier per JS eingefügt -->
+          </div>
+
+          <div id="pvOptions" class="sub-options hidden">
+              <label for="pvAnteilSlider">Anteil des WP-Stroms durch PV gedeckt (%)</label>
+              <div class="slider-container">
+                  <input type="range" id="pvAnteilSlider" min="0" max="100" step="1" value="30" />
+                  <span id="pvAnteilValue" class="slider-value">30 %</span>
+              </div>
+              <label for="pvStrompreisInput">Kosten für PV-Strom (€/kWh)</label>
+              <div class="input-group">
+                  <input type="number" id="pvStrompreisInput" min="0" max="0.5" step="0.01" value="0.08" />
+                  <span>€/kWh</span>
+              </div>
+              <div class="disclaimer">Geben Sie hier Ihre Gestehungskosten oder den entgangenen Gewinn durch die Einspeisung an.</div>
+          </div>
+          
+          <div id="solarthermieOptions" class="sub-options hidden">
+                <label>Kollektortyp</label>
+                <div id="solarthermieTypeIconGroup" class="icon-selection-group" style="justify-content: center; gap: 20px;">
+                    <!-- Solarthermie-Icons werden hier eingefügt -->
+                </div>
+
+                <label for="solarthermieFlaecheSlider">Kollektorfläche der Solaranlage (m²)</label>
+                <div class="slider-container">
+                    <input type="range" id="solarthermieFlaecheSlider" min="0" max="30" step="1" value="4" />
+                    <span id="solarthermieFlaecheValue" class="slider-value">4 m²</span>
+                </div>
+                <div id="solarthermieErtragDisplay" class="derived-value-display">
+                    Geschätzter Jahresertrag: <span id="solarthermieErtragValue">0</span> kWh
+                </div>
+                <div class="disclaimer">Der Ertrag reduziert den Wärmebedarf, den die Heizung decken muss.</div>
+          </div>
+      </div>
+
+
       <div class="input-block">
         <h2>Investitionskosten & Förderung Wärmepumpe</h2>
-        <label for="investitionSlider">Investitionskosten (inkl. Einbau) in €</label>
+        <label for="investitionSlider">Investitionskosten Wärmepumpe (inkl. Einbau) in €</label>
         <div class="slider-container">
             <input type="range" id="investitionSlider" min="5000" max="50000" step="500" value="20000" />
             <span id="investitionValue" class="slider-value">20000 €</span>
         </div>
-        <div class="disclaimer">Durchschnitt: 15.000–30.000 €.</div>
+        <div class="disclaimer">Durchschnitt: 15.000–30.000 €. Addieren Sie Kosten für Zusatz-Optimierungen.</div>
 
         <label for="foerderungenSlider">Erwartete Förderungen (einmalig) in €</label>
         <div class="slider-container">
@@ -469,7 +549,6 @@
       <div class="disclaimer">* Alle Werte sind ungefähre Richtwerte. Die empfohlene Heizleistung ist eine grobe Schätzung; eine detaillierte Heizlastberechnung durch einen Fachbetrieb ist für die korrekte Dimensionierung unerlässlich.</div>
     </div>
     
-    <!-- Neuer Container für den PDF-Export-Button -->
     <div id="exportContainer" class="export-button-container">
         <button id="exportPdfButton">PDF Exportieren</button>
     </div>
@@ -482,57 +561,107 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const form = document.getElementById('calculatorForm');
-      const radios = form.elements['method']; 
-      const blockVerbrauch = document.getElementById('blockVerbrauch');
-      const blockFlaeche = document.getElementById('blockFlaeche');
       
-      const gebaeudeklasseValueInput = document.getElementById('gebaeudeklasseValue');
-      const system1ValueInput = document.getElementById('system1Value');
-      const system2ValueInput = document.getElementById('system2Value');
-
-      function toggleBlocks() {
-        const isVerbrauch = radios.value === 'verbrauch'; 
-        blockVerbrauch.style.display = isVerbrauch ? 'block' : 'none';
-        blockFlaeche.style.display = isVerbrauch ? 'none' : 'block';
-        
-        if (isVerbrauch) {
-            configurePreisSlider(system1ValueInput.value, preis1Slider, preis1Value, einheitVerbrauch1);
-        } else {
-            configurePreisSlider(system2ValueInput.value, preis2Slider, preis2Value, null);
-        }
-        calculateAll();
-      }
-
-      const energyFactors = { heizoel: 9.9, erdgas_h: 10.6, erdgas_l: 9.2, fluessiggas: 6.7, pellets: 4.9, strom: 1.0 };
-      const defaultPrices = { 
-        heizoel: 1.03, erdgas_h: (0.11 * energyFactors.erdgas_h).toFixed(3), erdgas_l: (0.11 * energyFactors.erdgas_l).toFixed(3),
-        fluessiggas: 0.70, pellets: 0.30, strom: 0.19
+      // Zustand und Konfiguration
+      const config = {
+          energyFactors: { heizoel: 9.9, erdgas_h: 10.6, erdgas_l: 9.2, fluessiggas: 6.7, pellets: 4.9, strom: 1.0 },
+          defaultPrices: { 
+              heizoel: 1.03, erdgas_h: (0.11 * 10.6).toFixed(3), erdgas_l: (0.11 * 9.2).toFixed(3),
+              fluessiggas: 0.70, pellets: 0.30, strom: 0.19
+          },
+          priceSliderConfigs: {
+              heizoel:     { min: 0.50, max: 2.50, step: 0.01, unit: "€/Liter" },
+              erdgas_h:    { min: 0.50, max: 3.00, step: 0.01, unit: "€/m³" }, 
+              erdgas_l:    { min: 0.50, max: 3.00, step: 0.01, unit: "€/m³" },
+              fluessiggas: { min: 0.40, max: 2.00, step: 0.01, unit: "€/Liter" },
+              pellets:     { min: 0.15, max: 0.80, step: 0.01, unit: "€/kg" },
+              strom:       { min: 0.15, max: 0.60, step: 0.01, unit: "€/kWh" } 
+          },
+          defaultWirkungsgrade: { 
+              heizoel: 80, erdgas_h: 82, erdgas_l: 82, fluessiggas: 85, pellets: 88, strom: 100
+          },
+          co2FactorsKwhInput: { 
+              heizoel: 0.269, erdgas_h: 0.202, erdgas_l: 0.202, fluessiggas: 0.230,
+              pellets: 0.02, strom: 0.12 
+          },
+          stromCo2Faktor: 0.12,
+          kgCo2ProFussballfeldWaldProJahr: 5600,
+          klasseFactors: { alt_unsaniert: 200, alt_teilsaniert: 150, alt_saniert: 100, neubau: 70, niedrigenergie: 30 },
+          heizkoerperventilatorEffekt: 8, // Reduktion der Vorlauftemperatur in °C
+          solarYieldFactors: { // kWh pro m² pro Jahr für Solarthermie
+            flach: 350,
+            roehren: 450
+          } 
       };
-      const priceSliderConfigs = {
-        heizoel:     { min: 0.50, max: 2.50, step: 0.01, unit: "€/Liter" },
-        erdgas_h:    { min: 0.50, max: 3.00, step: 0.01, unit: "€/m³" }, 
-        erdgas_l:    { min: 0.50, max: 3.00, step: 0.01, unit: "€/m³" },
-        fluessiggas: { min: 0.40, max: 2.00, step: 0.01, unit: "€/Liter" },
-        pellets:     { min: 0.15, max: 0.80, step: 0.01, unit: "€/kg" },
-        strom:       { min: 0.15, max: 0.60, step: 0.01, unit: "€/kWh" } 
-      };
-       const defaultWirkungsgrade = { 
-        heizoel: 80, erdgas_h: 82, erdgas_l: 82, fluessiggas: 85, pellets: 88, strom: 100
-      };
-      const stromCo2Faktor = 0.12; // kg CO2 pro kWh Strom (Österreich-Mix, anpassbar)
-      const co2FactorsKwhInput = { // kg CO2 pro kWh Endenergie des Altsystems
-        heizoel: 0.269,     // ca. 2.66 kg/l / 9.9 kWh/l
-        erdgas_h: 0.202,    // Standardwert für Erdgas
-        erdgas_l: 0.202,    // Ähnlich wie H-Gas
-        fluessiggas: 0.230, // Standardwert für Flüssiggas
-        pellets: 0.02,      // Gering, nicht null (Transport, Produktion)
-        strom: stromCo2Faktor 
-      };
-      const kgCo2ProFussballfeldWaldProJahr = 5600; 
 
-
-      const klasseFactors = { alt_unsaniert: 200, alt_teilsaniert: 150, alt_saniert: 100, neubau: 70, niedrigenergie: 30 };
-
+      // DOM-Elemente
+      const dom = {
+          radios: form.elements['method'],
+          blockVerbrauch: document.getElementById('blockVerbrauch'),
+          blockFlaeche: document.getElementById('blockFlaeche'),
+          gebaeudeklasseValueInput: document.getElementById('gebaeudeklasseValue'),
+          system1ValueInput: document.getElementById('system1Value'),
+          system2ValueInput: document.getElementById('system2Value'),
+          wirkungsgradAlt1Slider: document.getElementById('wirkungsgradAlt1Slider'),
+          wirkungsgradAlt1Value: document.getElementById('wirkungsgradAlt1Value'),
+          verbrauch1: document.getElementById('verbrauch1'),
+          einheitVerbrauch1: document.getElementById('einheitVerbrauch1'),
+          preis1Slider: document.getElementById('preis1Slider'),
+          preis1Value: document.getElementById('preis1Value'),
+          gebaeudeklasseIconGroup: document.getElementById('gebaeudeklasseIconGroup'),
+          heizsystem1IconGroup: document.getElementById('heizsystem1IconGroup'),
+          heizsystem2IconGroup: document.getElementById('heizsystem2IconGroup'),
+          flaeche2Slider: document.getElementById('flaeche2Slider'),
+          flaeche2Value: document.getElementById('flaeche2Value'),
+          anteilFussbodenheizungSlider: document.getElementById('anteilFussbodenheizungSlider'),
+          anteilFussbodenheizungValue: document.getElementById('anteilFussbodenheizungValue'),
+          wirkungsgradAlt2Slider: document.getElementById('wirkungsgradAlt2Slider'),
+          wirkungsgradAlt2Value: document.getElementById('wirkungsgradAlt2Value'),
+          preis2Slider: document.getElementById('preis2Slider'),
+          preis2Value: document.getElementById('preis2Value'),
+          strompreisSlider: document.getElementById('strompreisSlider'),
+          strompreisValue: document.getElementById('strompreisValue'),
+          vorlauftemperaturSlider: document.getElementById('vorlauftemperaturSlider'),
+          vorlauftemperaturValue: document.getElementById('vorlauftemperaturValue'),
+          basisSCOPValueElem: document.getElementById('basisSCOPValue'),
+          investitionSlider: document.getElementById('investitionSlider'),
+          investitionValue: document.getElementById('investitionValue'),
+          foerderungenSlider: document.getElementById('foerderungenSlider'),
+          foerderungenValue: document.getElementById('foerderungenValue'),
+          // Neue Optimierungen
+          optimizationSelectionGroup: document.getElementById('optimizationSelectionGroup'),
+          wartungskostenAltSlider: document.getElementById('wartungskostenAltSlider'),
+          wartungskostenAltValue: document.getElementById('wartungskostenAltValue'),
+          wartungskostenWPSlider: document.getElementById('wartungskostenWPSlider'),
+          wartungskostenWPValue: document.getElementById('wartungskostenWPValue'),
+          pvOptions: document.getElementById('pvOptions'),
+          pvAnteilSlider: document.getElementById('pvAnteilSlider'),
+          pvAnteilValue: document.getElementById('pvAnteilValue'),
+          pvStrompreisInput: document.getElementById('pvStrompreisInput'),
+          solarthermieOptions: document.getElementById('solarthermieOptions'),
+          solarthermieTypeIconGroup: document.getElementById('solarthermieTypeIconGroup'),
+          solarthermieTypeValue: document.getElementById('solarthermieTypeValue'),
+          solarthermieFlaecheSlider: document.getElementById('solarthermieFlaecheSlider'),
+          solarthermieFlaecheValue: document.getElementById('solarthermieFlaecheValue'),
+          solarthermieErtragValue: document.getElementById('solarthermieErtragValue'),
+          // Ergebnisse
+          resultsDiv: document.getElementById('results'),
+          exportContainer: document.getElementById('exportContainer'),
+          exportPdfButton: document.getElementById('exportPdfButton'),
+          nutzwaermeBedarfElem: document.getElementById('nutzwaermeBedarf'),
+          kostenAktuellElem: document.getElementById('kostenAktuell'),
+          co2AltanlageElem: document.getElementById('co2Altanlage'),
+          wpLeistungElem: document.getElementById('wpLeistung'),
+          jazEffektivElem: document.getElementById('jazEffektiv'),
+          kostenWPElem: document.getElementById('kostenWP'),
+          co2WPElem: document.getElementById('co2WP'),
+          ersparnisElem: document.getElementById('ersparnis'),
+          co2ErsparnisElem: document.getElementById('co2Ersparnis'),
+          co2FussballfelderElem: document.getElementById('co2Fussballfelder'),
+          amortisationElem: document.getElementById('amortisation'),
+      };
+      
+      // Definitionen für Icons
       const gebaeudeklasseDefinitions = [
         { value: "alt_unsaniert", text: "Altbau, unsaniert", kWhText: "(~200 kWh/m²·a)", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 22v30h12V32h8v20h24V22L32 4zm-4 36h-8v-8h8v8zm16 0h-8v-8h8v8z" stroke="#555" stroke-width="1.5" opacity="0.7" fill="#d3a17d"/><path d="M10 20 L10 15 L15 15 M54 20 L54 15 L49 15 M20 10 L15 15 M44 10 L49 15" stroke="#8b4513" stroke-width="2.5" fill="none" opacity="0.6"/><rect x="26" y="42" width="12" height="10" fill="#a0522d" opacity="0.8"/></svg>` },
         { value: "alt_teilsaniert", text: "Altbau, teilsaniert", kWhText: "(~150 kWh/m²·a)", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 22v30h56V22L32 4zM16 50H8V30h8v20zm32 0h-8V30h8v20zM28 34h8v16h-8V34z" stroke="#555" stroke-width="1.5" fill="#e0c9a6"/><rect x="20" y="24" width="24" height="8" fill="#66bb6a" opacity="0.8"/><path d="M32 6 L10 20 M32 6 L54 20" stroke="#a0522d" stroke-width="2.5" fill="none"/></svg>` },
@@ -548,442 +677,404 @@
         { value: "pellets", text: "Holzpellets", svg: `<svg viewBox="0 0 64 64"><path d="M12 52h40v4H12zM16 48l4-10h24l4 10zM20 34l4-10h16l4 10zM24 20l4-10h8l4 10z" fill="#c8b7a1" stroke="#8d6e63" stroke-width="1"/><circle cx="22" cy="42" r="3" fill="#a1887f"/><circle cx="32" cy="46" r="3" fill="#a1887f"/><circle cx="42" cy="42" r="3" fill="#a1887f"/><circle cx="28" cy="30" r="3" fill="#a1887f"/><circle cx="36" cy="30" r="3" fill="#a1887f"/><circle cx="32" cy="18" r="3" fill="#a1887f"/></svg>` },
         { value: "strom", text: "Strom", svg: `<svg viewBox="0 0 64 64"><path d="M32 2L12 32h12l-4 20 24-30H32l4-20z" fill="#ffea00" stroke="#fbc02d" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>` }
       ];
+      const optimizationDefinitions = [
+        { id: 'pv', text: 'Photovoltaik', subOptionsId: 'pvOptions', svg: `<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="10" fill="#FFEB3B"/><path fill="none" stroke="#FFC107" stroke-width="3" stroke-linecap="round" d="M32 5v6M32 53v6M59 32h-6M11 32H5m40-22l-4 4M13 47l-4 4m0-34l4 4m32 26l4 4"/><path d="M25 44l6 14 6-14h-5l3-8h-7l3 8z" fill="#444"/></svg>` },
+        { id: 'solarthermie', text: 'Solarthermie', subOptionsId: 'solarthermieOptions', svg: `<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="10" fill="#FFEB3B"/><path fill="none" stroke="#FFC107" stroke-width="3" stroke-linecap="round" d="M32 5v6M32 53v6M59 32h-6M11 32H5m40-22l-4 4M13 47l-4 4m0-34l4 4m32 26l4 4"/><path d="M22 54s-2-8 10-8 10 8 10 8z" fill="#4FC3F7" opacity="0.8"/><path d="M26 48s-2-8 6-8 6 8 6 8z" fill="#29B6F6" opacity="0.8"/></svg>` },
+        { id: 'fans', text: 'Heizkörperlüfter', subOptionsId: null, svg: `<svg viewBox="0 0 64 64"><rect x="10" y="16" width="44" height="28" rx="2" fill="#CFD8DC"/><path d="M12 18h4v24h-4z m6 0h4v24h-4z m6 0h4v24h-4z m6 0h4v24h-4z m6 0h4v24h-4z m6 0h4v24h-4z" fill="#ECEFF1"/><circle cx="32" cy="46" r="6" fill="#90A4AE"/><path d="M32 40v12m-6-6h12m-8.5-2.5l5 5m-5-5l-5 5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>` }
+      ];
+      const solarthermieTypeDefinitions = [
+        { value: "flach", text: "Flachkollektor", svg: `<svg viewBox="0 0 64 64"><rect x="10" y="12" width="44" height="40" fill="#37474F"/><rect x="13" y="15" width="38" height="34" fill="#546E7A"/><path d="M17,20 l30,0 M17,26 l30,0 M17,32 l30,0 M17,38 l30,0 M17,44 l30,0" stroke="#78909C" stroke-width="1.5"/></svg>`},
+        { value: "roehren", text: "Röhrenkollektor", svg: `<svg viewBox="0 0 64 64"><rect x="10" y="12" width="44" height="40" fill="#37474F"/><g stroke="#B0BEC5" stroke-width="2.5" fill="#78909C"><rect x="15" y="16" width="6" height="32" rx="3"/><rect x="25" y="16" width="6" height="32" rx="3"/><rect x="35" y="16" width="6" height="32" rx="3"/><rect x="45" y="16" width="6" height="32" rx="3"/></g></svg>`}
+      ];
 
-      const gebaeudeklasseIconGroup = document.getElementById('gebaeudeklasseIconGroup');
-      const heizsystem1IconGroup = document.getElementById('heizsystem1IconGroup');
-      const heizsystem2IconGroup = document.getElementById('heizsystem2IconGroup');
 
+      // --- UI-Handler und Initialisierung ---
+
+      function setupSlider(sliderElement, valueElement, unit = "", decimals = 0) {
+        if (!sliderElement || !valueElement) return;
+        const updateDisplay = () => {
+            const displayValue = parseFloat(sliderElement.value).toFixed(decimals);
+            valueElement.textContent = `${displayValue} ${unit}`;
+        };
+        sliderElement.addEventListener('input', () => {
+            updateDisplay();
+            calculateAll();
+        });
+        updateDisplay();
+      }
+      
       function createIconOptions(definitions, groupElement, hiddenInputElement, callbackOnSelect) {
-          groupElement.innerHTML = '';
-          definitions.forEach(def => {
-              const optionDiv = document.createElement('div');
-              optionDiv.classList.add('icon-option');
-              optionDiv.dataset.value = def.value;
-              optionDiv.innerHTML = `${def.svg}<span class="option-text">${def.text}${def.kWhText ? `<small>${def.kWhText}</small>` : ''}</span>`;
-              if (def.value === hiddenInputElement.value) {
-                  optionDiv.classList.add('active');
-              }
-              optionDiv.addEventListener('click', function() {
-                  groupElement.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
-                  this.classList.add('active');
-                  hiddenInputElement.value = this.dataset.value;
-                  if (callbackOnSelect) {
-                      const isBlock1 = groupElement.id === 'heizsystem1IconGroup';
-                      const relevantWirkungsgradSlider = isBlock1 ? wirkungsgradAlt1Slider : wirkungsgradAlt2Slider;
-                      const relevantPreisSlider = isBlock1 ? preis1Slider : preis2Slider;
-                      const relevantPreisSpan = isBlock1 ? preis1Value : preis2Value;
-                      const relevantVerbrauchSpan = isBlock1 ? einheitVerbrauch1 : null;
+        groupElement.innerHTML = '';
+        definitions.forEach(def => {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'icon-option';
+            optionDiv.dataset.value = def.value;
+            optionDiv.innerHTML = `${def.svg}<span class="option-text">${def.text}${def.kWhText ? `<small>${def.kWhText}</small>` : ''}</span>`;
+            if (def.value === hiddenInputElement.value) {
+                optionDiv.classList.add('active');
+            }
+            optionDiv.addEventListener('click', function() {
+                groupElement.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                hiddenInputElement.value = this.dataset.value;
+                if (callbackOnSelect) callbackOnSelect(this.dataset.value);
+                calculateAll();
+            });
+            groupElement.appendChild(optionDiv);
+        });
+      }
 
-                      if (hiddenInputElement.id === "gebaeudeklasseValue") {
-                         callbackOnSelect(this.dataset.value);
-                      } else {
-                         callbackOnSelect(this.dataset.value, relevantWirkungsgradSlider, relevantPreisSlider, relevantPreisSpan, relevantVerbrauchSpan);
-                      }
-                  }
-                  calculateAll();
-              });
-              groupElement.appendChild(optionDiv);
-          });
+      function createOptimizationIcons(definitions, groupElement) {
+        groupElement.innerHTML = '';
+        definitions.forEach(def => {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'icon-option';
+            optionDiv.dataset.id = def.id;
+            optionDiv.innerHTML = `${def.svg}<span class="option-text">${def.text}</span>`;
+            optionDiv.addEventListener('click', function() {
+                this.classList.toggle('active');
+                updateUIOnInputChange();
+                calculateAll();
+            });
+            groupElement.appendChild(optionDiv);
+        });
+      }
+
+      function toggleBlocks() {
+        const isVerbrauch = dom.radios.value === 'verbrauch';
+        dom.blockVerbrauch.style.display = isVerbrauch ? 'block' : 'none';
+        dom.blockFlaeche.style.display = isVerbrauch ? 'none' : 'block';
+        handleHeizsystemChange(isVerbrauch ? dom.system1ValueInput.value : dom.system2ValueInput.value);
+        calculateAll();
+      }
+
+      function handleGebaeudeklasseChange(selectedValue) {
+          let fbhAnteil = 50, defaultVorlauf = 55;
+          switch(selectedValue) {
+              case "alt_unsaniert":   fbhAnteil = 0;   defaultVorlauf = 60; break;
+              case "alt_teilsaniert": fbhAnteil = 10;  defaultVorlauf = 55; break;
+              case "alt_saniert":     fbhAnteil = 30;  defaultVorlauf = 48; break;
+              case "neubau":          fbhAnteil = 90;  defaultVorlauf = 40; break;
+              case "niedrigenergie":  fbhAnteil = 100; defaultVorlauf = 35; break;
+          }
+          dom.anteilFussbodenheizungSlider.value = fbhAnteil;
+          dom.vorlauftemperaturSlider.value = defaultVorlauf;
+          dom.anteilFussbodenheizungSlider.dispatchEvent(new Event('input'));
+          dom.vorlauftemperaturSlider.dispatchEvent(new Event('input'));
       }
       
-      const wirkungsgradAlt1Slider = document.getElementById('wirkungsgradAlt1Slider');
-      const wirkungsgradAlt1Value = document.getElementById('wirkungsgradAlt1Value');
-      const verbrauch1 = document.getElementById('verbrauch1');
-      const einheitVerbrauch1 = document.getElementById('einheitVerbrauch1');
-      const preis1Slider = document.getElementById('preis1Slider');
-      const preis1Value = document.getElementById('preis1Value');
-
-      const flaeche2Slider = document.getElementById('flaeche2Slider');
-      const flaeche2Value = document.getElementById('flaeche2Value');
-      const anteilFussbodenheizungSlider = document.getElementById('anteilFussbodenheizungSlider');
-      const anteilFussbodenheizungValue = document.getElementById('anteilFussbodenheizungValue');
-      
-      const wirkungsgradAlt2Slider = document.getElementById('wirkungsgradAlt2Slider');
-      const wirkungsgradAlt2Value = document.getElementById('wirkungsgradAlt2Value');
-      const preis2Slider = document.getElementById('preis2Slider');
-      const preis2Value = document.getElementById('preis2Value');
-
-      const strompreisSlider = document.getElementById('strompreisSlider');
-      const strompreisValue = document.getElementById('strompreisValue');
-      const vorlauftemperaturSlider = document.getElementById('vorlauftemperaturSlider'); 
-      const vorlauftemperaturValue = document.getElementById('vorlauftemperaturValue'); 
-      const basisSCOPValueElem = document.getElementById('basisSCOPValue'); 
-      
-      const investitionSlider = document.getElementById('investitionSlider');
-      const investitionValue = document.getElementById('investitionValue');
-      const foerderungenSlider = document.getElementById('foerderungenSlider'); 
-      const foerderungenValue = document.getElementById('foerderungenValue'); 
-
-
-      const resultsDiv = document.getElementById('results');
-      const exportContainer = document.getElementById('exportContainer');
-      const nutzwaermeBedarfElem = document.getElementById('nutzwaermeBedarf');
-      const kostenAktuellElem = document.getElementById('kostenAktuell');
-      const co2AltanlageElem = document.getElementById('co2Altanlage'); 
-      const wpLeistungElem = document.getElementById('wpLeistung'); 
-      const jazEffektivElem = document.getElementById('jazEffektiv'); 
-      const kostenWPElem = document.getElementById('kostenWP');
-      const co2WPElem = document.getElementById('co2WP'); 
-      const ersparnisElem = document.getElementById('ersparnis');
-      const co2ErsparnisElem = document.getElementById('co2Ersparnis'); 
-      const co2FussballfelderElem = document.getElementById('co2Fussballfelder'); 
-      const amortisationElem = document.getElementById('amortisation'); 
-
-      function setupSlider(sliderElement, valueElement, unit = "", decimals = 0, isPreisSlider = false, systemKeyForPreis = null) {
-          if (!sliderElement || !valueElement) return;
-          
-          const updateDisplay = () => {
-              let displayValue = parseFloat(sliderElement.value);
-              let displayUnit = unit;
-              if (isPreisSlider && systemKeyForPreis) {
-                  const config = priceSliderConfigs[systemKeyForPreis];
-                  if (config) {
-                      displayUnit = config.unit;
-                      decimals = config.step.toString().split('.')[1]?.length || 0;
-                  }
-              }
-              valueElement.textContent = displayValue.toFixed(decimals) + " " + displayUnit;
-
-              // Spezielle Logik für Vorlauftemperatur-Slider, um Basis-SCOP anzuzeigen
-              if (sliderElement.id === 'vorlauftemperaturSlider' && basisSCOPValueElem) {
-                const vl = parseFloat(sliderElement.value);
-                const basisSCOP = Math.max(2.0, 5 - 0.1 * (vl - 35));
-                basisSCOPValueElem.textContent = basisSCOP.toFixed(1);
-              }
-          };
-
-          updateDisplay(); 
-          sliderElement.addEventListener('input', function() {
-              updateDisplay();
-              calculateAll();
-          });
+      function handleHeizsystemChange(selectedValue) {
+        const isVerbrauch = dom.radios.value === 'verbrauch';
+        const wirkungsgradSlider = isVerbrauch ? dom.wirkungsgradAlt1Slider : dom.wirkungsgradAlt2Slider;
+        const preisSlider = isVerbrauch ? dom.preis1Slider : dom.preis2Slider;
+        const preisValue = isVerbrauch ? dom.preis1Value : dom.preis2Value;
+        const einheitVerbrauch = isVerbrauch ? dom.einheitVerbrauch1 : null;
+        
+        if (wirkungsgradSlider) {
+            wirkungsgradSlider.value = config.defaultWirkungsgrade[selectedValue] || 85;
+            wirkungsgradSlider.dispatchEvent(new Event('input'));
+        }
+        configurePreisSlider(selectedValue, preisSlider, preisValue, einheitVerbrauch);
       }
       
-      setupSlider(wirkungsgradAlt1Slider, wirkungsgradAlt1Value, "%");
-      setupSlider(wirkungsgradAlt2Slider, wirkungsgradAlt2Value, "%");
-      setupSlider(flaeche2Slider, flaeche2Value, "m²");
-      setupSlider(anteilFussbodenheizungSlider, anteilFussbodenheizungValue, "%");
-      setupSlider(strompreisSlider, strompreisValue, "€/kWh", 2);
-      setupSlider(vorlauftemperaturSlider, vorlauftemperaturValue, "°C", 0); 
-      setupSlider(investitionSlider, investitionValue, "€");
-      setupSlider(foerderungenSlider, foerderungenValue, "€"); 
-      setupSlider(preis1Slider, preis1Value, "", 2, true, system1ValueInput.value); 
-      setupSlider(preis2Slider, preis2Value, "", 2, true, system2ValueInput.value);
+      function configurePreisSlider(systemValue, preisSlider, preisValueSpan, zugehoerigeEinheitVerbrauchSpan) {
+        const { verbrauch } = getEinheitText(systemValue);
+        if (zugehoerigeEinheitVerbrauchSpan) {
+            zugehoerigeEinheitVerbrauchSpan.textContent = verbrauch;
+        }
 
+        const isStrom = systemValue === 'strom';
+        preisSlider.disabled = isStrom;
 
+        const sliderConfig = isStrom ? config.priceSliderConfigs.strom : config.priceSliderConfigs[systemValue];
+        if (sliderConfig) {
+            preisSlider.min = sliderConfig.min;
+            preisSlider.max = sliderConfig.max;
+            preisSlider.step = sliderConfig.step;
+            preisSlider.value = isStrom ? dom.strompreisSlider.value : (config.defaultPrices[systemValue] || sliderConfig.min);
+            
+            const decimals = sliderConfig.step.toString().split('.')[1]?.length || 2;
+            preisValueSpan.textContent = `${parseFloat(preisSlider.value).toFixed(decimals)} ${sliderConfig.unit}`;
+        }
+      }
+      
       function getEinheitText(sysKey) {
-          const config = priceSliderConfigs[sysKey] || { unit: "€/Einheit" };
-          let verbrauchTxt = '';
-           switch (sysKey) {
+        const sliderConfig = config.priceSliderConfigs[sysKey] || { unit: "€/Einheit" };
+        let verbrauchTxt = 'Einheit';
+        switch (sysKey) {
             case 'heizoel': case 'fluessiggas': verbrauchTxt = 'Liter'; break;
             case 'erdgas_h': case 'erdgas_l': verbrauchTxt = 'm³'; break;
             case 'pellets': verbrauchTxt = 'kg'; break;
             case 'strom': verbrauchTxt = 'kWh'; break;
-            default: verbrauchTxt = 'Einheit';
-           }
-          return { verbrauch: verbrauchTxt, preisUnit: config.unit };
-      }
-
-      function configurePreisSlider(systemValue, preisSlider, preisValueSpan, zugehoerigeEinheitVerbrauchSpan) {
-          const einheiten = getEinheitText(systemValue);
-          if (zugehoerigeEinheitVerbrauchSpan) { 
-              zugehoerigeEinheitVerbrauchSpan.textContent = einheiten.verbrauch;
-          }
-
-          if (systemValue === 'strom') {
-              preisSlider.min = strompreisSlider.min;
-              preisSlider.max = strompreisSlider.max;
-              preisSlider.step = strompreisSlider.step;
-              preisSlider.value = strompreisSlider.value; 
-              preisSlider.disabled = true;
-              preisValueSpan.textContent = parseFloat(preisSlider.value).toFixed(2) + " " + priceSliderConfigs.strom.unit;
-          } else {
-              preisSlider.disabled = false;
-              const config = priceSliderConfigs[systemValue];
-              if (config) {
-                  preisSlider.min = config.min;
-                  preisSlider.max = config.max;
-                  preisSlider.step = config.step;
-                  
-                  if (preisSlider.dataset.currentSystem !== systemValue || !parseFloat(preisSlider.value) ) {
-                       preisSlider.value = defaultPrices[systemValue] || config.min;
-                  }
-                  preisValueSpan.textContent = parseFloat(preisSlider.value).toFixed(config.step.toString().split('.')[1]?.length || 2) + " " + config.unit;
-                  preisSlider.dataset.currentSystem = systemValue; 
-              }
-          }
-          preisSlider.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
-      }
-      
-      function handleHeizsystemChange(selectedValue, wirkungsgradSlider, preisSliderElement, preisValueSpanElement, einheitVerbrauchSpanElement) {
-          if (wirkungsgradSlider) {
-              const defaultWg = defaultWirkungsgrade[selectedValue] || 85;
-              wirkungsgradSlider.value = defaultWg;
-              wirkungsgradSlider.dispatchEvent(new Event('input'));
-          }
-          configurePreisSlider(selectedValue, preisSliderElement, preisValueSpanElement, einheitVerbrauchSpanElement);
-      }
-
-      function handleGebaeudeklasseChange(selectedValue) {
-          let fbhAnteil = 50;
-          let defaultVorlauf = 55; // °C
-          
-          switch(selectedValue) {
-              case "alt_unsaniert":   fbhAnteil = 0;  defaultVorlauf = 55; break;
-              case "alt_teilsaniert": fbhAnteil = 10; defaultVorlauf = 52; break;
-              case "alt_saniert":     fbhAnteil = 30; defaultVorlauf = 48; break;
-              case "neubau":          fbhAnteil = 90; defaultVorlauf = 43; break;
-              case "niedrigenergie":  fbhAnteil = 100;defaultVorlauf = 37; break;
-          }
-          anteilFussbodenheizungSlider.value = fbhAnteil;
-          anteilFussbodenheizungSlider.dispatchEvent(new Event('input'));
-
-          vorlauftemperaturSlider.value = defaultVorlauf;
-          vorlauftemperaturSlider.dispatchEvent(new Event('input')); 
-      }
-
-      strompreisSlider.addEventListener('input', function() {
-        if (system1ValueInput.value === 'strom') {
-            configurePreisSlider('strom', preis1Slider, preis1Value, einheitVerbrauch1);
         }
-        if (system2ValueInput.value === 'strom') {
-            configurePreisSlider('strom', preis2Slider, preis2Value, null);
-        }
-      });
+        return { verbrauch: verbrauchTxt, preisUnit: sliderConfig.unit };
+      }
 
+      function updateUIOnInputChange() {
+        const fanIcon = document.querySelector('.icon-option[data-id="fans"]');
+        const pvIcon = document.querySelector('.icon-option[data-id="pv"]');
+        const solarIcon = document.querySelector('.icon-option[data-id="solarthermie"]');
+
+        dom.pvOptions.classList.toggle('hidden', !pvIcon.classList.contains('active'));
+        dom.solarthermieOptions.classList.toggle('hidden', !solarIcon.classList.contains('active'));
+        
+        const fbhAnteil = parseFloat(dom.anteilFussbodenheizungSlider.value);
+        if (fanIcon) {
+            const showFanOption = fbhAnteil < 50;
+            fanIcon.style.display = showFanOption ? 'flex' : 'none';
+            if (!showFanOption) {
+                fanIcon.classList.remove('active');
+            }
+        }
+        
+        const solarFlaeche = parseFloat(dom.solarthermieFlaecheSlider.value);
+        const solarTyp = dom.solarthermieTypeValue.value;
+        const solarErtrag = solarFlaeche * (config.solarYieldFactors[solarTyp] || 0);
+        dom.solarthermieErtragValue.textContent = solarErtrag.toFixed(0);
+      }
+
+      // --- Hauptberechnungslogik ---
 
       function calculateAll() {
-        resultsDiv.style.display = 'none'; 
-        exportContainer.style.display = 'none';
-        const vorlaufTemp = parseFloat(vorlauftemperaturSlider.value);
-        let basisSCOP = Math.max(2.0, 5 - 0.1 * (vorlaufTemp - 35));
-        if (basisSCOPValueElem) basisSCOPValueElem.textContent = basisSCOP.toFixed(1); 
+        const isVerbrauch = dom.radios.value === 'verbrauch';
+
+        const fanIcon = document.querySelector('.icon-option[data-id="fans"]');
+        const pvIcon = document.querySelector('.icon-option[data-id="pv"]');
+        const solarIcon = document.querySelector('.icon-option[data-id="solarthermie"]');
+
+        const inputs = {
+            method: dom.radios.value,
+            isVerbrauch: isVerbrauch,
+            wirkungsgradAlt: parseFloat((isVerbrauch ? dom.wirkungsgradAlt1Slider : dom.wirkungsgradAlt2Slider).value) / 100,
+            verbrauch: parseFloat(dom.verbrauch1.value) || 0,
+            aktuellesSystem: isVerbrauch ? dom.system1ValueInput.value : dom.system2ValueInput.value,
+            aktuellerPreis: parseFloat((isVerbrauch ? dom.preis1Slider : dom.preis2Slider).value),
+            gebaeudeklasse: dom.gebaeudeklasseValueInput.value,
+            flaeche: parseFloat(dom.flaeche2Slider.value),
+            anteilFBH: parseFloat(dom.anteilFussbodenheizungSlider.value),
+            vorlaufTemp: parseFloat(dom.vorlauftemperaturSlider.value),
+            netzStrompreis: parseFloat(dom.strompreisSlider.value),
+            investition: parseFloat(dom.investitionSlider.value),
+            foerderung: parseFloat(dom.foerderungenSlider.value),
+            wartungAlt: parseFloat(dom.wartungskostenAltSlider.value),
+            wartungWP: parseFloat(dom.wartungskostenWPSlider.value),
+            usePV: pvIcon?.classList.contains('active'),
+            pvAnteil: parseFloat(dom.pvAnteilSlider.value) / 100,
+            pvStrompreis: parseFloat(dom.pvStrompreisInput.value),
+            useSolarthermie: solarIcon?.classList.contains('active'),
+            solarthermieFlaeche: parseFloat(dom.solarthermieFlaecheSlider.value) || 0,
+            solarthermieTyp: dom.solarthermieTypeValue.value,
+            useFans: fanIcon?.classList.contains('active'),
+        };
+        inputs.solarthermieErtrag = inputs.useSolarthermie ? inputs.solarthermieFlaeche * (config.solarYieldFactors[inputs.solarthermieTyp] || 0) : 0;
+
+        let energieInputAltanlage_kWh = 0;
+        if (inputs.isVerbrauch) {
+            energieInputAltanlage_kWh = inputs.verbrauch * (config.energyFactors[inputs.aktuellesSystem] || 0);
+        } else {
+            energieInputAltanlage_kWh = inputs.flaeche * (config.klasseFactors[inputs.gebaeudeklasse] || 0);
+        }
+        if (inputs.aktuellesSystem === 'strom') inputs.wirkungsgradAlt = 1.0;
+        let nutzwaermebedarf_kWh = energieInputAltanlage_kWh * inputs.wirkungsgradAlt;
+
+        let kostenAltBrennstoff = 0;
+        if (inputs.isVerbrauch) {
+            kostenAltBrennstoff = inputs.verbrauch * inputs.aktuellerPreis;
+        } else {
+            const faktor = config.energyFactors[inputs.aktuellesSystem] || 1;
+            kostenAltBrennstoff = (energieInputAltanlage_kWh / faktor) * inputs.aktuellerPreis;
+        }
+        const kostenAktuellGesamt = kostenAltBrennstoff + inputs.wartungAlt;
+        const co2Altanlage = energieInputAltanlage_kWh * (config.co2FactorsKwhInput[inputs.aktuellesSystem] || 0);
+
+        let wpBedarf_kWh = nutzwaermebedarf_kWh;
+        if (inputs.useSolarthermie) {
+            wpBedarf_kWh = Math.max(0, nutzwaermebedarf_kWh - inputs.solarthermieErtrag);
+        }
         
-        let JAZ_final = basisSCOP; 
-
-        const inv = parseFloat(investitionSlider.value) || 0; 
-        const foerderungen = parseFloat(foerderungenSlider.value) || 0; 
-        const effektiveInvestition = Math.max(0, inv - foerderungen); 
-
-        const strompreisVal = parseFloat(strompreisSlider.value) || 0;
-        let energieInputAltanlage_kWh = 0, nutzwaermebedarf_kWh = 0, preisAktuellGesamt = 0, wirkungsgradAlt = 0;
-        let aktuellesSystemValue, aktuellerPreis;
-        let co2Altanlage = 0, co2WP = 0; 
-
-        if (radios.value === 'verbrauch') {
-          aktuellesSystemValue = system1ValueInput.value;
-          aktuellerPreis = parseFloat(preis1Slider.value) || 0;
-          wirkungsgradAlt = parseFloat(wirkungsgradAlt1Slider.value) / 100 || 0;
-          const verb = parseFloat(verbrauch1.value) || 0; 
-          const faktor = energyFactors[aktuellesSystemValue] || 0; 
-          if(aktuellesSystemValue === 'strom') wirkungsgradAlt = 1.0; 
-          energieInputAltanlage_kWh = verb * faktor; 
-          nutzwaermebedarf_kWh = energieInputAltanlage_kWh * wirkungsgradAlt;
-          preisAktuellGesamt = verb * aktuellerPreis; 
-          if (jazEffektivElem) jazEffektivElem.textContent = JAZ_final.toFixed(1); 
-        } else { 
-          aktuellesSystemValue = system2ValueInput.value;
-          aktuellerPreis = parseFloat(preis2Slider.value) || 0;
-          wirkungsgradAlt = parseFloat(wirkungsgradAlt2Slider.value) / 100 || 0;
-          const klasse = gebaeudeklasseValueInput.value;
-          const flaeche = parseFloat(flaeche2Slider.value) || 0; 
-          const anteilFbhProzent = parseFloat(anteilFussbodenheizungSlider.value) || 0; 
-          const faktorEinheit = energyFactors[aktuellesSystemValue] || 0; 
-          
-          energieInputAltanlage_kWh = flaeche * (klasseFactors[klasse] || 0); 
-          if(aktuellesSystemValue === 'strom') wirkungsgradAlt = 1.0;
-          nutzwaermebedarf_kWh = energieInputAltanlage_kWh * wirkungsgradAlt;
-
-          if (aktuellesSystemValue === 'strom') { 
-             preisAktuellGesamt = energieInputAltanlage_kWh * aktuellerPreis;
-          } else if (faktorEinheit > 0) { 
-            preisAktuellGesamt = (energieInputAltanlage_kWh / faktorEinheit) * aktuellerPreis; 
-          } else { preisAktuellGesamt = 0; }
-
-          if (basisSCOP > 0) { 
-            if (anteilFbhProzent >= 75) JAZ_final = basisSCOP + 0.3;
-            else if (anteilFbhProzent <= 25) JAZ_final = basisSCOP - 0.3;
-            JAZ_final = Math.max(2.0, JAZ_final); 
-          }
-          if (jazEffektivElem) jazEffektivElem.textContent = JAZ_final.toFixed(1);
+        let effektiveVorlaufTemp = inputs.vorlaufTemp;
+        if (inputs.useFans) {
+            effektiveVorlaufTemp -= config.heizkoerperventilatorEffekt;
         }
-
-        co2Altanlage = energieInputAltanlage_kWh * (co2FactorsKwhInput[aktuellesSystemValue] || 0);
-        const wpLeistung = nutzwaermebedarf_kWh > 0 ? (nutzwaermebedarf_kWh / 2000) : 0; 
-
-        let kostenWPVal = 0; 
-        let stromverbrauchWP_kWh = 0;
-        if (JAZ_final > 0 && strompreisVal > 0 && nutzwaermebedarf_kWh > 0) {
-          stromverbrauchWP_kWh = nutzwaermebedarf_kWh / JAZ_final;
-          kostenWPVal = stromverbrauchWP_kWh * strompreisVal;
+        let basisSCOP = Math.max(2.0, 5 - 0.1 * (effektiveVorlaufTemp - 35));
+        let jaz_final = basisSCOP;
+        if (!inputs.isVerbrauch) {
+            if (inputs.anteilFBH >= 75) jaz_final += 0.3;
+            else if (inputs.anteilFBH <= 25) jaz_final -= 0.3;
         }
-        co2WP = stromverbrauchWP_kWh * stromCo2Faktor;
-        const co2EinsparungKg = co2Altanlage - co2WP;
-        const co2Fussballfelder = co2EinsparungKg > 0 ? (co2EinsparungKg / kgCo2ProFussballfeldWaldProJahr) : 0;
+        jaz_final = Math.max(2.0, jaz_final);
+        
+        const stromverbrauchWP_kWh = wpBedarf_kWh > 0 && jaz_final > 0 ? wpBedarf_kWh / jaz_final : 0;
+        let kostenWPVal = 0;
+        if (inputs.usePV) {
+            const pvStrom_kWh = stromverbrauchWP_kWh * inputs.pvAnteil;
+            const netzStrom_kWh = stromverbrauchWP_kWh - pvStrom_kWh;
+            kostenWPVal = (netzStrom_kWh * inputs.netzStrompreis) + (pvStrom_kWh * inputs.pvStrompreis);
+        } else {
+            kostenWPVal = stromverbrauchWP_kWh * inputs.netzStrompreis;
+        }
+        const kostenWPGesamt = kostenWPVal + inputs.wartungWP;
+        const co2WP = stromverbrauchWP_kWh * config.stromCo2Faktor;
 
-
-        const ersparnisVal = preisAktuellGesamt - kostenWPVal; 
-        let amort = '–';
-        if (ersparnisVal > 0 && effektiveInvestition >= 0) { 
-          amort = (effektiveInvestition / ersparnisVal).toFixed(1);
+        const ersparnisVal = kostenAktuellGesamt - kostenWPGesamt;
+        const co2Ersparnis = co2Altanlage - co2WP;
+        const wpLeistung = nutzwaermebedarf_kWh > 0 ? (nutzwaermebedarf_kWh / 2000) : 0;
+        const effektiveInvestition = Math.max(0, inputs.investition - inputs.foerderung);
+        
+        let amortisation = '–';
+        if (ersparnisVal > 0 && effektiveInvestition > 0) {
+            amortisation = (effektiveInvestition / ersparnisVal).toFixed(1);
         } else if (ersparnisVal <= 0 && effektiveInvestition > 0) {
-           amort = "Keine Amortisation";
-        } else if (effektiveInvestition < 0) { 
-           amort = "Prüfen: Förderung > Kosten";
+            amortisation = "Keine Amortisation";
+        } else if (effektiveInvestition <= 0) {
+            amortisation = "Sofort";
+        }
+
+        const hasValues = (nutzwaermebedarf_kWh > 0 && kostenAktuellGesamt >= 0) || (inputs.isVerbrauch && inputs.verbrauch > 0);
+        dom.resultsDiv.style.display = hasValues ? 'block' : 'none';
+        dom.exportContainer.style.display = hasValues ? 'block' : 'none';
+
+        if (hasValues) {
+            dom.nutzwaermeBedarfElem.textContent = nutzwaermebedarf_kWh.toFixed(0);
+            dom.kostenAktuellElem.textContent = kostenAktuellGesamt.toFixed(2);
+            dom.co2AltanlageElem.textContent = co2Altanlage.toFixed(0);
+            dom.wpLeistungElem.textContent = wpLeistung.toFixed(1);
+            dom.jazEffektivElem.textContent = jaz_final.toFixed(1);
+            dom.kostenWPElem.textContent = kostenWPGesamt.toFixed(2);
+            dom.co2WPElem.textContent = co2WP.toFixed(0);
+            
+            dom.ersparnisElem.classList.toggle('negative', ersparnisVal < 0);
+            dom.ersparnisElem.textContent = ersparnisVal.toFixed(2);
+            
+            dom.co2ErsparnisElem.textContent = co2Ersparnis.toFixed(0);
+            dom.co2FussballfelderElem.textContent = (co2Ersparnis > 0 ? (co2Ersparnis / config.kgCo2ProFussballfeldWaldProJahr) : 0).toFixed(1);
+            dom.amortisationElem.textContent = amortisation;
+        }
+      }
+
+      // --- PDF-Export ---
+
+      function exportResultsToPDF() {
+        dom.exportPdfButton.disabled = true;
+        dom.exportPdfButton.textContent = "Erstelle PDF...";
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const margin = 15;
+        let currentHeight = margin;
+
+        const addLine = (label, value) => {
+            pdf.setFont('helvetica', 'bold'); pdf.text(label, margin, currentHeight);
+            pdf.setFont('helvetica', 'normal'); pdf.text(value, margin + 60, currentHeight);
+            currentHeight += 6;
+        };
+        const addSectionTitle = (title) => {
+            currentHeight += (currentHeight === margin ? 0 : 4);
+            pdf.setFont('helvetica', 'bold'); pdf.setFontSize(12);
+            pdf.text(title, margin, currentHeight);
+            currentHeight += 7; pdf.setFontSize(10);
+        };
+
+        pdf.setFont('helvetica', 'bold'); pdf.setFontSize(18);
+        pdf.text('Analyse der Heizkostenersparnis', pdfWidth / 2, currentHeight, { align: 'center' });
+        currentHeight += 12;
+
+        addSectionTitle("Ihre Eingaben: Altanlage");
+        const method = dom.radios.value;
+        const findDefText = (definitions, value) => definitions.find(d => d.value === value)?.text || value;
+
+        if (method === 'verbrauch') {
+            addLine("Berechnungsmethode:", "Verbrauchsbasierte Berechnung");
+            addLine("Aktuelles Heizsystem:", findDefText(heizsystemDefinitions, dom.system1ValueInput.value));
+            addLine("Jährlicher Verbrauch:", `${dom.verbrauch1.value} ${dom.einheitVerbrauch1.textContent}`);
+            addLine("Preis Altanlage:", dom.preis1Value.textContent);
+            addLine("Wirkungsgrad Altanlage:", `${dom.wirkungsgradAlt1Slider.value} %`);
+        } else {
+            addLine("Berechnungsmethode:", "Flächenbasierte Berechnung");
+            addLine("Gebäudeklasse:", findDefText(gebaeudeklasseDefinitions, dom.gebaeudeklasseValueInput.value));
+            addLine("Beheizbare Fläche:", dom.flaeche2Value.textContent);
+            addLine("Altes Heizsystem:", findDefText(heizsystemDefinitions, dom.system2ValueInput.value));
+            addLine("Preis Altanlage:", dom.preis2Value.textContent);
+            addLine("Wirkungsgrad Altanlage:", `${dom.wirkungsgradAlt2Slider.value} %`);
         }
         
-        if ((nutzwaermebedarf_kWh > 0 && preisAktuellGesamt >= 0) || (radios.value === 'verbrauch' && parseFloat(verbrauch1.value) > 0)) {
-            if(nutzwaermeBedarfElem) nutzwaermeBedarfElem.textContent = nutzwaermebedarf_kWh.toFixed(0);
-            if(kostenAktuellElem) kostenAktuellElem.textContent = preisAktuellGesamt.toFixed(2);
-            if(co2AltanlageElem) co2AltanlageElem.textContent = co2Altanlage.toFixed(0);
-            if(wpLeistungElem) wpLeistungElem.textContent = wpLeistung.toFixed(1); 
-
-            if(kostenWPElem) kostenWPElem.textContent = kostenWPVal.toFixed(2);
-            if(co2WPElem) co2WPElem.textContent = co2WP.toFixed(0);
-
-            if(ersparnisElem) ersparnisElem.textContent = (ersparnisVal > 0 ? ersparnisVal.toFixed(2) : '0.00 (Mehrkosten: ' + Math.abs(ersparnisVal).toFixed(2) + ')');
-            if(co2ErsparnisElem) co2ErsparnisElem.textContent = co2EinsparungKg.toFixed(0); 
-            if(co2FussballfelderElem) co2FussballfelderElem.textContent = co2Fussballfelder.toFixed(1);
-            if(amortisationElem) amortisationElem.textContent = amort; 
-            if(resultsDiv) resultsDiv.style.display = 'block';
-            if(exportContainer) exportContainer.style.display = 'block'; // Export-Button anzeigen
-        } else { 
-           if(resultsDiv) resultsDiv.style.display = 'none'; 
-           if(exportContainer) exportContainer.style.display = 'none'; // Export-Button ausblenden
+        addSectionTitle("Annahmen für Wärmepumpe & Optimierungen");
+        addLine("Anteil Fußbodenheizung:", dom.anteilFussbodenheizungValue.textContent);
+        addLine("Mittlere Vorlauftemp.:", dom.vorlauftemperaturValue.textContent);
+        addLine("Wartungskosten (Alt/Neu):", `${dom.wartungskostenAltValue.textContent} / ${dom.wartungskostenWPValue.textContent}`);
+        addLine("Netz-Strompreis für WP:", dom.strompreisValue.textContent);
+        
+        if (document.querySelector('.icon-option[data-id="fans"]').classList.contains('active')) {
+            addLine("Heizkörperventilatoren:", "Ja (Effizienz verbessert)");
         }
+        if (document.querySelector('.icon-option[data-id="solarthermie"]').classList.contains('active')) {
+            const solarTypText = findDefText(solarthermieTypeDefinitions, dom.solarthermieTypeValue.value);
+            addLine("Solarthermie:", `Ja (${dom.solarthermieFlaecheValue.textContent}, ${solarTypText})`);
+        }
+        if (document.querySelector('.icon-option[data-id="pv"]').classList.contains('active')) {
+            addLine("Photovoltaik:", `Ja (${dom.pvAnteilValue.textContent} Deckung)`);
+            addLine("Kosten für PV-Strom:", `${dom.pvStrompreisInput.value} €/kWh`);
+        }
+        
+        addSectionTitle("Investition & Förderung");
+        addLine("Investitionskosten:", dom.investitionValue.textContent);
+        addLine("Erwartete Förderung:", dom.foerderungenValue.textContent);
+
+        currentHeight += 6;
+
+        html2canvas(dom.resultsDiv, { scale: 2, backgroundColor: null, useCORS: true }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const aspectRatio = canvas.width / canvas.height;
+            const imgHeight = (pdfWidth - 2 * margin) / aspectRatio;
+            if (currentHeight + imgHeight > pdf.internal.pageSize.getHeight() - margin) {
+                pdf.addPage(); currentHeight = margin;
+            }
+            pdf.addImage(imgData, 'PNG', margin, currentHeight, pdfWidth - 2 * margin, imgHeight);
+            currentHeight += imgHeight + 10;
+            
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9);
+            const today = new Date().toLocaleDateString('de-DE');
+            const footerText = `Exportiert am ${today}. Alle Werte sind Schätzungen.`;
+            pdf.text(footerText, margin, pdfHeight - margin - 5);
+            
+            pdf.save('Heizkosten-Analyse.pdf');
+            dom.exportPdfButton.disabled = false;
+            dom.exportPdfButton.textContent = "PDF Exportieren";
+        });
       }
 
-      // *** ÜBERARBEITETE FUNKTION FÜR PDF-EXPORT ***
-      function exportResultsToPDF() {
-          const { jsPDF } = window.jspdf;
-          const resultsToCapture = document.getElementById('results');
-
-          // Helper-Funktion zum Finden des Anzeigetextes für einen gegebenen Wert
-          const findDefText = (definitions, value) => {
-              const def = definitions.find(d => d.value === value);
-              return def ? def.text : value;
-          };
-
-          // PDF-Dokument erstellen
-          const pdf = new jsPDF({
-              orientation: 'portrait',
-              unit: 'mm',
-              format: 'a4'
-          });
-
-          const pdfWidth = pdf.internal.pageSize.getWidth();
-          const margin = 15;
-          const contentWidth = pdfWidth - (2 * margin);
-          let currentHeight = margin;
-
-          // Haupttitel
-          pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(18);
-          pdf.text('Analyse der Heizkostenersparnis', pdfWidth / 2, currentHeight, { align: 'center' });
-          currentHeight += 12;
-
-          // Abschnitt: Ihre Eingaben
-          pdf.setFontSize(14);
-          pdf.text('Ihre Eingaben', margin, currentHeight);
-          currentHeight += 7;
-          
-          pdf.setFont('helvetica', 'normal');
-          pdf.setFontSize(10);
-
-          const addLine = (label, value) => {
-              pdf.setFont('helvetica', 'bold');
-              pdf.text(label, margin, currentHeight);
-              pdf.setFont('helvetica', 'normal');
-              pdf.text(value, margin + 55, currentHeight);
-              currentHeight += 6;
-          };
-          
-          const method = document.querySelector('input[name="method"]:checked').value;
-
-          if (method === 'verbrauch') {
-              addLine("Berechnungsmethode:", "Verbrauchsbasierte Berechnung");
-              addLine("Aktuelles Heizsystem:", findDefText(heizsystemDefinitions, system1ValueInput.value));
-              addLine("Jährlicher Verbrauch:", `${verbrauch1.value} ${einheitVerbrauch1.textContent}`);
-              addLine("Wirkungsgrad Altanlage:", `${wirkungsgradAlt1Slider.value} %`);
-              addLine("Preis Altanlage:", preis1Value.textContent);
-          } else { // 'flaeche'
-              addLine("Berechnungsmethode:", "Flächenbasierte Berechnung");
-              addLine("Gebäudeklasse:", findDefText(gebaeudeklasseDefinitions, gebaeudeklasseValueInput.value));
-              addLine("Beheizbare Fläche:", `${flaeche2Slider.value} m²`);
-              addLine("Anteil Fußbodenheizung:", `${anteilFussbodenheizungSlider.value} %`);
-              addLine("Altes Heizsystem:", findDefText(heizsystemDefinitions, system2ValueInput.value));
-              addLine("Wirkungsgrad Altanlage:", `${wirkungsgradAlt2Slider.value} %`);
-              addLine("Preis Altanlage:", preis2Value.textContent);
-          }
-
-          currentHeight += 4; // Extra Abstand
-          
-          // Abschnitt: Daten Wärmepumpe
-          pdf.setFont('helvetica', 'bold');
-          pdf.setFontSize(12);
-          pdf.text('Annahmen für Wärmepumpe & Investition', margin, currentHeight);
-          currentHeight += 7;
-          pdf.setFontSize(10);
-          
-          addLine("Strompreis für WP:", strompreisValue.textContent);
-          addLine("Mittlere Vorlauftemp.:", vorlauftemperaturValue.textContent);
-          addLine("Investitionskosten:", investitionValue.textContent);
-          addLine("Erwartete Förderung:", foerderungenValue.textContent);
-          
-          currentHeight += 6; // Größerer Abstand zum Ergebnis-Bild
-
-          // Abschnitt: Ergebnisse (als Bild)
-          html2canvas(resultsToCapture, { scale: 2, backgroundColor: null, useCORS: true }).then(canvas => {
-              const imgData = canvas.toDataURL('image/png');
-              const aspectRatio = canvas.width / canvas.height;
-              const imgHeight = contentWidth / aspectRatio;
-
-              // Prüfen, ob das Bild auf die aktuelle Seite passt, sonst neue Seite
-              if (currentHeight + imgHeight > pdf.internal.pageSize.getHeight() - margin) {
-                  pdf.addPage();
-                  currentHeight = margin;
-              }
-
-              pdf.addImage(imgData, 'PNG', margin, currentHeight, contentWidth, imgHeight);
-              currentHeight += imgHeight + 10;
-
-              // Fußzeile
-              const pdfHeight = pdf.internal.pageSize.getHeight();
-              pdf.setFont('helvetica', 'normal');
-              pdf.setFontSize(9);
-              const today = new Date().toLocaleDateString('de-DE');
-              const footerText = `Exportiert am ${today}. Alle Werte sind Schätzungen basierend auf den eingegebenen Daten und dienen nur zur Orientierung.`;
-              const splitFooter = pdf.splitTextToSize(footerText, contentWidth);
-              pdf.text(splitFooter, margin, pdfHeight - margin - 5);
-
-              // PDF speichern
-              pdf.save('Heizkosten-Analyse.pdf');
-          });
-      }
-
-
-      // Event Listeners
-      document.querySelectorAll('input[name="method"]').forEach(radio => {
-          radio.addEventListener('change', toggleBlocks);
-      });
-      if(verbrauch1) verbrauch1.addEventListener('input', calculateAll);
+      // --- Initiale Einrichtung ---
       
-      // *** NEUER EVENT LISTENER FÜR DEN EXPORT-BUTTON ***
-      const exportPdfButton = document.getElementById('exportPdfButton');
-      if(exportPdfButton) {
-        exportPdfButton.addEventListener('click', exportResultsToPDF);
-      }
+      const sliders = [
+          {el: dom.wirkungsgradAlt1Slider, val: dom.wirkungsgradAlt1Value, unit: "%"},
+          {el: dom.wirkungsgradAlt2Slider, val: dom.wirkungsgradAlt2Value, unit: "%"},
+          {el: dom.flaeche2Slider, val: dom.flaeche2Value, unit: "m²"},
+          {el: dom.anteilFussbodenheizungSlider, val: dom.anteilFussbodenheizungValue, unit: "%"},
+          {el: dom.strompreisSlider, val: dom.strompreisValue, unit: "€/kWh", dec: 2},
+          {el: dom.vorlauftemperaturSlider, val: dom.vorlauftemperaturValue, unit: "°C"},
+          {el: dom.investitionSlider, val: dom.investitionValue, unit: "€"},
+          {el: dom.foerderungenSlider, val: dom.foerderungenValue, unit: "€"},
+          {el: dom.wartungskostenAltSlider, val: dom.wartungskostenAltValue, unit: "€"},
+          {el: dom.wartungskostenWPSlider, val: dom.wartungskostenWPValue, unit: "€"},
+          {el: dom.pvAnteilSlider, val: dom.pvAnteilValue, unit: "%"},
+          {el: dom.solarthermieFlaecheSlider, val: dom.solarthermieFlaecheValue, unit: "m²"},
+      ];
+      sliders.forEach(s => setupSlider(s.el, s.val, s.unit, s.dec || 0));
+
+      createIconOptions(gebaeudeklasseDefinitions, dom.gebaeudeklasseIconGroup, dom.gebaeudeklasseValueInput, handleGebaeudeklasseChange);
+      createIconOptions(heizsystemDefinitions, dom.heizsystem1IconGroup, dom.system1ValueInput, handleHeizsystemChange);
+      createIconOptions(heizsystemDefinitions, dom.heizsystem2IconGroup, dom.system2ValueInput, handleHeizsystemChange);
+      createOptimizationIcons(optimizationDefinitions, dom.optimizationSelectionGroup);
+      createIconOptions(solarthermieTypeDefinitions, dom.solarthermieTypeIconGroup, dom.solarthermieTypeValue, updateUIOnInputChange);
       
-      // Init
-      createIconOptions(gebaeudeklasseDefinitions, gebaeudeklasseIconGroup, gebaeudeklasseValueInput, handleGebaeudeklasseChange);
-      createIconOptions(heizsystemDefinitions, heizsystem1IconGroup, system1ValueInput, (selectedValue, wgSlider, pSlider, pValSpan, eVbSpan) => handleHeizsystemChange(selectedValue, wgSlider, pSlider, pValSpan, eVbSpan));
-      createIconOptions(heizsystemDefinitions, heizsystem2IconGroup, system2ValueInput, (selectedValue, wgSlider, pSlider, pValSpan, eVbSpan) => handleHeizsystemChange(selectedValue, wgSlider, pSlider, pValSpan, eVbSpan));
+      form.addEventListener('input', updateUIOnInputChange);
+      form.addEventListener('change', updateUIOnInputChange);
+      dom.exportPdfButton.addEventListener('click', exportResultsToPDF);
       
-      handleGebaeudeklasseChange(gebaeudeklasseValueInput.value); 
-      handleHeizsystemChange(system1ValueInput.value, wirkungsgradAlt1Slider, preis1Slider, preis1Value, einheitVerbrauch1);
-      handleHeizsystemChange(system2ValueInput.value, wirkungsgradAlt2Slider, preis2Slider, preis2Value, null);
-      
-      toggleBlocks(); 
+      handleGebaeudeklasseChange(dom.gebaeudeklasseValueInput.value); 
+      toggleBlocks();
     });
   </script>
 
