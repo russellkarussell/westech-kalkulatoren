@@ -593,7 +593,8 @@
       const ersparnisElem = document.getElementById('ersparnis');
       const co2ErsparnisElem = document.getElementById('co2Ersparnis'); 
       const co2FussballfelderElem = document.getElementById('co2Fussballfelder'); 
-      
+      const amortisationElem = document.getElementById('amortisation'); 
+
       function setupSlider(sliderElement, valueElement, unit = "", decimals = 0, isPreisSlider = false, systemKeyForPreis = null) {
           if (!sliderElement || !valueElement) return;
           
@@ -787,6 +788,14 @@
 
 
         const ersparnisVal = preisAktuellGesamt - kostenWPVal; 
+        let amort = '–';
+        if (ersparnisVal > 0 && effektiveInvestition >= 0) { 
+          amort = (effektiveInvestition / ersparnisVal).toFixed(1);
+        } else if (ersparnisVal <= 0 && effektiveInvestition > 0) {
+             amort = "Keine Amortisation";
+        } else if (effektiveInvestition < 0) { 
+            amort = "Prüfen: Förderung > Kosten";
+        }
         
         if ((nutzwaermebedarf_kWh > 0 && preisAktuellGesamt >= 0) || (radios.value === 'verbrauch' && parseFloat(verbrauch1.value) > 0)) {
             if(nutzwaermeBedarfElem) nutzwaermeBedarfElem.textContent = nutzwaermebedarf_kWh.toFixed(0);
@@ -800,6 +809,7 @@
             if(ersparnisElem) ersparnisElem.textContent = (ersparnisVal > 0 ? ersparnisVal.toFixed(2) : '0.00 (Mehrkosten: ' + Math.abs(ersparnisVal).toFixed(2) + ')');
             if(co2ErsparnisElem) co2ErsparnisElem.textContent = co2EinsparungKg.toFixed(0); 
             if(co2FussballfelderElem) co2FussballfelderElem.textContent = co2Fussballfelder.toFixed(1);
+            if(amortisationElem) amortisationElem.textContent = amort; 
             if(resultsDiv) resultsDiv.style.display = 'block';
         } else { 
            if(resultsDiv) resultsDiv.style.display = 'none'; 
@@ -824,5 +834,19 @@
       toggleBlocks(); 
     });
   </script>
+
+  <!-- Skript für dynamische iFrame-Höhe -->
+  <script>
+    const sendHeight = () => {
+      if (window.parent !== window) {
+        const height = document.body.scrollHeight;
+        window.parent.postMessage({ frameHeight: height }, '*');
+      }
+    };
+    const resizeObserver = new ResizeObserver(() => sendHeight());
+    resizeObserver.observe(document.body);
+    window.addEventListener('load', sendHeight);
+  </script>
+
 </body>
 </html>
