@@ -419,7 +419,7 @@
             <input type="range" id="foerderungenSlider" min="0" max="25000" step="100" value="5000" />
             <span id="foerderungenValue" class="slider-value">5000 €</span>
         </div>
-        <div class="disclaimer">Reduziert die effektiven Investitionskosten für die Amortisationsrechnung.</div>
+        <div class="disclaimer">Reduziert die effektiven Investitionskosten.</div>
       </div>
     </form>
 
@@ -572,12 +572,10 @@
 
       const strompreisSlider = document.getElementById('strompreisSlider');
       const strompreisValue = document.getElementById('strompreisValue');
-      const vorlauftemperaturSlider = document.getElementById('vorlauftemperaturSlider'); // NEU
-      const vorlauftemperaturValue = document.getElementById('vorlauftemperaturValue'); // NEU
-      const basisSCOPValueElem = document.getElementById('basisSCOPValue'); // NEU
-      // const jazSlider = document.getElementById('jazSlider'); // Alt, jetzt vorlauftemperaturSlider
-      // const jazValue = document.getElementById('jazValue'); // Alt
-
+      const vorlauftemperaturSlider = document.getElementById('vorlauftemperaturSlider'); 
+      const vorlauftemperaturValue = document.getElementById('vorlauftemperaturValue'); 
+      const basisSCOPValueElem = document.getElementById('basisSCOPValue'); 
+      
       const investitionSlider = document.getElementById('investitionSlider');
       const investitionValue = document.getElementById('investitionValue');
       const foerderungenSlider = document.getElementById('foerderungenSlider'); 
@@ -595,7 +593,7 @@
       const ersparnisElem = document.getElementById('ersparnis');
       const co2ErsparnisElem = document.getElementById('co2Ersparnis'); 
       const co2FussballfelderElem = document.getElementById('co2Fussballfelder'); 
-      const amortisationElem = document.getElementById('amortisation');
+      const amortisationElem = document.getElementById('amortisation'); // WIEDER EINGEFÜGT
 
       function setupSlider(sliderElement, valueElement, unit = "", decimals = 0, isPreisSlider = false, systemKeyForPreis = null) {
           if (!sliderElement || !valueElement) return;
@@ -632,8 +630,7 @@
       setupSlider(flaeche2Slider, flaeche2Value, "m²");
       setupSlider(anteilFussbodenheizungSlider, anteilFussbodenheizungValue, "%");
       setupSlider(strompreisSlider, strompreisValue, "€/kWh", 2);
-      setupSlider(vorlauftemperaturSlider, vorlauftemperaturValue, "°C", 0); // NEU
-      // setupSlider(jazSlider, jazValue, "", 1); // Alt
+      setupSlider(vorlauftemperaturSlider, vorlauftemperaturValue, "°C", 0); 
       setupSlider(investitionSlider, investitionValue, "€");
       setupSlider(foerderungenSlider, foerderungenValue, "€"); 
       setupSlider(preis1Slider, preis1Value, "", 2, true, system1ValueInput.value); 
@@ -708,7 +705,7 @@
           anteilFussbodenheizungSlider.dispatchEvent(new Event('input'));
 
           vorlauftemperaturSlider.value = defaultVorlauf;
-          vorlauftemperaturSlider.dispatchEvent(new Event('input')); // Triggert auch Basis-SCOP Anzeige
+          vorlauftemperaturSlider.dispatchEvent(new Event('input')); 
       }
 
       strompreisSlider.addEventListener('input', function() {
@@ -725,7 +722,7 @@
         resultsDiv.style.display = 'none'; 
         const vorlaufTemp = parseFloat(vorlauftemperaturSlider.value);
         let basisSCOP = Math.max(2.0, 5 - 0.1 * (vorlaufTemp - 35));
-        if (basisSCOPValueElem) basisSCOPValueElem.textContent = basisSCOP.toFixed(1); // Zeige den Basis-SCOP an
+        if (basisSCOPValueElem) basisSCOPValueElem.textContent = basisSCOP.toFixed(1); 
         
         let JAZ_final = basisSCOP; 
 
@@ -748,7 +745,6 @@
           energieInputAltanlage_kWh = verb * faktor; 
           nutzwaermebedarf_kWh = energieInputAltanlage_kWh * wirkungsgradAlt;
           preisAktuellGesamt = verb * aktuellerPreis; 
-          // JAZ_final bleibt basisSCOP, da keine FBH-Anpassung im Verbrauchsblock
           if (jazEffektivElem) jazEffektivElem.textContent = JAZ_final.toFixed(1); 
         } else { 
           aktuellesSystemValue = system2ValueInput.value;
@@ -769,11 +765,9 @@
             preisAktuellGesamt = (energieInputAltanlage_kWh / faktorEinheit) * aktuellerPreis; 
           } else { preisAktuellGesamt = 0; }
 
-          // Anpassung des JAZ_final basierend auf FBH-Anteil
-          if (basisSCOP > 0) { // basisSCOP ist jetzt JAZ_final bevor FBH Anpassung
+          if (basisSCOP > 0) { 
             if (anteilFbhProzent >= 75) JAZ_final = basisSCOP + 0.3;
             else if (anteilFbhProzent <= 25) JAZ_final = basisSCOP - 0.3;
-            // JAZ_final bleibt basisSCOP wenn FBH Anteil dazwischen
             JAZ_final = Math.max(2.0, JAZ_final); 
           }
           if (jazEffektivElem) jazEffektivElem.textContent = JAZ_final.toFixed(1);
