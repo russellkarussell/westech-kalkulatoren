@@ -420,6 +420,21 @@
         transition: width 0.4s ease-in-out;
     }
     
+    .disabled-overlay {
+        position: relative;
+    }
+    .disabled-overlay::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(236, 240, 241, 0.5);
+        border-radius: 6px;
+        z-index: 1;
+    }
+    
     @media (max-width: 700px) {
         .icon-selection-group { justify-content: center; }
         .icon-option { min-width: 90px; flex-basis: calc(48% - 10px); }
@@ -462,23 +477,25 @@
       <!-- Seite 1: Daten zur Altanlage -->
       <div id="page1" class="page">
           <h2 data-translate="step1Title">Schritt 1: Daten zur Altanlage</h2>
-          <h3 data-translate="basisTitle">Berechnungsgrundlage</h3>
-          <p data-translate="basisText">Bitte wählen Sie, ob die Berechnung auf Basis Ihrer beheizbaren Fläche oder Ihres bisherigen Verbrauchs erfolgen soll.</p>
-          <div class="calculation-method-selector">
-            <label class="method-option-card">
-                <input type="radio" name="method" value="flaeche" checked>
-                <div class="method-option-content">
-                    <svg viewBox="0 0 64 64" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M54 20L32 6 10 20v30h44V20zM24 44h-4v-8h4v8zm8 0h-4v-8h4v8zm8 0h-4v-8h4v8zm0-12h-4v-8h4v8zm-8 0h-4v-8h4v8zm-8-8h4v-4H20l4 4zM44 24h-4v-4h4v4z"/></svg>
-                    <span data-translate="basisArea">Flächenbasierte Berechnung</span>
-                </div>
-            </label>
-            <label class="method-option-card">
-                <input type="radio" name="method" value="verbrauch">
-                <div class="method-option-content">
-                    <svg viewBox="0 0 64 64" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M32 4C19.85 4 10 13.85 10 26c0 7.33 3.58 13.73 9 17.54V52c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8.46c5.42-3.81 9-10.21 9-17.54C54 13.85 44.15 4 32 4zm0 32c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm8-12.82C38.39 22.51 35.42 22 32 22s-6.39.51-8 1.18V20h16v3.18z"/></svg>
-                    <span data-translate="basisConsumption">Verbrauchsbasierte Berechnung</span>
-                </div>
-            </label>
+          <div id="basisSection">
+            <h3 data-translate="basisTitle">Berechnungsgrundlage</h3>
+            <p data-translate="basisText">Bitte wählen Sie, ob die Berechnung auf Basis Ihrer beheizbaren Fläche oder Ihres bisherigen Verbrauchs erfolgen soll.</p>
+            <div class="calculation-method-selector">
+                <label class="method-option-card">
+                    <input type="radio" name="method" value="flaeche" checked>
+                    <div class="method-option-content">
+                        <svg viewBox="0 0 64 64" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M54 20L32 6 10 20v30h44V20zM24 44h-4v-8h4v8zm8 0h-4v-8h4v8zm8 0h-4v-8h4v8zm0-12h-4v-8h4v8zm-8 0h-4v-8h4v8zm-8-8h4v-4H20l4 4zM44 24h-4v-4h4v4z"/></svg>
+                        <span data-translate="basisArea">Flächenbasierte Berechnung</span>
+                    </div>
+                </label>
+                <label class="method-option-card">
+                    <input type="radio" name="method" value="verbrauch">
+                    <div class="method-option-content">
+                        <svg viewBox="0 0 64 64" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M32 4C19.85 4 10 13.85 10 26c0 7.33 3.58 13.73 9 17.54V52c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8.46c5.42-3.81 9-10.21 9-17.54C54 13.85 44.15 4 32 4zm0 32c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm8-12.82C38.39 22.51 35.42 22 32 22s-6.39.51-8 1.18V20h16v3.18z"/></svg>
+                        <span data-translate="basisConsumption">Verbrauchsbasierte Berechnung</span>
+                    </div>
+                </label>
+            </div>
           </div>
           <div id="blockVerbrauch" class="hidden">
               <div class="input-block">
@@ -502,19 +519,21 @@
                   </div>
               </div>
           </div>
-          <div class="input-block">
+          <div id="oldSystemBlock" class="input-block">
               <h3 data-translate="currentSystemTitle">Ihr aktuelles Heizsystem</h3>
               <div id="heizsystemIconGroup" class="icon-selection-group"></div>
-              <label for="wirkungsgradAltSlider" data-translate="efficiencyOldLabel">Wirkungsgrad Altanlage (%)</label>
-              <div class="slider-container">
-                  <input type="range" id="wirkungsgradAltSlider" min="50" max="100" step="1" value="80" />
-                  <span id="wirkungsgradAltValue" class="slider-value">80 %</span>
-              </div>
-              <div class="disclaimer" data-translate="efficiencyOldDisclaimer">Typischer Wert wird je nach Heizsystem vorausgewählt.</div>
-              <label for="preisSlider" data-translate="priceOldLabel">Aktueller Preis je Einheit</label>
-              <div class="slider-container">
-                  <input type="range" id="preisSlider" min="0.50" max="2.50" step="0.01" value="1.03" />
-                  <span id="preisValue" class="slider-value">1.03 €/Liter</span>
+              <div id="oldSystemDetails">
+                  <label for="wirkungsgradAltSlider" data-translate="efficiencyOldLabel">Wirkungsgrad Altanlage (%)</label>
+                  <div class="slider-container">
+                      <input type="range" id="wirkungsgradAltSlider" min="50" max="100" step="1" value="80" />
+                      <span id="wirkungsgradAltValue" class="slider-value">80 %</span>
+                  </div>
+                  <div class="disclaimer" data-translate="efficiencyOldDisclaimer">Typischer Wert wird je nach Heizsystem vorausgewählt.</div>
+                  <label for="preisSlider" data-translate="priceOldLabel">Aktueller Preis je Einheit</label>
+                  <div class="slider-container">
+                      <input type="range" id="preisSlider" min="0.50" max="2.50" step="0.01" value="1.03" />
+                      <span id="preisValue" class="slider-value">1.03 €/Liter</span>
+                  </div>
               </div>
           </div>
       </div>
@@ -602,10 +621,12 @@
         </div>
         <div class="input-block">
             <h3 data-translate="runningCostsTitle">Laufende Kosten</h3>
-            <label for="wartungskostenAltSlider" data-translate="maintenanceOldLabel">Jährliche Wartungskosten Altanlage (€)</label>
-            <div class="slider-container">
-                <input type="range" id="wartungskostenAltSlider" min="0" max="1000" step="10" value="150" />
-                <span id="wartungskostenAltValue" class="slider-value">150 €</span>
+            <div id="maintenanceOldBlock">
+                <label for="wartungskostenAltSlider" data-translate="maintenanceOldLabel">Jährliche Wartungskosten Altanlage (€)</label>
+                <div class="slider-container">
+                    <input type="range" id="wartungskostenAltSlider" min="0" max="1000" step="10" value="150" />
+                    <span id="wartungskostenAltValue" class="slider-value">150 €</span>
+                </div>
             </div>
             <label for="wartungskostenWPSlider" data-translate="maintenanceNewLabel">Jährliche Wartungskosten Wärmepumpe (€)</label>
             <div class="slider-container">
@@ -619,21 +640,24 @@
       <div id="page4" class="page">
         <h2 data-translate="step4Title">Schritt 4: Ihr Ergebnis</h2>
         <div id="results">
-            <p><span data-translate="resultHeatDemand">Nutzwärmebedarf (Altanlage)</span>: <span class="highlight" id="nutzwaermeBedarf">0</span> kWh / <span data-translate="unitYear">Jahr</span></p>
-            <p><span data-translate="resultCostsOld">Aktuelle Heizkosten (Altanlage)</span>: <span class="highlight" id="kostenAktuell">0</span> € / <span data-translate="unitYear">Jahr</span></p>
-            <p><span data-translate="resultCo2Old">CO₂-Emissionen (Altanlage)</span>: <span class="highlight" id="co2Altanlage">0</span> kg / <span data-translate="unitYear">Jahr</span></p>
-            <hr style="border-color: var(--primary-color); opacity: 0.5;">
+            <div id="resultsOldSystem">
+                <p><span data-translate="resultHeatDemand">Nutzwärmebedarf (Altanlage)</span>: <span class="highlight" id="nutzwaermeBedarf">0</span> kWh / <span data-translate="unitYear">Jahr</span></p>
+                <p><span data-translate="resultCostsOld">Aktuelle Heizkosten (Altanlage)</span>: <span class="highlight" id="kostenAktuell">0</span> € / <span data-translate="unitYear">Jahr</span></p>
+                <p><span data-translate="resultCo2Old">CO₂-Emissionen (Altanlage)</span>: <span class="highlight" id="co2Altanlage">0</span> kg / <span data-translate="unitYear">Jahr</span></p>
+                <hr style="border-color: var(--primary-color); opacity: 0.5;">
+            </div>
             <p><span data-translate="resultHpPower">Ungefähre Heizleistung Wärmepumpe</span>: <span class="highlight" id="wpLeistung">0</span> kW</p>
             <p><span data-translate="resultCop">Angepasste JAZ/SCOP für WP</span>: <span class="highlight" id="jazEffektiv">0</span></p>
-            <p><span data-translate="resultCostsNew">Heizkosten mit Wärmepumpe</span>: <span class="highlight" id="kostenWP">0</span> € / <span data-translate="unitYear">Jahr</span></p>
+            <p id="resultCostsNewText"><span data-translate="resultCostsNew">Heizkosten mit Wärmepumpe</span>: <span class="highlight" id="kostenWP">0</span> € / <span data-translate="unitYear">Jahr</span></p>
             <p><span data-translate="resultCo2New">CO₂-Emissionen (Wärmepumpe)</span>: <span class="highlight" id="co2WP">0</span> kg / <span data-translate="unitYear">Jahr</span></p>
-            <hr style="border-color: var(--primary-color); opacity: 0.5;">
-            <p><span data-translate="resultSavingsAnnual">Jährliche Ersparnis (Betriebskosten)</span>: <span class="highlight" id="ersparnis">0</span> €</p>
-            <p><span data-translate="resultSavingsCo2">Jährliche CO₂-Einsparung</span>: <span class="highlight" id="co2Ersparnis">0</span> kg<br>
-                <small style="font-size:0.9em; color: var(--text-color-light);" data-translate="resultSavingsCo2Eq">entspricht ca. <span class="highlight" id="co2Fussballfelder">0</span> Fußballfeldern Waldfläche pro Jahr.</small>
-            </p>
-            <p><span data-translate="resultAmortization">Amortisationszeit (nach Förderung)</span>: <span class="highlight" id="amortisation">–</span> <span data-translate="unitYears">Jahre</span></p>
-            
+            <div id="resultsComparison">
+                <hr style="border-color: var(--primary-color); opacity: 0.5;">
+                <p><span data-translate="resultSavingsAnnual">Jährliche Ersparnis (Betriebskosten)</span>: <span class="highlight" id="ersparnis">0</span> €</p>
+                <p><span data-translate="resultSavingsCo2">Jährliche CO₂-Einsparung</span>: <span class="highlight" id="co2Ersparnis">0</span> kg<br>
+                    <small style="font-size:0.9em; color: var(--text-color-light);" data-translate="resultSavingsCo2Eq">entspricht ca. <span class="highlight" id="co2Fussballfelder">0</span> Fußballfeldern Waldfläche pro Jahr.</small>
+                </p>
+                <p><span data-translate="resultAmortization">Amortisationszeit (nach Förderung)</span>: <span class="highlight" id="amortisation">–</span> <span data-translate="unitYears">Jahre</span></p>
+            </div>
             <div id="resultInterpretation" class="result-commentary" style="margin-top: 20px;"></div>
 
             <div class="disclaimer" data-translate="resultDisclaimer">* Alle Werte sind ungefähre Richtwerte. Die empfohlene Heizleistung ist eine grobe Schätzung; eine detaillierte Heizlastberechnung durch einen Fachbetrieb ist für die korrekte Dimensionierung unerlässlich.</div>
@@ -652,6 +676,7 @@
       </div>
 
       <div id="app-footer" style="text-align: right; font-size: 0.75em; color: #bdc3c7; margin-top: 15px; padding-top: 15px; border-top: 1px solid #ecf0f1;">
+        <span data-translate="configId">Konfigurations-Nr.</span>: <span id="configId"></span><br>
         <span data-translate="pdfExports">PDF Exporte</span>: <span id="exportCounter">0</span>
       </div>
     </form>
@@ -662,10 +687,10 @@
       const form = document.getElementById('calculatorForm');
       
       const config = {
-          energyFactors: { heizoel: 9.9, erdgas_h: 10.6, erdgas_l: 9.2, fluessiggas: 6.7, pellets: 4.9, strom: 1.0 },
+          energyFactors: { heizoel: 9.9, erdgas_h: 10.6, erdgas_l: 9.2, fluessiggas: 6.7, pellets: 4.9, strom: 1.0, keine: 0},
           defaultPrices: { 
               heizoel: 1.03, erdgas_h: (0.11 * 10.6).toFixed(3), erdgas_l: (0.11 * 9.2).toFixed(3),
-              fluessiggas: 0.70, pellets: 0.30, strom: 0.19
+              fluessiggas: 0.70, pellets: 0.30, strom: 0.19, keine: 0
           },
           priceSliderConfigs: {
               heizoel:     { min: 0.50, max: 2.50, step: 0.01, unit: "€/Liter" },
@@ -673,14 +698,15 @@
               erdgas_l:    { min: 0.50, max: 3.00, step: 0.01, unit: "€/m³" },
               fluessiggas: { min: 0.40, max: 2.00, step: 0.01, unit: "€/Liter" },
               pellets:     { min: 0.15, max: 0.80, step: 0.01, unit: "€/kg" },
-              strom:       { min: 0.15, max: 0.60, step: 0.01, unit: "€/kWh" } 
+              strom:       { min: 0.15, max: 0.60, step: 0.01, unit: "€/kWh" },
+              keine:       { min: 0, max: 0, step: 0.01, unit: "" }
           },
           defaultWirkungsgrade: { 
-              heizoel: 80, erdgas_h: 82, erdgas_l: 82, fluessiggas: 85, pellets: 88, strom: 100
+              heizoel: 80, erdgas_h: 82, erdgas_l: 82, fluessiggas: 85, pellets: 88, strom: 100, keine: 100
           },
           co2FactorsKwhInput: { 
               heizoel: 0.269, erdgas_h: 0.202, erdgas_l: 0.202, fluessiggas: 0.230,
-              pellets: 0.02, strom: 0.12 
+              pellets: 0.02, strom: 0.12, keine: 0
           },
           stromCo2Faktor: 0.12,
           kgCo2ProFussballfeldWaldProJahr: 5600,
@@ -698,11 +724,17 @@
         progressBar: document.getElementById('progressBar'),
         navigationButtons: document.querySelector('.navigation-buttons'),
         radios: form.elements['method'],
+        basisSection: document.getElementById('basisSection'),
         blockVerbrauch: document.getElementById('blockVerbrauch'),
         blockFlaeche: document.getElementById('blockFlaeche'),
         gebaeudeklasseValueInput: document.getElementById('gebaeudeklasseValue'),
         heizsystemValueInput: document.getElementById('heizsystemValue'),
         solarthermieTypeValue: document.getElementById('solarthermieTypeValue'),
+        oldSystemDetails: document.getElementById('oldSystemDetails'),
+        maintenanceOldBlock: document.getElementById('maintenanceOldBlock'),
+        resultsOldSystem: document.getElementById('resultsOldSystem'),
+        resultsComparison: document.getElementById('resultsComparison'),
+        resultCostsNewText: document.getElementById('resultCostsNewText'),
         wirkungsgradAltSlider: document.getElementById('wirkungsgradAltSlider'),
         wirkungsgradAltValue: document.getElementById('wirkungsgradAltValue'),
         verbrauch: document.getElementById('verbrauch'),
@@ -745,6 +777,7 @@
         exportContainer: document.getElementById('exportContainer'),
         exportPdfButton: document.getElementById('exportPdfButton'),
         exportCounter: document.getElementById('exportCounter'),
+        configIdElem: document.getElementById('configId'),
         nutzwaermeBedarfElem: document.getElementById('nutzwaermeBedarf'),
         kostenAktuellElem: document.getElementById('kostenAktuell'),
         co2AltanlageElem: document.getElementById('co2Altanlage'),
@@ -797,17 +830,20 @@
         de: [
             { value: "heizoel", text: "Heizöl (EL)"}, { value: "erdgas_h", text: "Erdgas (H-Gas)"},
             { value: "erdgas_l", text: "Erdgas (L-Gas)"}, { value: "fluessiggas", text: "Flüssiggas"},
-            { value: "pellets", text: "Holzpellets"}, { value: "strom", text: "Strom"}
+            { value: "pellets", text: "Holzpellets"}, { value: "strom", text: "Strom"},
+            { value: "keine", text: "Keine (Neubau)"}
         ],
         en: [
             { value: "heizoel", text: "Heating Oil"}, { value: "erdgas_h", text: "Natural Gas (H)"},
             { value: "erdgas_l", text: "Natural Gas (L)"}, { value: "fluessiggas", text: "LPG"},
-            { value: "pellets", text: "Wood Pellets"}, { value: "strom", text: "Electricity"}
+            { value: "pellets", text: "Wood Pellets"}, { value: "strom", text: "Electricity"},
+            { value: "keine", text: "None (New Build)"}
         ],
         ro: [
             { value: "heizoel", text: "Motorină (EL)"}, { value: "erdgas_h", text: "Gaz natural (H)"},
             { value: "erdgas_l", text: "Gaz natural (L)"}, { value: "fluessiggas", text: "GPL"},
-            { value: "pellets", text: "Peleti din lemn"}, { value: "strom", text: "Electricitate"}
+            { value: "pellets", text: "Peleti din lemn"}, { value: "strom", text: "Electricitate"},
+            { value: "keine", text: "Niciunul (Construcție nouă)"}
         ],
         getSvg: (value) => {
             const svgs = [
@@ -816,7 +852,8 @@
                 { value: "erdgas_l", svg: `<svg viewBox="0 0 64 64"><path d="M32 2C19.7 2 9.8 10.1 7 21.3c4.6-3.2 10.1-5.3 16-5.3 11.8 0 21.4 8.6 23.7 19.9C51.2 42.8 56 37.2 56 30.6c0-10.3-8.9-18.7-20-19.9V2c-1.3 0-2.6.1-4 .3zm11.1 34.8C40.6 46.2 32.9 52 24 52c-4.4 0-8.5-1.3-12-3.5 3.2 6.7 10 11.5 17.9 11.5 10.5 0 19.1-7.7 20.1-17.9z" fill="#ffb74d"/><path d="M27.4 30.1c-2.4-1.2-5.2-1.8-8-1.8-6.5 0-12.3 2.7-16.4 7C7.1 21.9 18.4 12 32 12c.7 0 1.3.1 2 .1-3.6 5.5-5.5 12.1-4.6 18z" fill="#ffa726"/></svg>` },
                 { value: "fluessiggas", svg: `<svg viewBox="0 0 64 64"><rect x="18" y="10" width="28" height="44" rx="8" fill="#bdbdbd" stroke="#757575" stroke-width="1.5"/><rect x="22" y="12" width="20" height="8" fill="#9e9e9e"/><line x1="32" y1="20" x2="32" y2="28" stroke="#757575" stroke-width="2.5"/><path d="M26 32h12l-2 6h-8z" fill="#f44336" /></svg>` },
                 { value: "pellets", svg: `<svg viewBox="0 0 64 64"><path d="M12 52h40v4H12zM16 48l4-10h24l4 10zM20 34l4-10h16l4 10zM24 20l4-10h8l4 10z" fill="#c8b7a1" stroke="#8d6e63" stroke-width="1"/><circle cx="22" cy="42" r="3" fill="#a1887f"/><circle cx="32" cy="46" r="3" fill="#a1887f"/><circle cx="42" cy="42" r="3" fill="#a1887f"/><circle cx="28" cy="30" r="3" fill="#a1887f"/><circle cx="36" cy="30" r="3" fill="#a1887f"/><circle cx="32" cy="18" r="3" fill="#a1887f"/></svg>` },
-                { value: "strom", svg: `<svg viewBox="0 0 64 64"><path d="M32 2L12 32h12l-4 20 24-30H32l4-20z" fill="#ffea00" stroke="#fbc02d" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>` }
+                { value: "strom", svg: `<svg viewBox="0 0 64 64"><path d="M32 2L12 32h12l-4 20 24-30H32l4-20z" fill="#ffea00" stroke="#fbc02d" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>` },
+                { value: "keine", svg: `<svg viewBox="0 0 64 64"><path d="M32 6 L50 18 L50 46 L32 58 L14 46 L14 18 Z" fill="#fff" stroke-width="2" stroke="#555"/><path d="M30 22h4v20h-4z M22 30h20v4h-20z" fill="#4DBCE9"/></svg>`}
             ];
             return svgs.find(d => d.value === value).svg;
         }
@@ -885,22 +922,24 @@
               resultHeatDemand: "Nutzwärmebedarf (Altanlage)", resultCostsOld: "Aktuelle Heizkosten (Altanlage)",
               resultCo2Old: "CO₂-Emissionen (Altanlage)", resultHpPower: "Ungefähre Heizleistung Wärmepumpe",
               resultCop: "Angepasste JAZ/SCOP für WP", resultCostsNew: "Heizkosten mit Wärmepumpe",
+              resultCostsNewBuild: "Voraussichtliche jährliche Betriebskosten",
               resultCo2New: "CO₂-Emissionen (Wärmepumpe)", resultSavingsAnnual: "Jährliche Ersparnis (Betriebskosten)",
               resultSavingsCo2: "Jährliche CO₂-Einsparung", resultSavingsCo2Eq: "entspricht ca. {value} Fußballfeldern Waldfläche pro Jahr.",
               resultAmortization: "Amortisationszeit (nach Förderung)", unitYear: "Jahr", unitYears: "Jahre",
               resultDisclaimer: "* Alle Werte sind ungefähre Richtwerte. Die empfohlene Heizleistung ist eine grobe Schätzung; eine detaillierte Heizlastberechnung durch einen Fachbetrieb ist für die korrekte Dimensionierung unerlässlich.",
               exportPdfButton: "PDF Exportieren", priceUpdateInfo: "Die Standard-Energiepreise im Rechner sind Richtwerte (Stand: Juni 2025) und sollten für eine genaue Berechnung mit Ihren aktuellen Tarifen abgeglichen werden.",
-              prevBtn: "Zurück", nextBtn: "Weiter", pdfExports: "PDF Exporte",
-              amortizationNone: "Keine Amortisation", amortizationImmediate: "Sofort",
+              prevBtn: "Zurück", nextBtn: "Weiter", pdfExports: "PDF Exporte", configId: "Konfigurations-Nr.",
+              amortizationNone: "Keine Amortisation", amortizationImmediate: "Sofort", amortizationNotApplicable: "Nicht anwendbar",
               pdfTitle: "Analyse Ihrer Heizkostenersparnis", pdfInputsTitle: "Ihre Eingaben",
-              pdfResultsTitle: "Ihr Ergebnis", pdfFooter: "Berechnung erstellt am {date}. Alle Angaben sind Schätzungen ohne Gewähr.",
+              pdfResultsTitle: "Ihr Ergebnis", pdfFooter: "Berechnung erstellt am {date}. Konfigurations-Nr.: {id}. Alle Angaben sind Schätzungen ohne Gewähr.",
               commentaryTitle: "Interpretation der Ergebnisse",
               commentary: {
                 negativeSavings: "In diesem Szenario sind die neuen Heizkosten höher. Dies kann an hohen Strompreisen oder einer sehr niedrigen Förderung liegen. Prüfen Sie Ihre Eingaben. Dennoch gewinnen Sie an Unabhängigkeit und steigern den Wert Ihrer Immobilie.",
                 longAmortizationLowEnergy: "Aufgrund Ihrer bereits niedrigen Heizkosten ist die rein finanzielle Amortisationszeit länger. Ihr Hauptgewinn liegt in der enormen Wertsteigerung Ihrer Immobilie, der Unabhängigkeit von fossilen Brennstoffen und dem Komfortgewinn durch Heizen und Kühlen mit einem System.",
                 longAmortizationHighCost: "Die Amortisationszeit ist eher lang. Prüfen Sie, ob Sie die Investitionskosten durch höhere Förderungen senken können. Der Wechsel sichert Ihnen dennoch mehr Komfort, Unabhängigkeit und steigert den Wert Ihrer Immobilie.",
                 shortAmortization: "Eine ausgezeichnete Investition! Der Umstieg von Ihrem alten Heizsystem führt zu hohen jährlichen Einsparungen. Die Investition macht sich schnell bezahlt, während Sie sofort von mehr Wohnkomfort und Unabhängigkeit profitieren.",
-                default: "Ein solider Wechsel. Sie senken Ihre laufenden Kosten und investieren gleichzeitig in die Zukunftssicherheit und den Wert Ihrer Immobilie. Zudem genießen Sie den Komfort eines modernen und wartungsarmen Heizsystems."
+                default: "Ein solider Wechsel. Sie senken Ihre laufenden Kosten und investieren gleichzeitig in die Zukunftssicherheit und den Wert Ihrer Immobilie. Zudem genießen Sie den Komfort eines modernen und wartungsarmen Heizsystems.",
+                newBuild: "Sie investieren von Anfang an in ein zukunftssicheres und hocheffizientes System. Die angezeigten Werte sind die prognostizierten jährlichen Betriebskosten. Sie sichern sich damit langfristig niedrige Kosten, Unabhängigkeit von fossilen Brennstoffen und einen hohen Wohnkomfort."
               }
           },
           en: {
@@ -929,22 +968,24 @@
               resultHeatDemand: "Usable Heat Demand (Old System)", resultCostsOld: "Current Heating Costs (Old System)",
               resultCo2Old: "CO₂ Emissions (Old System)", resultHpPower: "Approx. Heating Power of Heat Pump",
               resultCop: "Adjusted SPF/SCOP for HP", resultCostsNew: "Heating Costs with Heat Pump",
+              resultCostsNewBuild: "Projected Annual Operating Costs",
               resultCo2New: "CO₂ Emissions (Heat Pump)", resultSavingsAnnual: "Annual Savings (Operating Costs)",
               resultSavingsCo2: "Annual CO₂ Savings", resultSavingsCo2Eq: "equals approx. {value} football fields of forest area per year.",
               resultAmortization: "Amortization Period (after funding)", unitYear: "year", unitYears: "years",
               resultDisclaimer: "* All values are approximate guidelines. The recommended heating output is a rough estimate; a detailed heating load calculation by a specialist is essential for correct dimensioning.",
               exportPdfButton: "Export PDF", priceUpdateInfo: "The default energy prices in the calculator are estimates (as of June 2025) and should be checked against your current rates for an accurate calculation.",
-              prevBtn: "Back", nextBtn: "Next", pdfExports: "PDF Exports",
-              amortizationNone: "No amortization", amortizationImmediate: "Immediately",
+              prevBtn: "Back", nextBtn: "Next", pdfExports: "PDF Exports", configId: "Configuration No.",
+              amortizationNone: "No amortization", amortizationImmediate: "Immediately", amortizationNotApplicable: "Not applicable",
               pdfTitle: "Analysis of Your Heating Cost Savings", pdfInputsTitle: "Your Inputs",
-              pdfResultsTitle: "Your Result", pdfFooter: "Calculation created on {date}. All figures are estimates without guarantee.",
+              pdfResultsTitle: "Your Result", pdfFooter: "Calculation created on {date}. Configuration No.: {id}. All figures are estimates without guarantee.",
               commentaryTitle: "Interpretation of Results",
               commentary: {
                 negativeSavings: "In this scenario, the new heating costs are higher. This might be due to high electricity prices or very low subsidies. Please check your inputs. Nevertheless, you gain independence and increase the value of your property.",
                 longAmortizationLowEnergy: "Due to your already low heating costs, the purely financial amortization period is longer. Your main benefit lies in the significant increase in your property's value, independence from fossil fuels, and the added comfort of heating and cooling with a single system.",
                 longAmortizationHighCost: "The amortization period is rather long. Check if you can reduce the investment costs with higher subsidies. Nevertheless, the switch ensures more comfort, independence, and increases the value of your property.",
                 shortAmortization: "An excellent investment! Switching from your old heating system leads to high annual savings. The investment pays off quickly, while you immediately benefit from more living comfort and independence.",
-                default: "A solid switch. You are lowering your running costs while investing in the future-proofing and value of your property. Additionally, you'll enjoy the comfort of a modern and low-maintenance heating system."
+                default: "A solid switch. You are lowering your running costs while investing in the future-proofing and value of your property. Additionally, you'll enjoy the comfort of a modern and low-maintenance heating system.",
+                newBuild: "You are investing in a future-proof and highly efficient system from the very beginning. The values shown are the projected annual operating costs. This ensures long-term low costs, independence from fossil fuels, and high living comfort."
               }
           },
           ro: {
@@ -973,27 +1014,30 @@
               resultHeatDemand: "Necesar de căldură utilă (Sistem vechi)", resultCostsOld: "Costuri actuale de încălzire (Sistem vechi)",
               resultCo2Old: "Emisii de CO₂ (Sistem vechi)", resultHpPower: "Puterea de încălzire aprox. a pompei de căldură",
               resultCop: "SPF/SCOP ajustat pentru PC", resultCostsNew: "Costuri de încălzire cu pompa de căldură",
+              resultCostsNewBuild: "Costuri anuale de operare estimate",
               resultCo2New: "Emisii de CO₂ (Pompa de căldură)", resultSavingsAnnual: "Economii anuale (Costuri de operare)",
               resultSavingsCo2: "Economii anuale de CO₂", resultSavingsCo2Eq: "echivalează cu aprox. {value} terenuri de fotbal de pădure pe an.",
               resultAmortization: "Perioada de amortizare (după subvenție)", unitYear: "an", unitYears: "ani",
               resultDisclaimer: "* Toate valorile sunt orientative. Puterea de încălzire recomandată este o estimare brută; un calcul detaliat al sarcinii termice de către un specialist este esențial pentru o dimensionare corectă.",
               exportPdfButton: "Exportă PDF", priceUpdateInfo: "Prețurile implicite ale energiei din calculator sunt estimative (iunie 2025) și ar trebui verificate cu tarifele dvs. curente pentru un calcul precis.",
-              prevBtn: "Înapoi", nextBtn: "Următorul", pdfExports: "Exporturi PDF",
-              amortizationNone: "Fără amortizare", amortizationImmediate: "Imediat",
+              prevBtn: "Înapoi", nextBtn: "Următorul", pdfExports: "Exporturi PDF", configId: "Nr. configurație",
+              amortizationNone: "Fără amortizare", amortizationImmediate: "Imediat", amortizationNotApplicable: "Nu se aplică",
               pdfTitle: "Analiza economiilor la costurile de încălzire", pdfInputsTitle: "Datele dvs.",
-              pdfResultsTitle: "Rezultatul dvs.", pdfFooter: "Calcul realizat la {date}. Toate datele sunt estimări fără garanție.",
+              pdfResultsTitle: "Rezultatul dvs.", pdfFooter: "Calcul realizat la {date}. Nr. Configurație: {id}. Toate datele sunt estimări fără garanție.",
               commentaryTitle: "Interpretarea rezultatelor",
               commentary: {
                 negativeSavings: "În acest scenariu, noile costuri de încălzire sunt mai mari. Acest lucru se poate datora prețurilor ridicate la electricitate sau subvențiilor foarte mici. Vă rugăm să verificați datele introduse. Cu toate acestea, câștigați independență și creșteți valoarea proprietății dvs.",
                 longAmortizationLowEnergy: "Datorită costurilor dvs. deja scăzute la încălzire, perioada de amortizare pur financiară este mai lungă. Beneficiul dvs. principal constă în creșterea semnificativă a valorii proprietății, independența față de combustibilii fosili și confortul sporit prin încălzire și răcire cu un singur sistem.",
                 longAmortizationHighCost: "Perioada de amortizare este destul de lungă. Verificați dacă puteți reduce costurile de investiție cu subvenții mai mari. Cu toate acestea, schimbarea vă asigură mai mult confort, independență și crește valoarea proprietății dvs.",
                 shortAmortization: "O investiție excelentă! Trecerea de la vechiul sistem de încălzire duce la economii anuale ridicate. Investiția se amortizează rapid, în timp ce beneficiați imediat de mai mult confort și independență.",
-                default: "O schimbare solidă. Vă reduceți costurile de funcționare și, în același timp, investiți în siguranța viitoare și valoarea proprietății dvs. În plus, vă veți bucura de confortul unui sistem de încălzire modern și cu întreținere redusă."
+                default: "O schimbare solidă. Vă reduceți costurile de funcționare și, în același timp, investiți în siguranța viitoare și valoarea proprietății dvs. În plus, vă veți bucura de confortul unui sistem de încălzire modern și cu întreținere redusă.",
+                newBuild: "Investiți de la început într-un sistem de viitor și foarte eficient. Valorile afișate sunt costurile anuale de funcționare prognozate. Vă asigurați astfel costuri reduse pe termen lung, independență față de combustibilii fosili și un confort ridicat al locuinței."
               }
           }
       };
       
       let userAdjustedPvAnteil = false;
+      let configId = '';
 
       // --- Seiten-Navigation ---
       let currentPage = 1;
@@ -1105,7 +1149,6 @@
         const isVerbrauch = dom.radios.value === 'verbrauch';
         dom.blockVerbrauch.classList.toggle('hidden', !isVerbrauch);
         dom.blockFlaeche.classList.toggle('hidden', isVerbrauch);
-        handleHeizsystemChange();
       }
 
       function handleGebaeudeklasseChange(selectedValue) {
@@ -1125,16 +1168,22 @@
       }
       
       function handleHeizsystemChange() {
-        const heizsystemGroup = dom.heizsystemIconGroup;
+        let selectedValue = dom.heizsystemValueInput.value;
+        const isNewBuild = selectedValue === 'keine';
+
+        dom.oldSystemDetails.classList.toggle('disabled-overlay', isNewBuild);
+        dom.oldSystemDetails.querySelectorAll('input, button').forEach(el => el.disabled = isNewBuild);
+        dom.maintenanceOldBlock.style.display = isNewBuild ? 'none' : 'block';
+
+        if (isNewBuild) {
+            document.querySelector('input[name="method"][value="flaeche"]').checked = true;
+            dom.basisSection.style.display = 'none';
+        } else {
+            dom.basisSection.style.display = 'block';
+        }
+        
         const wirkungsgradSlider = dom.wirkungsgradAltSlider;
         const preisSlider = dom.preisSlider;
-        
-        let selectedValue = 'heizoel'; // default
-        const activeOption = heizsystemGroup.querySelector('.icon-option.active');
-        if (activeOption) {
-            selectedValue = activeOption.dataset.value;
-        }
-        dom.heizsystemValueInput.value = selectedValue;
 
         if (wirkungsgradSlider) {
             wirkungsgradSlider.value = config.defaultWirkungsgrade[selectedValue] || 85;
@@ -1147,7 +1196,7 @@
         
         const preisValueSpan = dom.preisValue;
         const isStrom = selectedValue === 'strom';
-        preisSlider.disabled = isStrom;
+        preisSlider.disabled = isStrom || isNewBuild;
         const sliderConfig = isStrom ? config.priceSliderConfigs.strom : config.priceSliderConfigs[selectedValue];
         if (sliderConfig) {
             preisSlider.min = sliderConfig.min;
@@ -1157,6 +1206,7 @@
             const decimals = sliderConfig.step.toString().split('.')[1]?.length || 2;
             preisValueSpan.textContent = `${parseFloat(preisSlider.value).toFixed(decimals)} ${sliderConfig.unit}`;
         }
+        toggleCalculationMethod();
       }
       
       function getEinheitText(sysKey) {
@@ -1283,24 +1333,35 @@
 
       function calculateAll() {
         const inputs = getCalculationInputs();
+        const lang = getCurrentLanguage();
         
         let energieInputAltanlage_kWh = 0;
-        if (inputs.isVerbrauch) {
-            energieInputAltanlage_kWh = inputs.verbrauch * (config.energyFactors[inputs.aktuellesSystem] || 0);
-        } else {
-            energieInputAltanlage_kWh = inputs.flaeche * (config.klasseFactors[inputs.gebaeudeklasse] || 0);
+        let kostenAktuellGesamt = 0;
+        let co2Altanlage = 0;
+
+        if (inputs.aktuellesSystem !== 'keine') {
+            if (inputs.isVerbrauch) {
+                energieInputAltanlage_kWh = inputs.verbrauch * (config.energyFactors[inputs.aktuellesSystem] || 0);
+            } else {
+                energieInputAltanlage_kWh = inputs.flaeche * (config.klasseFactors[inputs.gebaeudeklasse] || 0);
+            }
+            if (inputs.aktuellesSystem === 'strom') inputs.wirkungsgradAlt = 1.0;
+            let kostenAltBrennstoff = 0;
+            if (inputs.isVerbrauch) {
+                kostenAltBrennstoff = inputs.verbrauch * inputs.aktuellerPreis;
+            } else {
+                const faktor = config.energyFactors[inputs.aktuellesSystem] || 1;
+                kostenAltBrennstoff = (energieInputAltanlage_kWh / faktor) * inputs.aktuellerPreis;
+            }
+            kostenAktuellGesamt = kostenAltBrennstoff + inputs.wartungAlt;
+            co2Altanlage = energieInputAltanlage_kWh * (config.co2FactorsKwhInput[inputs.aktuellesSystem] || 0);
         }
-        if (inputs.aktuellesSystem === 'strom') inputs.wirkungsgradAlt = 1.0;
+
         let nutzwaermebedarf_kWh = energieInputAltanlage_kWh * inputs.wirkungsgradAlt;
-        let kostenAltBrennstoff = 0;
-        if (inputs.isVerbrauch) {
-            kostenAltBrennstoff = inputs.verbrauch * inputs.aktuellerPreis;
-        } else {
-            const faktor = config.energyFactors[inputs.aktuellesSystem] || 1;
-            kostenAltBrennstoff = (energieInputAltanlage_kWh / faktor) * inputs.aktuellerPreis;
+        if (inputs.aktuellesSystem === 'keine') {
+            nutzwaermebedarf_kWh = inputs.flaeche * (config.klasseFactors[inputs.gebaeudeklasse] || 0);
         }
-        const kostenAktuellGesamt = kostenAltBrennstoff + inputs.wartungAlt;
-        const co2Altanlage = energieInputAltanlage_kWh * (config.co2FactorsKwhInput[inputs.aktuellesSystem] || 0);
+
         let wpBedarf_kWh = nutzwaermebedarf_kWh;
         if (inputs.useSolarthermie) {
             wpBedarf_kWh = Math.max(0, nutzwaermebedarf_kWh - (inputs.solarthermieFlaeche * (config.solarYieldFactors[inputs.solarthermieTyp] || 0)));
@@ -1332,18 +1393,28 @@
         const wpLeistung = nutzwaermebedarf_kWh > 0 ? (nutzwaermebedarf_kWh / 2000) : 0;
         const effektiveInvestition = Math.max(0, inputs.investition - inputs.foerderung);
         
-        const lang = getCurrentLanguage();
         let amortisation = '–';
         let amortisationNum = -1;
-        if (ersparnisVal > 0 && effektiveInvestition > 0) {
-            amortisationNum = effektiveInvestition / ersparnisVal;
-            amortisation = amortisationNum.toFixed(1);
-        } else if (ersparnisVal <= 0 && effektiveInvestition > 0) {
-            amortisation = translations[lang].amortizationNone;
-        } else if (effektiveInvestition <= 0) {
-            amortisation = translations[lang].amortizationImmediate;
-        }
         
+        if (inputs.aktuellesSystem === 'keine') {
+            dom.resultsOldSystem.style.display = 'none';
+            dom.resultsComparison.style.display = 'none';
+            dom.resultCostsNewText.querySelector('[data-translate]').textContent = translations[lang].resultCostsNewBuild;
+        } else {
+            dom.resultsOldSystem.style.display = 'block';
+            dom.resultsComparison.style.display = 'block';
+            dom.resultCostsNewText.querySelector('[data-translate]').textContent = translations[lang].resultCostsNew;
+
+            if (ersparnisVal > 0 && effektiveInvestition > 0) {
+                amortisationNum = effektiveInvestition / ersparnisVal;
+                amortisation = amortisationNum.toFixed(1);
+            } else if (ersparnisVal <= 0 && effektiveInvestition > 0) {
+                amortisation = translations[lang].amortizationNone;
+            } else if (effektiveInvestition <= 0) {
+                amortisation = translations[lang].amortizationImmediate;
+            }
+        }
+
         dom.nutzwaermeBedarfElem.textContent = nutzwaermebedarf_kWh.toFixed(0);
         dom.kostenAktuellElem.textContent = kostenAktuellGesamt.toFixed(2);
         dom.co2AltanlageElem.textContent = co2Altanlage.toFixed(0);
@@ -1358,10 +1429,7 @@
         const co2SavingsTextElement = document.querySelector('[data-translate="resultSavingsCo2Eq"]');
         if(co2SavingsTextElement) {
            co2SavingsTextElement.innerHTML = translations[lang].resultSavingsCo2Eq.replace('{value}', `<span class="highlight" id="co2Fussballfelder">${co2FussballfelderVal}</span>`);
-        } else { 
-            document.getElementById('co2Fussballfelder').textContent = co2FussballfelderVal;
         }
-
         document.getElementById('co2Ersparnis').textContent = co2Ersparnis.toFixed(0);
         dom.amortisationElem.textContent = amortisation;
 
@@ -1410,22 +1478,26 @@
       // --- END Language Switcher ---
 
       function generateResultCommentary(inputs, results, lang) {
-        let key = 'default';
         const { ersparnisVal, amortisationNum } = results;
-
+        
+        if (inputs.aktuellesSystem === 'keine') {
+            return translations[lang].commentary.newBuild;
+        }
         if (ersparnisVal < 0) {
-            key = 'negativeSavings';
-        } else if (amortisationNum > 25) {
+            return translations[lang].commentary.negativeSavings;
+        } 
+        if (amortisationNum > 25) {
             if (inputs.gebaeudeklasse === 'niedrigenergie' || inputs.gebaeudeklasse === 'neubau') {
-                key = 'longAmortizationLowEnergy';
+                return translations[lang].commentary.longAmortizationLowEnergy;
             } else {
-                key = 'longAmortizationHighCost';
+                return translations[lang].commentary.longAmortizationHighCost;
             }
-        } else if (amortisationNum > 0 && amortisationNum < 10) {
-            key = 'shortAmortization';
+        } 
+        if (amortisationNum > 0 && amortisationNum < 10) {
+            return translations[lang].commentary.shortAmortization;
         }
 
-        return translations[lang].commentary[key];
+        return translations[lang].commentary.default;
       }
 
       async function exportResultsToPDF() {
@@ -1463,7 +1535,7 @@
         }
 
         const inputsHtml = generateInputsHtmlForPdf(lang);
-        const resultsHtml = document.getElementById('results').innerHTML;
+        const resultsHtml = generateResultsHtmlForPdf(lang);
         const date = new Date().toLocaleDateString(lang === 'en' ? 'en-GB' : lang);
 
         pdfContent.innerHTML = `
@@ -1480,14 +1552,12 @@
                 .input-item svg { width: 24px; height: 24px; margin-right: 8px; fill: #555; }
                 .input-item .label { color: #666; }
                 .input-item .value { font-weight: bold; margin-left: 5px; }
-                #results { background: transparent !important; border: none !important; padding: 0 !important; }
-                #results h2 { display: none; }
-                #results p { font-size: 11pt; margin: 4px 0; border-bottom: 1px dotted #eee; padding-bottom: 4px;}
-                #results .highlight { color: #F39C12; font-weight: bold; }
-                #results .highlight.negative { color: #e74c3c; }
+                .results-container p { font-size: 11pt; margin: 4px 0; border-bottom: 1px dotted #eee; padding-bottom: 4px;}
+                .results-container .highlight { color: #F39C12; font-weight: bold; }
+                .results-container .highlight.negative { color: #e74c3c; }
                 .result-commentary { margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-left: 4px solid #F39C12; font-size: 10pt; line-height: 1.5; }
-                #results .disclaimer { font-size: 8pt; color: #888; margin-top: 10px; border: none; }
-                #results small { font-size: 10pt; }
+                .results-container .disclaimer { font-size: 8pt; color: #888; margin-top: 10px; border: none; }
+                .results-container small { font-size: 10pt; }
                 .pdf-footer { font-size: 8pt; color: #aaa; position: absolute; bottom: 15mm; width: 180mm; }
             </style>
             <div class="pdf-header">
@@ -1506,10 +1576,10 @@
             </div>
             <div class="pdf-section">
                 <h2>${translations[lang].pdfResultsTitle}</h2>
-                ${resultsHtml}
+                <div class="results-container">${resultsHtml}</div>
             </div>
             <div class="pdf-footer">
-                ${translations[lang].pdfFooter.replace('{date}', date)}
+                ${translations[lang].pdfFooter.replace('{date}', date).replace('{id}', configId)}
             </div>
         `;
         document.body.appendChild(pdfContent);
@@ -1530,6 +1600,21 @@
         });
       }
 
+      function generateResultsHtmlForPdf(lang) {
+        let html = '';
+        const isNewBuild = dom.heizsystemValueInput.value === 'keine';
+        
+        // Clone results div to avoid manipulating the live DOM
+        const resultsClone = dom.resultsDiv.cloneNode(true);
+        resultsClone.querySelector('#resultsOldSystem').style.display = isNewBuild ? 'none' : 'block';
+        resultsClone.querySelector('#resultsComparison').style.display = isNewBuild ? 'none' : 'block';
+        const costsNewLabel = isNewBuild ? translations[lang].resultCostsNewBuild : translations[lang].resultCostsNew;
+        resultsClone.querySelector('#resultCostsNewText [data-translate]').textContent = costsNewLabel;
+        
+        return resultsClone.innerHTML;
+      }
+
+
       function generateInputsHtmlForPdf(lang) {
           const simpleIcons = {
               area: '<svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zM9 9h6v6H9V9z"/></svg>',
@@ -1548,23 +1633,35 @@
               inputsHtml += `<div class="input-item">${icon}<span class="text"><span class="label">${label}:</span><span class="value">${value}</span></span></div>`;
           };
 
-          if (dom.radios.value === 'flaeche') {
+          if (dom.heizsystemValueInput.value === 'keine') {
               addItem(gebaeudeklasseDefinitions.getSvg(dom.gebaeudeklasseValueInput.value), translations[lang].buildingClassLabel, selectedKlasseDef.text);
               addItem(simpleIcons.area, translations[lang].areaLabel, `${dom.flaecheSlider.value} m²`);
           } else {
-              addItem(simpleIcons.verbrauch, translations[lang].annualConsumptionLabel, `${dom.verbrauch.value} ${dom.einheitVerbrauch.textContent}`);
+             if (dom.radios.value === 'flaeche') {
+              addItem(gebaeudeklasseDefinitions.getSvg(dom.gebaeudeklasseValueInput.value), translations[lang].buildingClassLabel, selectedKlasseDef.text);
+              addItem(simpleIcons.area, translations[lang].areaLabel, `${dom.flaecheSlider.value} m²`);
+            } else {
+                addItem(simpleIcons.verbrauch, translations[lang].annualConsumptionLabel, `${dom.verbrauch.value} ${dom.einheitVerbrauch.textContent}`);
+            }
+            addItem(heizsystemDefinitions.getSvg(dom.heizsystemValueInput.value), translations[lang].currentSystemTitle, selectedHeizsystemDef.text);
+            addItem(simpleIcons.effizienz, translations[lang].efficiencyOldLabel, `${dom.wirkungsgradAltSlider.value} %`);
+            addItem(simpleIcons.preis, translations[lang].priceOldLabel, dom.preisValue.textContent);
+            addItem(simpleIcons.kosten, translations[lang].maintenanceOldLabel, `${dom.wartungskostenAltSlider.value} €/a`);
           }
-          addItem(heizsystemDefinitions.getSvg(dom.heizsystemValueInput.value), translations[lang].currentSystemTitle, selectedHeizsystemDef.text);
-          addItem(simpleIcons.effizienz, translations[lang].efficiencyOldLabel, `${dom.wirkungsgradAltSlider.value} %`);
-          addItem(simpleIcons.preis, translations[lang].priceOldLabel, dom.preisValue.textContent);
+          
           addItem(simpleIcons.temperatur, translations[lang].flowTempLabel, `${dom.vorlauftemperaturSlider.value} °C`);
-          addItem(simpleIcons.kosten, translations[lang].maintenanceOldLabel, `${dom.wartungskostenAltSlider.value} €/a`);
           addItem(simpleIcons.kosten, translations[lang].maintenanceNewLabel, `${dom.wartungskostenWPSlider.value} €/a`);
 
           return inputsHtml;
       }
 
+      function generateConfigId() {
+        return Math.random().toString(36).substring(2, 8).toUpperCase();
+      }
+
       // --- Initiale Einrichtung ---
+      configId = generateConfigId();
+      dom.configIdElem.textContent = configId;
       const sliders = [
           {el: dom.wirkungsgradAltSlider, val: dom.wirkungsgradAltValue, unit: "%"},
           {el: dom.flaecheSlider, val: dom.flaecheValue, unit: "m²"},
