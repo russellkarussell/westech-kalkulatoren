@@ -315,6 +315,15 @@
         color: #e74c3c; /* Rote Farbe für negative Werte */
     }
 
+    .result-commentary {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-left: 4px solid var(--accent-color);
+        font-size: 0.95em;
+        line-height: 1.5;
+    }
+
     .disclaimer {
       margin-top: 10px;
       font-size: 0.85em;
@@ -624,6 +633,9 @@
                 <small style="font-size:0.9em; color: var(--text-color-light);" data-translate="resultSavingsCo2Eq">entspricht ca. <span class="highlight" id="co2Fussballfelder">0</span> Fußballfeldern Waldfläche pro Jahr.</small>
             </p>
             <p><span data-translate="resultAmortization">Amortisationszeit (nach Förderung)</span>: <span class="highlight" id="amortisation">–</span> <span data-translate="unitYears">Jahre</span></p>
+            
+            <div id="resultInterpretation" class="result-commentary" style="margin-top: 20px;"></div>
+
             <div class="disclaimer" data-translate="resultDisclaimer">* Alle Werte sind ungefähre Richtwerte. Die empfohlene Heizleistung ist eine grobe Schätzung; eine detaillierte Heizlastberechnung durch einen Fachbetrieb ist für die korrekte Dimensionierung unerlässlich.</div>
         </div>
         <div id="exportContainer" class="export-button-container">
@@ -675,7 +687,8 @@
           klasseFactors: { alt_unsaniert: 200, alt_teilsaniert: 150, alt_saniert: 100, neubau: 70, niedrigenergie: 30 },
           heizkoerperventilatorEffekt: 8,
           solarYieldFactors: { flach: 350, roehren: 450 },
-          pvYieldFactor: 1000 // kWh pro kWp pro Jahr
+          pvYieldFactor: 1000, // kWh pro kWp pro Jahr
+          pvRealismFactor: 0.4 // Realistischer Anteil des PV-Ertrags, der direkt die WP versorgen kann
       };
 
       const dom = {
@@ -743,6 +756,7 @@
         co2ErsparnisElem: document.getElementById('co2Ersparnis'),
         co2FussballfelderElem: document.getElementById('co2Fussballfelder'),
         amortisationElem: document.getElementById('amortisation'),
+        resultInterpretation: document.getElementById('resultInterpretation')
       };
       
       const gebaeudeklasseDefinitions = {
@@ -846,217 +860,140 @@
       
       const translations = {
           de: {
-              step1Title: "Schritt 1: Daten zur Altanlage",
-              basisTitle: "Berechnungsgrundlage",
+              step1Title: "Schritt 1: Daten zur Altanlage", basisTitle: "Berechnungsgrundlage",
               basisText: "Bitte wählen Sie, ob die Berechnung auf Basis Ihrer beheizbaren Fläche oder Ihres bisherigen Verbrauchs erfolgen soll.",
-              basisArea: "Flächenbasierte Berechnung",
-              basisConsumption: "Verbrauchsbasierte Berechnung",
-              yourConsumptionTitle: "Ihr Verbrauch",
-              annualConsumptionLabel: "Jährlicher Verbrauch",
-              yourPropertyTitle: "Ihre Immobilie",
-              buildingClassLabel: "Gebäudeklasse",
-              areaLabel: "Beheizbare Fläche (m²)",
-              currentSystemTitle: "Ihr aktuelles Heizsystem",
-              efficiencyOldLabel: "Wirkungsgrad Altanlage (%)",
-              efficiencyOldDisclaimer: "Typischer Wert wird je nach Heizsystem vorausgewählt.",
-              priceOldLabel: "Aktueller Preis je Einheit",
-              step2Title: "Schritt 2: Neues System & Optimierung",
-              heatpumpDataTitle: "Daten für Wärmepumpe",
-              gridPriceLabel: "Netz-Strompreis für Wärmepumpe (€/kWh)",
-              gridPriceDisclaimer: "Dieser Preis gilt auch für \"Altanlage Strom\".",
-              floorHeatingShareLabel: "Anteil Fußbodenheizung an Wärmeabgabe (%)",
-              floorHeatingShareDisclaimer: "Wird automatisch basierend auf Gebäudeklasse angepasst.",
-              flowTempLabel: "Vorlauftemperatur (°C)",
-              baseScopInfo: "Abgeleiteter Basis-SCOP:",
-              optimizationsTitle: "Zusätzliche Optimierungen",
-              optimizationsText: "Wählen Sie optionale Komponenten aus, um die Berechnung zu verfeinern.",
-              pvCapacityLabel: "Installierte PV-Leistung (kWp)",
-              pvYieldInfo: "Geschätzter Jahresertrag:",
-              pvShareLabel: "Anteil des WP-Stroms durch PV gedeckt (%)",
-              pvPriceLabel: "Kosten für PV-Strom (€/kWh)",
+              basisArea: "Flächenbasierte Berechnung", basisConsumption: "Verbrauchsbasierte Berechnung",
+              yourConsumptionTitle: "Ihr Verbrauch", annualConsumptionLabel: "Jährlicher Verbrauch",
+              yourPropertyTitle: "Ihre Immobilie", buildingClassLabel: "Gebäudeklasse", areaLabel: "Beheizbare Fläche (m²)",
+              currentSystemTitle: "Ihr aktuelles Heizsystem", efficiencyOldLabel: "Wirkungsgrad Altanlage (%)",
+              efficiencyOldDisclaimer: "Typischer Wert wird je nach Heizsystem vorausgewählt.", priceOldLabel: "Aktueller Preis je Einheit",
+              step2Title: "Schritt 2: Neues System & Optimierung", heatpumpDataTitle: "Daten für Wärmepumpe",
+              gridPriceLabel: "Netz-Strompreis für Wärmepumpe (€/kWh)", gridPriceDisclaimer: "Dieser Preis gilt auch für \"Altanlage Strom\".",
+              floorHeatingShareLabel: "Anteil Fußbodenheizung an Wärmeabgabe (%)", floorHeatingShareDisclaimer: "Wird automatisch basierend auf Gebäudeklasse angepasst.",
+              flowTempLabel: "Vorlauftemperatur (°C)", baseScopInfo: "Abgeleiteter Basis-SCOP:",
+              optimizationsTitle: "Zusätzliche Optimierungen", optimizationsText: "Wählen Sie optionale Komponenten aus, um die Berechnung zu verfeinern.",
+              pvCapacityLabel: "Installierte PV-Leistung (kWp)", pvYieldInfo: "Geschätzter Jahresertrag:",
+              pvShareLabel: "Anteil des WP-Stroms durch PV gedeckt (%)", pvPriceLabel: "Kosten für PV-Strom (€/kWh)",
               pvDisclaimer: "Geben Sie hier Ihre Gestehungskosten an. Passen Sie den Deckungsgrad an, falls Sie z.B. einen Batteriespeicher haben.",
-              solarTypeLabel: "Kollektortyp",
-              solarAreaLabel: "Kollektorfläche der Solaranlage (m²)",
-              solarYieldInfo: "Geschätzter Jahresertrag:",
-              solarDisclaimer: "Der Ertrag reduziert den Wärmebedarf, den die Heizung decken muss.",
-              step3Title: "Schritt 3: Investition & Kosten",
-              investmentTitle: "Investitionskosten & Förderung Wärmepumpe",
-              investmentLabel: "Investitionskosten Wärmepumpe (inkl. Einbau) in €",
-              investmentDisclaimer: "Durchschnitt: 15.000–30.000 €. Addieren Sie Kosten für Zusatz-Optimierungen.",
-              fundingLabel: "Erwartete Förderungen (einmalig) in €",
-              fundingDisclaimer: "Reduziert die effektiven Investitionskosten.",
-              runningCostsTitle: "Laufende Kosten",
-              maintenanceOldLabel: "Jährliche Wartungskosten Altanlage (€)",
-              maintenanceNewLabel: "Jährliche Wartungskosten Wärmepumpe (€)",
-              step4Title: "Schritt 4: Ihr Ergebnis",
-              resultHeatDemand: "Nutzwärmebedarf (Altanlage)",
-              resultCostsOld: "Aktuelle Heizkosten (Altanlage)",
-              resultCo2Old: "CO₂-Emissionen (Altanlage)",
-              resultHpPower: "Ungefähre Heizleistung Wärmepumpe",
-              resultCop: "Angepasste JAZ/SCOP für WP",
-              resultCostsNew: "Heizkosten mit Wärmepumpe",
-              resultCo2New: "CO₂-Emissionen (Wärmepumpe)",
-              resultSavingsAnnual: "Jährliche Ersparnis (Betriebskosten)",
-              resultSavingsCo2: "Jährliche CO₂-Einsparung",
-              resultSavingsCo2Eq: "entspricht ca. {value} Fußballfeldern Waldfläche pro Jahr.",
-              resultAmortization: "Amortisationszeit (nach Förderung)",
-              unitYear: "Jahr",
-              unitYears: "Jahre",
+              solarTypeLabel: "Kollektortyp", solarAreaLabel: "Kollektorfläche der Solaranlage (m²)",
+              solarYieldInfo: "Geschätzter Jahresertrag:", solarDisclaimer: "Der Ertrag reduziert den Wärmebedarf, den die Heizung decken muss.",
+              step3Title: "Schritt 3: Investition & Kosten", investmentTitle: "Investitionskosten & Förderung Wärmepumpe",
+              investmentLabel: "Investitionskosten Wärmepumpe (inkl. Einbau) in €", investmentDisclaimer: "Durchschnitt: 15.000–30.000 €. Addieren Sie Kosten für Zusatz-Optimierungen.",
+              fundingLabel: "Erwartete Förderungen (einmalig) in €", fundingDisclaimer: "Reduziert die effektiven Investitionskosten.",
+              runningCostsTitle: "Laufende Kosten", maintenanceOldLabel: "Jährliche Wartungskosten Altanlage (€)",
+              maintenanceNewLabel: "Jährliche Wartungskosten Wärmepumpe (€)", step4Title: "Schritt 4: Ihr Ergebnis",
+              resultHeatDemand: "Nutzwärmebedarf (Altanlage)", resultCostsOld: "Aktuelle Heizkosten (Altanlage)",
+              resultCo2Old: "CO₂-Emissionen (Altanlage)", resultHpPower: "Ungefähre Heizleistung Wärmepumpe",
+              resultCop: "Angepasste JAZ/SCOP für WP", resultCostsNew: "Heizkosten mit Wärmepumpe",
+              resultCo2New: "CO₂-Emissionen (Wärmepumpe)", resultSavingsAnnual: "Jährliche Ersparnis (Betriebskosten)",
+              resultSavingsCo2: "Jährliche CO₂-Einsparung", resultSavingsCo2Eq: "entspricht ca. {value} Fußballfeldern Waldfläche pro Jahr.",
+              resultAmortization: "Amortisationszeit (nach Förderung)", unitYear: "Jahr", unitYears: "Jahre",
               resultDisclaimer: "* Alle Werte sind ungefähre Richtwerte. Die empfohlene Heizleistung ist eine grobe Schätzung; eine detaillierte Heizlastberechnung durch einen Fachbetrieb ist für die korrekte Dimensionierung unerlässlich.",
-              exportPdfButton: "PDF Exportieren",
-              priceUpdateInfo: "Die Standard-Energiepreise im Rechner sind Richtwerte (Stand: Juni 2025) und sollten für eine genaue Berechnung mit Ihren aktuellen Tarifen abgeglichen werden.",
-              prevBtn: "Zurück",
-              nextBtn: "Weiter",
-              pdfExports: "PDF Exporte",
-              amortizationNone: "Keine Amortisation",
-              amortizationImmediate: "Sofort",
-              pdfTitle: "Analyse Ihrer Heizkostenersparnis",
-              pdfInputsTitle: "Ihre Eingaben",
-              pdfResultsTitle: "Ihr Ergebnis",
-              pdfFooter: "Berechnung erstellt am {date}. Alle Angaben sind Schätzungen ohne Gewähr."
+              exportPdfButton: "PDF Exportieren", priceUpdateInfo: "Die Standard-Energiepreise im Rechner sind Richtwerte (Stand: Juni 2025) und sollten für eine genaue Berechnung mit Ihren aktuellen Tarifen abgeglichen werden.",
+              prevBtn: "Zurück", nextBtn: "Weiter", pdfExports: "PDF Exporte",
+              amortizationNone: "Keine Amortisation", amortizationImmediate: "Sofort",
+              pdfTitle: "Analyse Ihrer Heizkostenersparnis", pdfInputsTitle: "Ihre Eingaben",
+              pdfResultsTitle: "Ihr Ergebnis", pdfFooter: "Berechnung erstellt am {date}. Alle Angaben sind Schätzungen ohne Gewähr.",
+              commentaryTitle: "Interpretation der Ergebnisse",
+              commentary: {
+                negativeSavings: "In diesem Szenario sind die neuen Heizkosten höher. Dies kann an hohen Strompreisen oder einer sehr niedrigen Förderung liegen. Prüfen Sie Ihre Eingaben. Dennoch gewinnen Sie an Unabhängigkeit und steigern den Wert Ihrer Immobilie.",
+                longAmortizationLowEnergy: "Aufgrund Ihrer bereits niedrigen Heizkosten ist die rein finanzielle Amortisationszeit länger. Ihr Hauptgewinn liegt in der enormen Wertsteigerung Ihrer Immobilie, der Unabhängigkeit von fossilen Brennstoffen und dem Komfortgewinn durch Heizen und Kühlen mit einem System.",
+                longAmortizationHighCost: "Die Amortisationszeit ist eher lang. Prüfen Sie, ob Sie die Investitionskosten durch höhere Förderungen senken können. Der Wechsel sichert Ihnen dennoch mehr Komfort, Unabhängigkeit und steigert den Wert Ihrer Immobilie.",
+                shortAmortization: "Eine ausgezeichnete Investition! Der Umstieg von Ihrem alten Heizsystem führt zu hohen jährlichen Einsparungen. Die Investition macht sich schnell bezahlt, während Sie sofort von mehr Wohnkomfort und Unabhängigkeit profitieren.",
+                default: "Ein solider Wechsel. Sie senken Ihre laufenden Kosten und investieren gleichzeitig in die Zukunftssicherheit und den Wert Ihrer Immobilie. Zudem genießen Sie den Komfort eines modernen und wartungsarmen Heizsystems."
+              }
           },
           en: {
-              step1Title: "Step 1: Old System Data",
-              basisTitle: "Calculation Basis",
+              step1Title: "Step 1: Old System Data", basisTitle: "Calculation Basis",
               basisText: "Please choose whether the calculation should be based on your heatable area or your previous consumption.",
-              basisArea: "Area-Based Calculation",
-              basisConsumption: "Consumption-Based Calculation",
-              yourConsumptionTitle: "Your Consumption",
-              annualConsumptionLabel: "Annual Consumption",
-              yourPropertyTitle: "Your Property",
-              buildingClassLabel: "Building Class",
-              areaLabel: "Heatable Area (m²)",
-              currentSystemTitle: "Your Current Heating System",
-              efficiencyOldLabel: "Efficiency of Old System (%)",
-              efficiencyOldDisclaimer: "A typical value is pre-selected based on the heating system.",
-              priceOldLabel: "Current Price per Unit",
-              step2Title: "Step 2: New System & Optimization",
-              heatpumpDataTitle: "Heat Pump Data",
-              gridPriceLabel: "Grid Electricity Price for Heat Pump (€/kWh)",
-              gridPriceDisclaimer: "This price also applies to \"Old System Electricity\".",
-              floorHeatingShareLabel: "Share of Underfloor Heating in Heat Distribution (%)",
-              floorHeatingShareDisclaimer: "Adjusted automatically based on building class.",
-              flowTempLabel: "Flow Temperature (°C)",
-              baseScopInfo: "Derived Base SCOP:",
-              optimizationsTitle: "Additional Optimizations",
-              optimizationsText: "Select optional components to refine the calculation.",
-              pvCapacityLabel: "Installed PV Capacity (kWp)",
-              pvYieldInfo: "Estimated Annual Yield:",
-              pvShareLabel: "Share of HP electricity covered by PV (%)",
-              pvPriceLabel: "Cost for PV Electricity (€/kWh)",
+              basisArea: "Area-Based Calculation", basisConsumption: "Consumption-Based Calculation",
+              yourConsumptionTitle: "Your Consumption", annualConsumptionLabel: "Annual Consumption",
+              yourPropertyTitle: "Your Property", buildingClassLabel: "Building Class", areaLabel: "Heatable Area (m²)",
+              currentSystemTitle: "Your Current Heating System", efficiencyOldLabel: "Efficiency of Old System (%)",
+              efficiencyOldDisclaimer: "A typical value is pre-selected based on the heating system.", priceOldLabel: "Current Price per Unit",
+              step2Title: "Step 2: New System & Optimization", heatpumpDataTitle: "Heat Pump Data",
+              gridPriceLabel: "Grid Electricity Price for Heat Pump (€/kWh)", gridPriceDisclaimer: "This price also applies to \"Old System Electricity\".",
+              floorHeatingShareLabel: "Share of Underfloor Heating in Heat Distribution (%)", floorHeatingShareDisclaimer: "Adjusted automatically based on building class.",
+              flowTempLabel: "Flow Temperature (°C)", baseScopInfo: "Derived Base SCOP:",
+              optimizationsTitle: "Additional Optimizations", optimizationsText: "Select optional components to refine the calculation.",
+              pvCapacityLabel: "Installed PV Capacity (kWp)", pvYieldInfo: "Estimated Annual Yield:",
+              pvShareLabel: "Share of HP electricity covered by PV (%)", pvPriceLabel: "Cost for PV Electricity (€/kWh)",
               pvDisclaimer: "Enter your generation costs here. Adjust the coverage rate if you have a battery storage, for example.",
-              solarTypeLabel: "Collector Type",
-              solarAreaLabel: "Collector Area of Solar System (m²)",
-              solarYieldInfo: "Estimated Annual Yield:",
-              solarDisclaimer: "The yield reduces the heat demand the heating system must cover.",
-              step3Title: "Step 3: Investment & Costs",
-              investmentTitle: "Investment Costs & Funding for Heat Pump",
-              investmentLabel: "Investment Costs for Heat Pump (incl. installation) in €",
-              investmentDisclaimer: "Average: €15,000–€30,000. Add costs for additional optimizations.",
-              fundingLabel: "Expected Subsidies (one-time) in €",
-              fundingDisclaimer: "Reduces the effective investment costs.",
-              runningCostsTitle: "Running Costs",
-              maintenanceOldLabel: "Annual Maintenance Costs Old System (€)",
-              maintenanceNewLabel: "Annual Maintenance Costs Heat Pump (€)",
-              step4Title: "Step 4: Your Result",
-              resultHeatDemand: "Usable Heat Demand (Old System)",
-              resultCostsOld: "Current Heating Costs (Old System)",
-              resultCo2Old: "CO₂ Emissions (Old System)",
-              resultHpPower: "Approx. Heating Power of Heat Pump",
-              resultCop: "Adjusted SPF/SCOP for HP",
-              resultCostsNew: "Heating Costs with Heat Pump",
-              resultCo2New: "CO₂ Emissions (Heat Pump)",
-              resultSavingsAnnual: "Annual Savings (Operating Costs)",
-              resultSavingsCo2: "Annual CO₂ Savings",
-              resultSavingsCo2Eq: "equals approx. {value} football fields of forest area per year.",
-              resultAmortization: "Amortization Period (after funding)",
-              unitYear: "year",
-              unitYears: "years",
+              solarTypeLabel: "Collector Type", solarAreaLabel: "Collector Area of Solar System (m²)",
+              solarYieldInfo: "Estimated Annual Yield:", solarDisclaimer: "The yield reduces the heat demand the heating system must cover.",
+              step3Title: "Step 3: Investment & Costs", investmentTitle: "Investment Costs & Funding for Heat Pump",
+              investmentLabel: "Investment Costs for Heat Pump (incl. installation) in €", investmentDisclaimer: "Average: €15,000–€30,000. Add costs for additional optimizations.",
+              fundingLabel: "Expected Subsidies (one-time) in €", fundingDisclaimer: "Reduces the effective investment costs.",
+              runningCostsTitle: "Running Costs", maintenanceOldLabel: "Annual Maintenance Costs Old System (€)",
+              maintenanceNewLabel: "Annual Maintenance Costs Heat Pump (€)", step4Title: "Step 4: Your Result",
+              resultHeatDemand: "Usable Heat Demand (Old System)", resultCostsOld: "Current Heating Costs (Old System)",
+              resultCo2Old: "CO₂ Emissions (Old System)", resultHpPower: "Approx. Heating Power of Heat Pump",
+              resultCop: "Adjusted SPF/SCOP for HP", resultCostsNew: "Heating Costs with Heat Pump",
+              resultCo2New: "CO₂ Emissions (Heat Pump)", resultSavingsAnnual: "Annual Savings (Operating Costs)",
+              resultSavingsCo2: "Annual CO₂ Savings", resultSavingsCo2Eq: "equals approx. {value} football fields of forest area per year.",
+              resultAmortization: "Amortization Period (after funding)", unitYear: "year", unitYears: "years",
               resultDisclaimer: "* All values are approximate guidelines. The recommended heating output is a rough estimate; a detailed heating load calculation by a specialist is essential for correct dimensioning.",
-              exportPdfButton: "Export PDF",
-              priceUpdateInfo: "The default energy prices in the calculator are estimates (as of June 2025) and should be checked against your current rates for an accurate calculation.",
-              prevBtn: "Back",
-              nextBtn: "Next",
-              pdfExports: "PDF Exports",
-              amortizationNone: "No amortization",
-              amortizationImmediate: "Immediately",
-              pdfTitle: "Analysis of Your Heating Cost Savings",
-              pdfInputsTitle: "Your Inputs",
-              pdfResultsTitle: "Your Result",
-              pdfFooter: "Calculation created on {date}. All figures are estimates without guarantee."
+              exportPdfButton: "Export PDF", priceUpdateInfo: "The default energy prices in the calculator are estimates (as of June 2025) and should be checked against your current rates for an accurate calculation.",
+              prevBtn: "Back", nextBtn: "Next", pdfExports: "PDF Exports",
+              amortizationNone: "No amortization", amortizationImmediate: "Immediately",
+              pdfTitle: "Analysis of Your Heating Cost Savings", pdfInputsTitle: "Your Inputs",
+              pdfResultsTitle: "Your Result", pdfFooter: "Calculation created on {date}. All figures are estimates without guarantee.",
+              commentaryTitle: "Interpretation of Results",
+              commentary: {
+                negativeSavings: "In this scenario, the new heating costs are higher. This might be due to high electricity prices or very low subsidies. Please check your inputs. Nevertheless, you gain independence and increase the value of your property.",
+                longAmortizationLowEnergy: "Due to your already low heating costs, the purely financial amortization period is longer. Your main benefit lies in the significant increase in your property's value, independence from fossil fuels, and the added comfort of heating and cooling with a single system.",
+                longAmortizationHighCost: "The amortization period is rather long. Check if you can reduce the investment costs with higher subsidies. Nevertheless, the switch ensures more comfort, independence, and increases the value of your property.",
+                shortAmortization: "An excellent investment! Switching from your old heating system leads to high annual savings. The investment pays off quickly, while you immediately benefit from more living comfort and independence.",
+                default: "A solid switch. You are lowering your running costs while investing in the future-proofing and value of your property. Additionally, you'll enjoy the comfort of a modern and low-maintenance heating system."
+              }
           },
           ro: {
-              step1Title: "Pasul 1: Datele sistemului vechi",
-              basisTitle: "Baza de calcul",
+              step1Title: "Pasul 1: Datele sistemului vechi", basisTitle: "Baza de calcul",
               basisText: "Vă rugăm să alegeți dacă calculul se va baza pe suprafața încălzită sau pe consumul anterior.",
-              basisArea: "Calcul bazat pe suprafață",
-              basisConsumption: "Calcul bazat pe consum",
-              yourConsumptionTitle: "Consumul dvs.",
-              annualConsumptionLabel: "Consum anual",
-              yourPropertyTitle: "Imobilul dvs.",
-              buildingClassLabel: "Clasa clădirii",
-              areaLabel: "Suprafață încălzită (m²)",
-              currentSystemTitle: "Sistemul dvs. actual de încălzire",
-              efficiencyOldLabel: "Eficiența sistemului vechi (%)",
-              efficiencyOldDisclaimer: "O valoare tipică este preselectată în funcție de sistemul de încălzire.",
-              priceOldLabel: "Prețul actual pe unitate",
-              step2Title: "Pasul 2: Sistem nou & Optimizare",
-              heatpumpDataTitle: "Date pentru pompa de căldură",
-              gridPriceLabel: "Prețul electricității din rețea pentru pompa de căldură (€/kWh)",
-              gridPriceDisclaimer: "Acest preț se aplică și pentru \"Electricitate sistem vechi\".",
-              floorHeatingShareLabel: "Procentul de încălzire prin pardoseală în distribuția căldurii (%)",
-              floorHeatingShareDisclaimer: "Ajustat automat în funcție de clasa clădirii.",
-              flowTempLabel: "Temperatura pe tur (°C)",
-              baseScopInfo: "SCOP de bază derivat:",
-              optimizationsTitle: "Optimizări suplimentare",
-              optimizationsText: "Selectați componente opționale pentru a rafina calculul.",
-              pvCapacityLabel: "Capacitate PV instalată (kWp)",
-              pvYieldInfo: "Producție anuală estimată:",
-              pvShareLabel: "Procentul de electricitate pentru PC acoperit de PV (%)",
-              pvPriceLabel: "Costul electricității PV (€/kWh)",
+              basisArea: "Calcul bazat pe suprafață", basisConsumption: "Calcul bazat pe consum",
+              yourConsumptionTitle: "Consumul dvs.", annualConsumptionLabel: "Consum anual",
+              yourPropertyTitle: "Imobilul dvs.", buildingClassLabel: "Clasa clădirii", areaLabel: "Suprafață încălzită (m²)",
+              currentSystemTitle: "Sistemul dvs. actual de încălzire", efficiencyOldLabel: "Eficiența sistemului vechi (%)",
+              efficiencyOldDisclaimer: "O valoare tipică este preselectată în funcție de sistemul de încălzire.", priceOldLabel: "Prețul actual pe unitate",
+              step2Title: "Pasul 2: Sistem nou & Optimizare", heatpumpDataTitle: "Date pentru pompa de căldură",
+              gridPriceLabel: "Prețul electricității din rețea pentru pompa de căldură (€/kWh)", gridPriceDisclaimer: "Acest preț se aplică și pentru \"Electricitate sistem vechi\".",
+              floorHeatingShareLabel: "Procentul de încălzire prin pardoseală în distribuția căldurii (%)", floorHeatingShareDisclaimer: "Ajustat automat în funcție de clasa clădirii.",
+              flowTempLabel: "Temperatura pe tur (°C)", baseScopInfo: "SCOP de bază derivat:",
+              optimizationsTitle: "Optimizări suplimentare", optimizationsText: "Selectați componente opționale pentru a rafina calculul.",
+              pvCapacityLabel: "Capacitate PV instalată (kWp)", pvYieldInfo: "Producție anuală estimată:",
+              pvShareLabel: "Procentul de electricitate pentru PC acoperit de PV (%)", pvPriceLabel: "Costul electricității PV (€/kWh)",
               pvDisclaimer: "Introduceți aici costurile de producție. Ajustați rata de acoperire dacă aveți, de exemplu, un acumulator.",
-              solarTypeLabel: "Tip colector",
-              solarAreaLabel: "Suprafața colectorului solar (m²)",
-              solarYieldInfo: "Producție anuală estimată:",
-              solarDisclaimer: "Producția reduce necesarul de căldură pe care trebuie să-l acopere sistemul de încălzire.",
-              step3Title: "Pasul 3: Investiție & Costuri",
-              investmentTitle: "Costuri de investiție & Finanțare pentru pompa de căldură",
-              investmentLabel: "Costuri de investiție pentru pompa de căldură (inclusiv instalare) în €",
-              investmentDisclaimer: "Medie: 15.000–30.000 €. Adăugați costurile pentru optimizări suplimentare.",
-              fundingLabel: "Subvenții preconizate (unice) în €",
-              fundingDisclaimer: "Reduce costurile efective de investiție.",
-              runningCostsTitle: "Costuri de funcționare",
-              maintenanceOldLabel: "Costuri anuale de întreținere sistem vechi (€)",
-              maintenanceNewLabel: "Costuri anuale de întreținere pompa de căldură (€)",
-              step4Title: "Pasul 4: Rezultatul dvs.",
-              resultHeatDemand: "Necesar de căldură utilă (Sistem vechi)",
-              resultCostsOld: "Costuri actuale de încălzire (Sistem vechi)",
-              resultCo2Old: "Emisii de CO₂ (Sistem vechi)",
-              resultHpPower: "Puterea de încălzire aprox. a pompei de căldură",
-              resultCop: "SPF/SCOP ajustat pentru PC",
-              resultCostsNew: "Costuri de încălzire cu pompa de căldură",
-              resultCo2New: "Emisii de CO₂ (Pompa de căldură)",
-              resultSavingsAnnual: "Economii anuale (Costuri de operare)",
-              resultSavingsCo2: "Economii anuale de CO₂",
-              resultSavingsCo2Eq: "echivalează cu aprox. {value} terenuri de fotbal de pădure pe an.",
-              resultAmortization: "Perioada de amortizare (după subvenție)",
-              unitYear: "an",
-              unitYears: "ani",
+              solarTypeLabel: "Tip colector", solarAreaLabel: "Suprafața colectorului solar (m²)",
+              solarYieldInfo: "Producție anuală estimată:", solarDisclaimer: "Producția reduce necesarul de căldură pe care trebuie să-l acopere sistemul de încălzire.",
+              step3Title: "Pasul 3: Investiție & Costuri", investmentTitle: "Costuri de investiție & Finanțare pentru pompa de căldură",
+              investmentLabel: "Costuri de investiție pentru pompa de căldură (inclusiv instalare) în €", investmentDisclaimer: "Medie: 15.000–30.000 €. Adăugați costurile pentru optimizări suplimentare.",
+              fundingLabel: "Subvenții preconizate (unice) în €", fundingDisclaimer: "Reduce costurile efective de investiție.",
+              runningCostsTitle: "Costuri de funcționare", maintenanceOldLabel: "Costuri anuale de întreținere sistem vechi (€)",
+              maintenanceNewLabel: "Costuri anuale de întreținere pompa de căldură (€)", step4Title: "Pasul 4: Rezultatul dvs.",
+              resultHeatDemand: "Necesar de căldură utilă (Sistem vechi)", resultCostsOld: "Costuri actuale de încălzire (Sistem vechi)",
+              resultCo2Old: "Emisii de CO₂ (Sistem vechi)", resultHpPower: "Puterea de încălzire aprox. a pompei de căldură",
+              resultCop: "SPF/SCOP ajustat pentru PC", resultCostsNew: "Costuri de încălzire cu pompa de căldură",
+              resultCo2New: "Emisii de CO₂ (Pompa de căldură)", resultSavingsAnnual: "Economii anuale (Costuri de operare)",
+              resultSavingsCo2: "Economii anuale de CO₂", resultSavingsCo2Eq: "echivalează cu aprox. {value} terenuri de fotbal de pădure pe an.",
+              resultAmortization: "Perioada de amortizare (după subvenție)", unitYear: "an", unitYears: "ani",
               resultDisclaimer: "* Toate valorile sunt orientative. Puterea de încălzire recomandată este o estimare brută; un calcul detaliat al sarcinii termice de către un specialist este esențial pentru o dimensionare corectă.",
-              exportPdfButton: "Exportă PDF",
-              priceUpdateInfo: "Prețurile implicite ale energiei din calculator sunt estimative (iunie 2025) și ar trebui verificate cu tarifele dvs. curente pentru un calcul precis.",
-              prevBtn: "Înapoi",
-              nextBtn: "Următorul",
-              pdfExports: "Exporturi PDF",
-              amortizationNone: "Fără amortizare",
-              amortizationImmediate: "Imediat",
-              pdfTitle: "Analiza economiilor la costurile de încălzire",
-              pdfInputsTitle: "Datele dvs.",
-              pdfResultsTitle: "Rezultatul dvs.",
-              pdfFooter: "Calcul realizat la {date}. Toate datele sunt estimări fără garanție."
+              exportPdfButton: "Exportă PDF", priceUpdateInfo: "Prețurile implicite ale energiei din calculator sunt estimative (iunie 2025) și ar trebui verificate cu tarifele dvs. curente pentru un calcul precis.",
+              prevBtn: "Înapoi", nextBtn: "Următorul", pdfExports: "Exporturi PDF",
+              amortizationNone: "Fără amortizare", amortizationImmediate: "Imediat",
+              pdfTitle: "Analiza economiilor la costurile de încălzire", pdfInputsTitle: "Datele dvs.",
+              pdfResultsTitle: "Rezultatul dvs.", pdfFooter: "Calcul realizat la {date}. Toate datele sunt estimări fără garanție.",
+              commentaryTitle: "Interpretarea rezultatelor",
+              commentary: {
+                negativeSavings: "În acest scenariu, noile costuri de încălzire sunt mai mari. Acest lucru se poate datora prețurilor ridicate la electricitate sau subvențiilor foarte mici. Vă rugăm să verificați datele introduse. Cu toate acestea, câștigați independență și creșteți valoarea proprietății dvs.",
+                longAmortizationLowEnergy: "Datorită costurilor dvs. deja scăzute la încălzire, perioada de amortizare pur financiară este mai lungă. Beneficiul dvs. principal constă în creșterea semnificativă a valorii proprietății, independența față de combustibilii fosili și confortul sporit prin încălzire și răcire cu un singur sistem.",
+                longAmortizationHighCost: "Perioada de amortizare este destul de lungă. Verificați dacă puteți reduce costurile de investiție cu subvenții mai mari. Cu toate acestea, schimbarea vă asigură mai mult confort, independență și crește valoarea proprietății dvs.",
+                shortAmortization: "O investiție excelentă! Trecerea de la vechiul sistem de încălzire duce la economii anuale ridicate. Investiția se amortizează rapid, în timp ce beneficiați imediat de mai mult confort și independență.",
+                default: "O schimbare solidă. Vă reduceți costurile de funcționare și, în același timp, investiți în siguranța viitoare și valoarea proprietății dvs. În plus, vă veți bucura de confortul unui sistem de încălzire modern și cu întreținere redusă."
+              }
           }
       };
       
+      let userAdjustedPvAnteil = false;
 
       // --- Seiten-Navigation ---
       let currentPage = 1;
@@ -1107,6 +1044,9 @@
             valueElement.textContent = `${displayValue} ${unit}`;
         };
         sliderElement.addEventListener('input', () => {
+            if(sliderElement.id === 'pvAnteilSlider') {
+                userAdjustedPvAnteil = true;
+            }
             updateDisplay();
             updateUIOnInputChange();
         });
@@ -1151,6 +1091,10 @@
 
             optionDiv.addEventListener('click', function() {
                 this.classList.toggle('active');
+                // Wenn PV aktiviert wird, resetten wir den manuellen Eingriff
+                if(def.id === 'pv' && this.classList.contains('active')){
+                    userAdjustedPvAnteil = false;
+                }
                 updateUIOnInputChange();
             });
             groupElement.appendChild(optionDiv);
@@ -1225,7 +1169,39 @@
         }
         return { verbrauch: verbrauchTxt };
       }
-
+      
+      function getCalculationInputs() {
+        const fanIcon = document.querySelector('.icon-option[data-id="fans"]');
+        const pvIcon = document.querySelector('.icon-option[data-id="pv"]');
+        const solarIcon = document.querySelector('.icon-option[data-id="solarthermie"]');
+        
+        return {
+            method: dom.radios.value,
+            isVerbrauch: dom.radios.value === 'verbrauch',
+            wirkungsgradAlt: parseFloat(dom.wirkungsgradAltSlider.value) / 100,
+            verbrauch: parseFloat(dom.verbrauch.value) || 0,
+            aktuellesSystem: dom.heizsystemValueInput.value,
+            aktuellerPreis: parseFloat(dom.preisSlider.value),
+            gebaeudeklasse: dom.gebaeudeklasseValueInput.value,
+            flaeche: parseFloat(dom.flaecheSlider.value),
+            anteilFBH: parseFloat(dom.anteilFussbodenheizungSlider.value),
+            vorlaufTemp: parseFloat(dom.vorlauftemperaturSlider.value),
+            netzStrompreis: parseFloat(dom.strompreisSlider.value),
+            investition: parseFloat(dom.investitionSlider.value),
+            foerderung: parseFloat(dom.foerderungenSlider.value),
+            wartungAlt: parseFloat(dom.wartungskostenAltSlider.value),
+            wartungWP: parseFloat(dom.wartungskostenWPSlider.value),
+            usePV: pvIcon?.classList.contains('active'),
+            pvLeistung: parseFloat(dom.pvLeistungSlider.value),
+            pvAnteil: parseFloat(dom.pvAnteilSlider.value) / 100,
+            pvStrompreis: parseFloat(dom.pvStrompreisInput.value),
+            useSolarthermie: solarIcon?.classList.contains('active'),
+            solarthermieFlaeche: parseFloat(dom.solarthermieFlaecheSlider.value) || 0,
+            solarthermieTyp: dom.solarthermieTypeValue.value,
+            useFans: fanIcon?.classList.contains('active'),
+        };
+      }
+      
       function updateUIOnInputChange() {
         const fanIcon = document.querySelector('.icon-option[data-id="fans"]');
         const pvIcon = document.querySelector('.icon-option[data-id="pv"]');
@@ -1248,11 +1224,9 @@
         const solarErtrag = solarFlaeche * (config.solarYieldFactors[solarTyp] || 0);
         dom.solarthermieErtragValue.textContent = solarErtrag.toFixed(0);
 
-        // Update PV Ertrag
         const pvLeistung = parseFloat(dom.pvLeistungSlider.value);
         dom.pvErtragValue.textContent = (pvLeistung * config.pvYieldFactor).toFixed(0);
 
-        // Update SCOP display dynamically
         const vorlaufTemp = parseFloat(dom.vorlauftemperaturSlider.value);
         const useFans = fanIcon?.classList.contains('active');
         let effektiveVorlaufTemp = vorlaufTemp;
@@ -1261,38 +1235,55 @@
         }
         const basisSCOP = Math.max(2.0, 5 - 0.1 * (effektiveVorlaufTemp - 35));
         dom.basisSCOPValueElem.textContent = basisSCOP.toFixed(1);
+
+        updatePvAnteilSuggestion();
+      }
+
+      function updatePvAnteilSuggestion() {
+        if (!dom.pvOptions.classList.contains('hidden') && !userAdjustedPvAnteil) {
+            const inputs = getCalculationInputs();
+            let energieInputAltanlage_kWh = 0;
+            if (inputs.isVerbrauch) {
+                energieInputAltanlage_kWh = inputs.verbrauch * (config.energyFactors[inputs.aktuellesSystem] || 0);
+            } else {
+                energieInputAltanlage_kWh = inputs.flaeche * (config.klasseFactors[inputs.gebaeudeklasse] || 0);
+            }
+            if (inputs.aktuellesSystem === 'strom') inputs.wirkungsgradAlt = 1.0;
+            
+            let nutzwaermebedarf_kWh = energieInputAltanlage_kWh * inputs.wirkungsgradAlt;
+            
+            let wpBedarf_kWh = nutzwaermebedarf_kWh;
+            if (inputs.useSolarthermie) {
+                wpBedarf_kWh = Math.max(0, nutzwaermebedarf_kWh - (inputs.solarthermieFlaeche * (config.solarYieldFactors[inputs.solarthermieTyp] || 0)));
+            }
+
+            let effektiveVorlaufTemp = inputs.vorlaufTemp;
+            if (inputs.useFans) {
+                effektiveVorlaufTemp -= config.heizkoerperventilatorEffekt;
+            }
+
+            let basisSCOP = Math.max(2.0, 5 - 0.1 * (effektiveVorlaufTemp - 35));
+            let jaz_final = basisSCOP;
+            if (!inputs.isVerbrauch) {
+                if (inputs.anteilFBH >= 75) jaz_final += 0.3;
+                else if (inputs.anteilFBH <= 25) jaz_final -= 0.3;
+            }
+            jaz_final = Math.max(2.0, jaz_final);
+            
+            const stromverbrauchWP_kWh = wpBedarf_kWh > 0 && jaz_final > 0 ? wpBedarf_kWh / jaz_final : 0;
+            const pvErtrag_kWh = inputs.pvLeistung * config.pvYieldFactor;
+
+            if (stromverbrauchWP_kWh > 0) {
+                const suggestedPvAnteil = Math.round(Math.min(100, (pvErtrag_kWh / stromverbrauchWP_kWh) * 100 * config.pvRealismFactor));
+                dom.pvAnteilSlider.value = suggestedPvAnteil;
+                dom.pvAnteilValue.textContent = `${suggestedPvAnteil} %`;
+            }
+        }
       }
 
       function calculateAll() {
-        const fanIcon = document.querySelector('.icon-option[data-id="fans"]');
-        const pvIcon = document.querySelector('.icon-option[data-id="pv"]');
-        const solarIcon = document.querySelector('.icon-option[data-id="solarthermie"]');
+        const inputs = getCalculationInputs();
         
-        const inputs = {
-            method: dom.radios.value,
-            isVerbrauch: dom.radios.value === 'verbrauch',
-            wirkungsgradAlt: parseFloat(dom.wirkungsgradAltSlider.value) / 100,
-            verbrauch: parseFloat(dom.verbrauch.value) || 0,
-            aktuellesSystem: dom.heizsystemValueInput.value,
-            aktuellerPreis: parseFloat(dom.preisSlider.value),
-            gebaeudeklasse: dom.gebaeudeklasseValueInput.value,
-            flaeche: parseFloat(dom.flaecheSlider.value),
-            anteilFBH: parseFloat(dom.anteilFussbodenheizungSlider.value),
-            vorlaufTemp: parseFloat(dom.vorlauftemperaturSlider.value),
-            netzStrompreis: parseFloat(dom.strompreisSlider.value),
-            investition: parseFloat(dom.investitionSlider.value),
-            foerderung: parseFloat(dom.foerderungenSlider.value),
-            wartungAlt: parseFloat(dom.wartungskostenAltSlider.value),
-            wartungWP: parseFloat(dom.wartungskostenWPSlider.value),
-            usePV: pvIcon?.classList.contains('active'),
-            pvAnteil: parseFloat(dom.pvAnteilSlider.value) / 100,
-            pvStrompreis: parseFloat(dom.pvStrompreisInput.value),
-            useSolarthermie: solarIcon?.classList.contains('active'),
-            solarthermieFlaeche: parseFloat(dom.solarthermieFlaecheSlider.value) || 0,
-            solarthermieTyp: dom.solarthermieTypeValue.value,
-            useFans: fanIcon?.classList.contains('active'),
-        };
-        inputs.solarthermieErtrag = inputs.useSolarthermie ? inputs.solarthermieFlaeche * (config.solarYieldFactors[inputs.solarthermieTyp] || 0) : 0;
         let energieInputAltanlage_kWh = 0;
         if (inputs.isVerbrauch) {
             energieInputAltanlage_kWh = inputs.verbrauch * (config.energyFactors[inputs.aktuellesSystem] || 0);
@@ -1312,7 +1303,7 @@
         const co2Altanlage = energieInputAltanlage_kWh * (config.co2FactorsKwhInput[inputs.aktuellesSystem] || 0);
         let wpBedarf_kWh = nutzwaermebedarf_kWh;
         if (inputs.useSolarthermie) {
-            wpBedarf_kWh = Math.max(0, nutzwaermebedarf_kWh - inputs.solarthermieErtrag);
+            wpBedarf_kWh = Math.max(0, nutzwaermebedarf_kWh - (inputs.solarthermieFlaeche * (config.solarYieldFactors[inputs.solarthermieTyp] || 0)));
         }
         let effektiveVorlaufTemp = inputs.vorlaufTemp;
         if (inputs.useFans) {
@@ -1343,8 +1334,10 @@
         
         const lang = getCurrentLanguage();
         let amortisation = '–';
+        let amortisationNum = -1;
         if (ersparnisVal > 0 && effektiveInvestition > 0) {
-            amortisation = (effektiveInvestition / ersparnisVal).toFixed(1);
+            amortisationNum = effektiveInvestition / ersparnisVal;
+            amortisation = amortisationNum.toFixed(1);
         } else if (ersparnisVal <= 0 && effektiveInvestition > 0) {
             amortisation = translations[lang].amortizationNone;
         } else if (effektiveInvestition <= 0) {
@@ -1361,17 +1354,19 @@
         dom.ersparnisElem.classList.toggle('negative', ersparnisVal < 0);
         dom.ersparnisElem.textContent = ersparnisVal.toFixed(2);
         
-        // Update CO2 savings text with placeholder replacement
         const co2FussballfelderVal = (co2Ersparnis > 0 ? (co2Ersparnis / config.kgCo2ProFussballfeldWaldProJahr) : 0).toFixed(1);
         const co2SavingsTextElement = document.querySelector('[data-translate="resultSavingsCo2Eq"]');
         if(co2SavingsTextElement) {
            co2SavingsTextElement.innerHTML = translations[lang].resultSavingsCo2Eq.replace('{value}', `<span class="highlight" id="co2Fussballfelder">${co2FussballfelderVal}</span>`);
-        } else { // Fallback for the initial <p> tag
+        } else { 
             document.getElementById('co2Fussballfelder').textContent = co2FussballfelderVal;
         }
 
         document.getElementById('co2Ersparnis').textContent = co2Ersparnis.toFixed(0);
         dom.amortisationElem.textContent = amortisation;
+
+        // Generate and display commentary
+        dom.resultInterpretation.innerHTML = `<h3 data-translate="commentaryTitle">${translations[lang].commentaryTitle}</h3><p>${generateResultCommentary(inputs, {ersparnisVal, amortisationNum}, lang)}</p>`;
       }
       
       // --- Language Switcher ---
@@ -1413,6 +1408,25 @@
           }
       });
       // --- END Language Switcher ---
+
+      function generateResultCommentary(inputs, results, lang) {
+        let key = 'default';
+        const { ersparnisVal, amortisationNum } = results;
+
+        if (ersparnisVal < 0) {
+            key = 'negativeSavings';
+        } else if (amortisationNum > 25) {
+            if (inputs.gebaeudeklasse === 'niedrigenergie' || inputs.gebaeudeklasse === 'neubau') {
+                key = 'longAmortizationLowEnergy';
+            } else {
+                key = 'longAmortizationHighCost';
+            }
+        } else if (amortisationNum > 0 && amortisationNum < 10) {
+            key = 'shortAmortization';
+        }
+
+        return translations[lang].commentary[key];
+      }
 
       async function exportResultsToPDF() {
         dom.exportPdfButton.disabled = true;
@@ -1471,6 +1485,7 @@
                 #results p { font-size: 11pt; margin: 4px 0; border-bottom: 1px dotted #eee; padding-bottom: 4px;}
                 #results .highlight { color: #F39C12; font-weight: bold; }
                 #results .highlight.negative { color: #e74c3c; }
+                .result-commentary { margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-left: 4px solid #F39C12; font-size: 10pt; line-height: 1.5; }
                 #results .disclaimer { font-size: 8pt; color: #888; margin-top: 10px; border: none; }
                 #results small { font-size: 10pt; }
                 .pdf-footer { font-size: 8pt; color: #aaa; position: absolute; bottom: 15mm; width: 180mm; }
@@ -1499,9 +1514,9 @@
         `;
         document.body.appendChild(pdfContent);
 
-        html2canvas(pdfContent, { scale: 3 }).then(canvas => {
+        html2canvas(pdfContent, { scale: 3, useCORS: true }).then(canvas => {
             const imgData = canvas.toDataURL('image/png');
-            pdf.addImage(imgData, 'PNG', 0, 0, page_width, page_height);
+            pdf.addImage(imgData, 'PNG', 0, 0, page_width, page_height, undefined, 'FAST');
             
             let count = (parseInt(localStorage.getItem('pdfExportCount') || '0', 10)) + 1;
             localStorage.setItem('pdfExportCount', count);
@@ -1596,34 +1611,5 @@
     window.addEventListener('load', sendHeight);
   </script>
 
-  <script>
-  function sendHeightToParent() {
-    // Ermittelt die tatsächliche Höhe des <body>
-    const body = document.body;
-    const html = document.documentElement;
-    // scrollHeight von documentElement liefert oft den gesamten Content-Bereich
-    const height = Math.max(
-      body.scrollHeight, body.offsetHeight,
-      html.clientHeight, html.scrollHeight, html.offsetHeight
-    );
-    // Per postMessage an die Elternseite senden
-    window.parent.postMessage(
-      { iframeHeight: height },
-      '*' // Idealerweise hier die konkrete Parent-Domain statt '*'
-    );
-  }
-
-  // Beim ersten Laden direkt senden
-  window.addEventListener('load', sendHeightToParent);
-
-  // Falls der Inhalt sich verändert (z. B. durch dynamisches Nachladen), wiederholt senden
-  // z. B. mit MutationObserver:
-  const observer = new MutationObserver(sendHeightToParent);
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-  });
-</script>
 </body>
 </html>
