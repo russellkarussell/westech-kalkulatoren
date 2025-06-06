@@ -1029,7 +1029,146 @@
         dom.amortisationElem.textContent = amortisation;
       }
 
-      function exportResultsToPDF() { /* ... unverändert ... */ }
+      async function exportResultsToPDF() {
+        dom.exportPdfButton.disabled = true;
+        dom.exportPdfButton.textContent = 'Exportiere...';
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const page_width = pdf.internal.pageSize.getWidth();
+        const page_height = pdf.internal.pageSize.getHeight();
+        
+        // 1. Logo und Firmendaten
+        const logoUrl = 'https://www.westech.shop/bilder/intern/shoplogo/Logo.png';
+        try {
+            const response = await fetch(logoUrl);
+            const blob = await response.blob();
+            const logoBase64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+            const img = new Image();
+            img.src = logoBase64;
+            await new Promise(resolve => img.onload = resolve);
+
+            const logoWidth = 50; 
+            const logoHeight = (img.height * logoWidth) / img.width; // Maintain aspect ratio
+            pdf.addImage(logoBase64, 'PNG', 15, 10, logoWidth, logoHeight);
+        } catch (error) {
+            console.error("Fehler beim Laden des Logos:", error);
+            pdf.text("Westech Shop", 15, 20); // Fallback-Text
+        }
+
+        pdf.setFontSize(9);
+        pdf.setTextColor(100);
+        const shopAddress = [
+            "Westech Solar e.U.",
+            "Wienersdorfer Strasse 20-24/M37",
+            "2514 Traiskirchen, Österreich",
+            "www.westech.shop"
+        ];
+        pdf.text(shopAddress, page_width - 15, 15, { align: 'right' });
+
+        // 2. Titel
+        pdf.setFontSize(18);
+        pdf.setTextColor(40);
+        pdf.text("Analyse Ihrer Heizkostenersparnis", 15, 45);
+
+        // 3. Inhalt mit html2canvas erstellen
+        const pdfContent = document.createElement('div');
+        pdfContent.style.position = 'absolute';
+        pdfContent.style.left = '-9999px';
+        pdfContent.style.width = '180mm'; // Breite für A4-Seite minus Ränder
+        pdfContent.style.fontFamily = 'Arial, sans-serif';
+        pdfContent.style.color = '#333';
+        
+        const inputsHtml = generateInputsHtmlForPdf();
+        const resultsHtml = document.getElementById('results').innerHTML;
+        
+        pdfContent.innerHTML = `
+            <style>
+                .pdf-section { margin-bottom: 12px; }
+                .pdf-section h2 { font-size: 14px; color: #4DBCE9; border-bottom: 1px solid #ccc; padding-bottom: 3px; margin-bottom: 8px; }
+                .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+                .input-item { display: flex; align-items: center; background-color: #f9f9f9; border-radius: 4px; padding: 6px; font-size: 10px; }
+                .input-item svg { width: 24px; height: 24px; margin-right: 8px; fill: #555; }
+                .input-item .label { color: #666; }
+                .input-item .value { font-weight: bold; margin-left: 5px; }
+                #results { background: transparent !important; border: none !important; padding: 0 !important; }
+                #results h2 { display: none; }
+                #results p { font-size: 11px; margin: 4px 0; border-bottom: 1px dotted #eee; padding-bottom: 4px;}
+                #results .highlight { color: #F39C12; font-weight: bold; }
+                #results .highlight.negative { color: #e74c3c; }
+                #results .disclaimer { font-size: 8px; color: #888; margin-top: 10px; border: none; }
+                #results small { font-size: 10px; }
+            </style>
+            <div class="pdf-section">
+                <h2>Ihre Eingaben</h2>
+                <div class="input-grid">${inputsHtml}</div>
+            </div>
+            <div class="pdf-section">
+                <h2>Ihr Ergebnis</h2>
+                ${resultsHtml}
+            </div>
+        `;
+        document.body.appendChild(pdfContent);
+
+        html2canvas(pdfContent, { scale: 2 }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = page_width - 30; // 15mm Rand links/rechts
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            
+            pdf.addImage(imgData, 'PNG', 15, 55, pdfWidth, pdfHeight);
+
+            // 4. Footer
+            pdf.setFontSize(8);
+            pdf.setTextColor(150);
+            pdf.text(`Berechnung erstellt am ${new Date().toLocaleDateString('de-DE')}. Alle Angaben sind Schätzungen ohne Gewähr.`, 15, page_height - 10);
+            
+            pdf.save(`Heizkosten-Analyse_${new Date().toISOString().slice(0,10)}.pdf`);
+            
+            // Aufräumen
+            document.body.removeChild(pdfContent);
+            dom.exportPdfButton.disabled = false;
+            dom.exportPdfButton.textContent = 'PDF Exportieren';
+        });
+      }
+
+      function generateInputsHtmlForPdf() {
+          const simpleIcons = {
+              area: '<svg viewBox="0 0 24 24"><path d="M21 3H3v18h18V3zM9 9h6v6H9V9z"/></svg>',
+              verbrauch: '<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 3.19 2.1 5.91 5 6.72V20h4v-4.28c2.9-0.81 5-3.53 5-6.72 0-3.87-3.13-7-7-7zm0 12c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/></svg>',
+              effizienz: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>',
+              preis: '<svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c2.14-.46 3.5-1.78 3.5-3.97 0-2.82-2.43-4.16-4.7-4.9z"/></svg>',
+              temperatur: '<svg viewBox="0 0 24 24"><path d="M15 13V5c0-1.66-1.34-3-3-3S9 3.34 9 5v8c-1.21.91-2 2.37-2 4 0 2.76 2.24 5 5 5s5-2.24 5-5c0-1.63-.79-3.09-2-4zM12 19c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg>',
+              kosten: '<svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-1 14H5c-.55 0-1-.45-1-1v-8h16v8c0 .55-.45 1-1 1zm1-10H4V7c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v2z"/></svg>',
+          };
+
+          const selectedKlasseDef = gebaeudeklasseDefinitions.find(d => d.value === dom.gebaeudeklasseValueInput.value);
+          const selectedHeizsystemDef = heizsystemDefinitions.find(d => d.value === dom.heizsystemValueInput.value);
+
+          let inputsHtml = '';
+          const addItem = (icon, label, value) => {
+              inputsHtml += `<div class="input-item">${icon}<span class="text"><span class="label">${label}:</span><span class="value">${value}</span></span></div>`;
+          };
+
+          if (dom.radios.value === 'flaeche') {
+              addItem(selectedKlasseDef.svg, 'Gebäudeklasse', selectedKlasseDef.text);
+              addItem(simpleIcons.area, 'Heizfläche', `${dom.flaecheSlider.value} m²`);
+          } else {
+              addItem(simpleIcons.verbrauch, 'Jahresverbrauch', `${dom.verbrauch.value} ${dom.einheitVerbrauch.textContent}`);
+          }
+          addItem(selectedHeizsystemDef.svg, 'Altes Heizsystem', selectedHeizsystemDef.text);
+          addItem(simpleIcons.effizienz, 'Wirkungsgrad Alt', `${dom.wirkungsgradAltSlider.value} %`);
+          addItem(simpleIcons.preis, 'Alter Energiepreis', dom.preisValue.textContent);
+          addItem(simpleIcons.temperatur, 'Neue Vorlauftemp.', `${dom.vorlauftemperaturSlider.value} °C`);
+          addItem(simpleIcons.kosten, 'Wartung Alt', `${dom.wartungskostenAltSlider.value} €/a`);
+          addItem(simpleIcons.kosten, 'Wartung Neu', `${dom.wartungskostenWPSlider.value} €/a`);
+
+          return inputsHtml;
+      }
 
       // --- Initiale Einrichtung ---
       const sliders = [
