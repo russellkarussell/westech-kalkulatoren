@@ -566,6 +566,9 @@
           <h3 data-translate="optimizationsTitle">Zusätzliche Optimierungen</h3>
           <p data-translate="optimizationsText">Wählen Sie optionale Komponenten aus, um die Berechnung zu verfeinern.</p>
           <div id="optimizationSelectionGroup" class="icon-selection-group"></div>
+          <div id="fanEffect" class="derived-value-display hidden" style="margin-top: 10px; padding: 10px; background: var(--active-background); border-radius: 5px;">
+              <p data-translate="fanEffectText">Durch die Lüfter sinkt die benötigte Vorlauftemperatur auf <span id="fanEffectiveTemp" class="highlight">0</span>°C. Der SCOP verbessert sich dadurch auf <span id="fanEffectiveSCOP" class="highlight">0</span>.</p>
+          </div>
           <div id="pvOptions" class="sub-options hidden">
               <label for="pvLeistungSlider" data-translate="pvCapacityLabel">Installierte PV-Leistung (kWp)</label>
               <div class="slider-container">
@@ -711,7 +714,8 @@
           stromCo2Faktor: 0.12,
           kgCo2ProFussballfeldWaldProJahr: 5600,
           klasseFactors: { alt_unsaniert: 200, alt_teilsaniert: 150, alt_saniert: 100, neubau: 70, niedrigenergie: 30 },
-          heizkoerperventilatorEffekt: 8,
+          specificHeatLoad: { alt_unsaniert: 100, alt_teilsaniert: 70, alt_saniert: 50, neubau: 40, niedrigenergie: 30 },
+          heizkoerperventilatorEffekt: 5,
           solarYieldFactors: { flach: 350, roehren: 450 },
           pvYieldFactor: 1000, // kWh pro kWp pro Jahr
           pvRealismFactor: 0.4 // Realistischer Anteil des PV-Ertrags, der direkt die WP versorgen kann
@@ -730,11 +734,15 @@
         gebaeudeklasseValueInput: document.getElementById('gebaeudeklasseValue'),
         heizsystemValueInput: document.getElementById('heizsystemValue'),
         solarthermieTypeValue: document.getElementById('solarthermieTypeValue'),
+        oldSystemBlock: document.getElementById('oldSystemBlock'),
         oldSystemDetails: document.getElementById('oldSystemDetails'),
         maintenanceOldBlock: document.getElementById('maintenanceOldBlock'),
         resultsOldSystem: document.getElementById('resultsOldSystem'),
         resultsComparison: document.getElementById('resultsComparison'),
         resultCostsNewText: document.getElementById('resultCostsNewText'),
+        fanEffect: document.getElementById('fanEffect'),
+        fanEffectiveTemp: document.getElementById('fanEffectiveTemp'),
+        fanEffectiveSCOP: document.getElementById('fanEffectiveSCOP'),
         wirkungsgradAltSlider: document.getElementById('wirkungsgradAltSlider'),
         wirkungsgradAltValue: document.getElementById('wirkungsgradAltValue'),
         verbrauch: document.getElementById('verbrauch'),
@@ -909,6 +917,7 @@
               floorHeatingShareLabel: "Anteil Fußbodenheizung an Wärmeabgabe (%)", floorHeatingShareDisclaimer: "Wird automatisch basierend auf Gebäudeklasse angepasst.",
               flowTempLabel: "Vorlauftemperatur (°C)", baseScopInfo: "Abgeleiteter Basis-SCOP:",
               optimizationsTitle: "Zusätzliche Optimierungen", optimizationsText: "Wählen Sie optionale Komponenten aus, um die Berechnung zu verfeinern.",
+              fanEffectText: "Durch die Lüfter sinkt die benötigte Vorlauftemperatur auf <span class='highlight'>{temp}</span>°C. Der SCOP verbessert sich dadurch auf <span class='highlight'>{scop}</span>.",
               pvCapacityLabel: "Installierte PV-Leistung (kWp)", pvYieldInfo: "Geschätzter Jahresertrag:",
               pvShareLabel: "Anteil des WP-Stroms durch PV gedeckt (%)", pvPriceLabel: "Kosten für PV-Strom (€/kWh)",
               pvDisclaimer: "Geben Sie hier Ihre Gestehungskosten an. Passen Sie den Deckungsgrad an, falls Sie z.B. einen Batteriespeicher haben.",
@@ -955,6 +964,7 @@
               floorHeatingShareLabel: "Share of Underfloor Heating in Heat Distribution (%)", floorHeatingShareDisclaimer: "Adjusted automatically based on building class.",
               flowTempLabel: "Flow Temperature (°C)", baseScopInfo: "Derived Base SCOP:",
               optimizationsTitle: "Additional Optimizations", optimizationsText: "Select optional components to refine the calculation.",
+              fanEffectText: "With the fans, the required flow temperature drops to <span class='highlight'>{temp}</span>°C. The SCOP improves to <span class='highlight'>{scop}</span>.",
               pvCapacityLabel: "Installed PV Capacity (kWp)", pvYieldInfo: "Estimated Annual Yield:",
               pvShareLabel: "Share of HP electricity covered by PV (%)", pvPriceLabel: "Cost for PV Electricity (€/kWh)",
               pvDisclaimer: "Enter your generation costs here. Adjust the coverage rate if you have a battery storage, for example.",
@@ -1001,6 +1011,7 @@
               floorHeatingShareLabel: "Procentul de încălzire prin pardoseală în distribuția căldurii (%)", floorHeatingShareDisclaimer: "Ajustat automat în funcție de clasa clădirii.",
               flowTempLabel: "Temperatura pe tur (°C)", baseScopInfo: "SCOP de bază derivat:",
               optimizationsTitle: "Optimizări suplimentare", optimizationsText: "Selectați componente opționale pentru a rafina calculul.",
+              fanEffectText: "Cu ventilatoarele, temperatura necesară pe tur scade la <span class='highlight'>{temp}</span>°C. SCOP-ul se îmbunătățește la <span class='highlight'>{scop}</span>.",
               pvCapacityLabel: "Capacitate PV instalată (kWp)", pvYieldInfo: "Producție anuală estimată:",
               pvShareLabel: "Procentul de electricitate pentru PC acoperit de PV (%)", pvPriceLabel: "Costul electricității PV (€/kWh)",
               pvDisclaimer: "Introduceți aici costurile de producție. Ajustați rata de acoperire dacă aveți, de exemplu, un acumulator.",
@@ -1256,6 +1267,7 @@
         const fanIcon = document.querySelector('.icon-option[data-id="fans"]');
         const pvIcon = document.querySelector('.icon-option[data-id="pv"]');
         const solarIcon = document.querySelector('.icon-option[data-id="solarthermie"]');
+        const lang = getCurrentLanguage();
 
         dom.pvOptions.classList.toggle('hidden', !pvIcon?.classList.contains('active'));
         dom.solarthermieOptions.classList.toggle('hidden', !solarIcon?.classList.contains('active'));
@@ -1264,7 +1276,7 @@
         if (fanIcon) {
             const showFanOption = fbhAnteil < 50;
             fanIcon.style.display = showFanOption ? 'flex' : 'none';
-            if (!showFanOption) {
+             if (!showFanOption) {
                 fanIcon.classList.remove('active');
             }
         }
@@ -1280,11 +1292,20 @@
         const vorlaufTemp = parseFloat(dom.vorlauftemperaturSlider.value);
         const useFans = fanIcon?.classList.contains('active');
         let effektiveVorlaufTemp = vorlaufTemp;
-        if (useFans) {
-            effektiveVorlaufTemp -= config.heizkoerperventilatorEffekt;
-        }
-        const basisSCOP = Math.max(2.0, 5 - 0.1 * (effektiveVorlaufTemp - 35));
+
+        const basisSCOP = Math.max(2.0, 7.6 - 0.08 * effektiveVorlaufTemp);
         dom.basisSCOPValueElem.textContent = basisSCOP.toFixed(1);
+
+        if (useFans) {
+            const newEffectiveTemp = vorlaufTemp - config.heizkoerperventilatorEffekt;
+            const newEffectiveSCOP = Math.max(2.0, 7.6 - 0.08 * newEffectiveTemp);
+            
+            dom.fanEffectiveTemp.textContent = newEffectiveTemp.toFixed(0);
+            dom.fanEffectiveSCOP.textContent = newEffectiveSCOP.toFixed(1);
+            dom.fanEffect.classList.remove('hidden');
+        } else {
+            dom.fanEffect.classList.add('hidden');
+        }
 
         updatePvAnteilSuggestion();
       }
@@ -1312,13 +1333,7 @@
                 effektiveVorlaufTemp -= config.heizkoerperventilatorEffekt;
             }
 
-            let basisSCOP = Math.max(2.0, 5 - 0.1 * (effektiveVorlaufTemp - 35));
-            let jaz_final = basisSCOP;
-            if (!inputs.isVerbrauch) {
-                if (inputs.anteilFBH >= 75) jaz_final += 0.3;
-                else if (inputs.anteilFBH <= 25) jaz_final -= 0.3;
-            }
-            jaz_final = Math.max(2.0, jaz_final);
+            const jaz_final = Math.max(2.0, 7.6 - 0.08 * effektiveVorlaufTemp);
             
             const stromverbrauchWP_kWh = wpBedarf_kWh > 0 && jaz_final > 0 ? wpBedarf_kWh / jaz_final : 0;
             const pvErtrag_kWh = inputs.pvLeistung * config.pvYieldFactor;
@@ -1370,13 +1385,9 @@
         if (inputs.useFans) {
             effektiveVorlaufTemp -= config.heizkoerperventilatorEffekt;
         }
-        let basisSCOP = Math.max(2.0, 5 - 0.1 * (effektiveVorlaufTemp - 35));
-        let jaz_final = basisSCOP;
-        if (!inputs.isVerbrauch) {
-            if (inputs.anteilFBH >= 75) jaz_final += 0.3;
-            else if (inputs.anteilFBH <= 25) jaz_final -= 0.3;
-        }
-        jaz_final = Math.max(2.0, jaz_final);
+
+        const jaz_final = Math.max(2.0, 7.6 - 0.08 * effektiveVorlaufTemp);
+        
         const stromverbrauchWP_kWh = wpBedarf_kWh > 0 && jaz_final > 0 ? wpBedarf_kWh / jaz_final : 0;
         let kostenWPVal = 0;
         if (inputs.usePV) {
@@ -1390,7 +1401,10 @@
         const co2WP = stromverbrauchWP_kWh * config.stromCo2Faktor;
         const ersparnisVal = kostenAktuellGesamt - kostenWPGesamt;
         const co2Ersparnis = co2Altanlage - co2WP;
-        const wpLeistung = nutzwaermebedarf_kWh > 0 ? (nutzwaermebedarf_kWh / 2000) : 0;
+        
+        const specificLoad = config.specificHeatLoad[inputs.gebaeudeklasse] || 50;
+        const wpLeistung = (inputs.flaeche * specificLoad) / 1000;
+        
         const effektiveInvestition = Math.max(0, inputs.investition - inputs.foerderung);
         
         let amortisation = '–';
@@ -1446,7 +1460,7 @@
               const key = el.dataset.translate;
               if (translations[lang] && translations[lang][key]) {
                    let text = translations[lang][key];
-                   if (key !== 'resultSavingsCo2Eq') {
+                   if (key !== 'resultSavingsCo2Eq' && key !== 'fanEffectText') {
                      el.innerHTML = text;
                    }
               }
@@ -1460,7 +1474,8 @@
           document.querySelectorAll('.lang-btn').forEach(btn => {
               btn.classList.toggle('active', btn.dataset.lang === lang);
           });
-
+          
+          updateUIOnInputChange(); // To update texts with values
           if (currentPage === totalPages) {
               calculateAll();
           }
