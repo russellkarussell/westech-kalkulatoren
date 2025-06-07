@@ -38,7 +38,7 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         overflow: hidden; /* Verhindert, dass Ränder bei Animationen überlappen */
     }
-     .language-switcher {
+      .language-switcher {
         position: absolute;
         top: 15px;
         right: 20px;
@@ -67,13 +67,13 @@
         color: white;
     }
     h1 {
-      color: var(--text-color-dark); 
+      color: var(--text-color-dark);  
       margin-bottom: 20px;
       text-align: center;
       font-weight: 600;
     }
     h2, h3 {
-      color: var(--primary-color); 
+      color: var(--primary-color);  
       font-weight: 500;
     }
     h2 {
@@ -108,7 +108,7 @@
     input[type="range"] {
         width: 100%;
         margin-top: 8px;
-        accent-color: var(--accent-color); 
+        accent-color: var(--accent-color);  
     }
     .slider-container {
         margin-top: 6px;
@@ -122,7 +122,7 @@
     }
     .slider-container .slider-value {
         font-weight: bold;
-        color: var(--accent-color); 
+        color: var(--accent-color);  
         min-width: 85px;
         text-align: right;
         white-space: nowrap;
@@ -131,7 +131,7 @@
 
     input:focus, input[type="range"]:focus {
         border-color: var(--accent-color);
-        box-shadow: 0 0 0 0.2rem rgba(243, 156, 18, 0.25); 
+        box-shadow: 0 0 0 0.2rem rgba(243, 156, 18, 0.25);  
         outline: none;
     }
     
@@ -176,10 +176,10 @@
     }
     .method-option-card:hover {
       border-color: var(--accent-color);
-      background-color: #fffaf0; 
+      background-color: #fffaf0;  
     }
-    label.method-option-card:has(input[type="radio"]:checked) { 
-        border-color: var(--primary-color) !important; 
+    label.method-option-card:has(input[type="radio"]:checked) {  
+        border-color: var(--primary-color) !important;  
         background-color: var(--active-background) !important;
         box-shadow: 0 0 8px rgba(77, 188, 233, 0.3) !important;
     }
@@ -195,14 +195,14 @@
       padding: 15px;
       border: 1px solid #e0e0e0;
       border-radius: 6px;
-      background: #f9fafb; 
+      background: #f9fafb;  
     }
-    .input-group { 
+    .input-group {  
         display: flex;
         gap: 10px;
         align-items: center;
     }
-    .input-group input[type="number"] { 
+    .input-group input[type="number"] {  
         flex-grow: 1;
     }
     .input-group span {
@@ -253,12 +253,12 @@
         flex-basis: calc(33.333% - 10px);
         box-sizing: border-box;
     }
-     .icon-option:hover {
+      .icon-option:hover {
         border-color: var(--accent-color);
         background-color: #fffaf0;
     }
     .icon-option.active {
-        border-color: var(--primary-color); 
+        border-color: var(--primary-color);  
         background-color: var(--active-background);
         box-shadow: 0 0 8px rgba(77, 188, 233, 0.3);
     }
@@ -276,7 +276,7 @@
         color: var(--text-color-dark);
         line-height: 1.2;
     }
-     .icon-option .option-text small {
+      .icon-option .option-text small {
         font-size: 0.9em;
         color: #6c757d;
         display: block;
@@ -288,9 +288,9 @@
     
     #results {
       padding: 20px;
-      border: 2px solid var(--primary-color); 
+      border: 2px solid var(--primary-color);  
       border-radius: 6px;
-      background: var(--active-background); 
+      background: var(--active-background);  
     }
     #results h2 {
       margin-top: 0;
@@ -309,7 +309,7 @@
     }
     .highlight {
       font-weight: bold;
-      color: var(--accent-color); 
+      color: var(--accent-color);  
     }
     .highlight.negative {
         color: #e74c3c; /* Rote Farbe für negative Werte */
@@ -329,7 +329,7 @@
       font-size: 0.85em;
       color: #6c757d;
     }
-    .price-update-info { 
+    .price-update-info {  
         font-size: 0.8em;
         color: #7f8c8d;
         text-align: center;
@@ -439,9 +439,9 @@
         .icon-selection-group { justify-content: center; }
         .icon-option { min-width: 90px; flex-basis: calc(48% - 10px); }
         .icon-option svg { width: 36px; height: 36px; }
-         .calculation-method-selector {
-            flex-direction: column;
-        }
+          .calculation-method-selector {
+              flex-direction: column;
+          }
     }
     @media (max-width: 600px) {
         body { margin: 10px; }
@@ -701,23 +701,23 @@
       
       const config = {
           energyFactors: { heizoel: 9.9, erdgas_h: 10.6, erdgas_l: 9.2, fluessiggas: 6.7, pellets: 4.9, strom: 1.0, keine: 0},
-          defaultPrices: { 
+          defaultPrices: {  
               heizoel: 1.03, erdgas_h: (0.11 * 10.6).toFixed(3), erdgas_l: (0.11 * 9.2).toFixed(3),
               fluessiggas: 0.70, pellets: 0.30, strom: 0.19, keine: 0
           },
           priceSliderConfigs: {
               heizoel:     { min: 0.50, max: 2.50, step: 0.01, unit: "€/Liter" },
-              erdgas_h:    { min: 0.50, max: 3.00, step: 0.01, unit: "€/m³" }, 
+              erdgas_h:    { min: 0.50, max: 3.00, step: 0.01, unit: "€/m³" },  
               erdgas_l:    { min: 0.50, max: 3.00, step: 0.01, unit: "€/m³" },
               fluessiggas: { min: 0.40, max: 2.00, step: 0.01, unit: "€/Liter" },
               pellets:     { min: 0.15, max: 0.80, step: 0.01, unit: "€/kg" },
               strom:       { min: 0.15, max: 0.60, step: 0.01, unit: "€/kWh" },
               keine:       { min: 0, max: 0, step: 0.01, unit: "" }
           },
-          defaultWirkungsgrade: { 
+          defaultWirkungsgrade: {  
               heizoel: 80, erdgas_h: 82, erdgas_l: 82, fluessiggas: 85, pellets: 88, strom: 100, keine: 100
           },
-          co2FactorsKwhInput: { 
+          co2FactorsKwhInput: {  
               heizoel: 0.269, erdgas_h: 0.202, erdgas_l: 0.202, fluessiggas: 0.230,
               pellets: 0.02, strom: 0.12, keine: 0
           },
@@ -836,13 +836,13 @@
         ],
         getSvg: (value) => {
              const svgs = [
-                { value: "alt_unsaniert", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 22v30h12V32h8v20h24V22L32 4zm-4 36h-8v-8h8v8zm16 0h-8v-8h8v8z" stroke="#555" stroke-width="1.5" opacity="0.7" fill="#d3a17d"/><path d="M10 20 L10 15 L15 15 M54 20 L54 15 L49 15 M20 10 L15 15 M44 10 L49 15" stroke="#8b4513" stroke-width="2.5" fill="none" opacity="0.6"/><rect x="26" y="42" width="12" height="10" fill="#a0522d" opacity="0.8"/></svg>` },
-                { value: "alt_teilsaniert", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 22v30h56V22L32 4zM16 50H8V30h8v20zm32 0h-8V30h8v20zM28 34h8v16h-8V34z" stroke="#555" stroke-width="1.5" fill="#e0c9a6"/><rect x="20" y="24" width="24" height="8" fill="#66bb6a" opacity="0.8"/><path d="M32 6 L10 20 M32 6 L54 20" stroke="#a0522d" stroke-width="2.5" fill="none"/></svg>` },
-                { value: "alt_saniert", svg: `<svg viewBox="0 0 64 64"><path d="M32 2L2 20v34h60V20L32 2zm0 4.5L54.8 20H9.2L32 6.5zM58 50H6V22h52v28z" fill="#f5f5f5" stroke="#555" stroke-width="1.5"/><rect x="16" y="28" width="8" height="12" fill="#b3e5fc" stroke="#333" stroke-width="1.2"/><rect x="40" y="28" width="8" height="12" fill="#b3e5fc" stroke="#333" stroke-width="1.2"/><rect x="28" y="40" width="8" height="10" fill="#ffcc80" stroke="#333" stroke-width="1.2"/></svg>` },
-                { value: "neubau", svg: `<svg viewBox="0 0 64 64"><rect x="6" y="18" width="52" height="36" fill="#e3f2fd" stroke="#555" stroke-width="1.5"/><polygon points="4,18 32,6 60,18" fill="#cfd8dc" stroke="#555" stroke-width="1.5"/><rect x="16" y="30" width="10" height="18" fill="#ffffff" stroke="#444" stroke-width="1.2"/><rect x="38" y="30" width="10" height="10" fill="#ffffff" stroke="#444" stroke-width="1.2"/><line x1="6" y1="28" x2="58" y2="28" stroke="#90a4ae" stroke-width="2.5"/></svg>` },
-                { value: "niedrigenergie", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 20v30h56V20L32 4z" fill="#dcedc8" stroke="#4caf50" stroke-width="1.5"/><rect x="24" y="32" width="16" height="16" fill="#c8e6c9" stroke="#4caf50" stroke-width="1.2"/><path d="M32 12 A12 12 0 0 1 44 24 A12 12 0 0 1 32 36 A12 12 0 0 1 20 24 A12 12 0 0 1 32 12 M32 16 A4 4 0 0 0 28 20 L36 28 A4 4 0 0 0 32 16" fill="#ffee58" opacity="0.9"/><path d="M28 40 L36 40 L32 48 Z" fill="#66bb6a"/></svg>`}
-            ];
-            return svgs.find(d => d.value === value).svg;
+                 { value: "alt_unsaniert", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 22v30h12V32h8v20h24V22L32 4zm-4 36h-8v-8h8v8zm16 0h-8v-8h8v8z" stroke="#555" stroke-width="1.5" opacity="0.7" fill="#d3a17d"/><path d="M10 20 L10 15 L15 15 M54 20 L54 15 L49 15 M20 10 L15 15 M44 10 L49 15" stroke="#8b4513" stroke-width="2.5" fill="none" opacity="0.6"/><rect x="26" y="42" width="12" height="10" fill="#a0522d" opacity="0.8"/></svg>` },
+                 { value: "alt_teilsaniert", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 22v30h56V22L32 4zM16 50H8V30h8v20zm32 0h-8V30h8v20zM28 34h8v16h-8V34z" stroke="#555" stroke-width="1.5" fill="#e0c9a6"/><rect x="20" y="24" width="24" height="8" fill="#66bb6a" opacity="0.8"/><path d="M32 6 L10 20 M32 6 L54 20" stroke="#a0522d" stroke-width="2.5" fill="none"/></svg>` },
+                 { value: "alt_saniert", svg: `<svg viewBox="0 0 64 64"><path d="M32 2L2 20v34h60V20L32 2zm0 4.5L54.8 20H9.2L32 6.5zM58 50H6V22h52v28z" fill="#f5f5f5" stroke="#555" stroke-width="1.5"/><rect x="16" y="28" width="8" height="12" fill="#b3e5fc" stroke="#333" stroke-width="1.2"/><rect x="40" y="28" width="8" height="12" fill="#b3e5fc" stroke="#333" stroke-width="1.2"/><rect x="28" y="40" width="8" height="10" fill="#ffcc80" stroke="#333" stroke-width="1.2"/></svg>` },
+                 { value: "neubau", svg: `<svg viewBox="0 0 64 64"><rect x="6" y="18" width="52" height="36" fill="#e3f2fd" stroke="#555" stroke-width="1.5"/><polygon points="4,18 32,6 60,18" fill="#cfd8dc" stroke="#555" stroke-width="1.5"/><rect x="16" y="30" width="10" height="18" fill="#ffffff" stroke="#444" stroke-width="1.2"/><rect x="38" y="30" width="10" height="10" fill="#ffffff" stroke="#444" stroke-width="1.2"/><line x1="6" y1="28" x2="58" y2="28" stroke="#90a4ae" stroke-width="2.5"/></svg>` },
+                 { value: "niedrigenergie", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 20v30h56V20L32 4z" fill="#dcedc8" stroke="#4caf50" stroke-width="1.5"/><rect x="24" y="32" width="16" height="16" fill="#c8e6c9" stroke="#4caf50" stroke-width="1.2"/><path d="M32 12 A12 12 0 0 1 44 24 A12 12 0 0 1 32 36 A12 12 0 0 1 20 24 A12 12 0 0 1 32 12 M32 16 A4 4 0 0 0 28 20 L36 28 A4 4 0 0 0 32 16" fill="#ffee58" opacity="0.9"/><path d="M28 40 L36 40 L32 48 Z" fill="#66bb6a"/></svg>`}
+             ];
+             return svgs.find(d => d.value === value).svg;
         }
       };
 
@@ -907,11 +907,11 @@
           en: [ { value: "flach", text: "Flat-Plate Collector"}, { value: "roehren", text: "Evacuated Tube Collector"} ],
           ro: [ { value: "flach", text: "Colector plat"}, { value: "roehren", text: "Colector cu tuburi vidate"} ],
           getSvg: (value) => {
-              const svgs = [
-                { value: "flach", svg: `<svg viewBox="0 0 64 64"><rect x="10" y="12" width="44" height="40" fill="#37474F"/><rect x="13" y="15" width="38" height="34" fill="#546E7A"/><path d="M17,20 l30,0 M17,26 l30,0 M17,32 l30,0 M17,38 l30,0 M17,44 l30,0" stroke="#78909C" stroke-width="1.5"/></svg>`},
-                { value: "roehren", svg: `<svg viewBox="0 0 64 64"><rect x="10" y="12" width="44" height="40" fill="#37474F"/><g stroke="#B0BEC5" stroke-width="2.5" fill="#78909C"><rect x="15" y="16" width="6" height="32" rx="3"/><rect x="25" y="16" width="6" height="32" rx="3"/><rect x="35" y="16" width="6" height="32" rx="3"/><rect x="45" y="16" width="6" height="32" rx="3"/></g></svg>`}
-              ];
-              return svgs.find(d => d.value === value).svg;
+               const svgs = [
+                   { value: "flach", svg: `<svg viewBox="0 0 64 64"><rect x="10" y="12" width="44" height="40" fill="#37474F"/><rect x="13" y="15" width="38" height="34" fill="#546E7A"/><path d="M17,20 l30,0 M17,26 l30,0 M17,32 l30,0 M17,38 l30,0 M17,44 l30,0" stroke="#78909C" stroke-width="1.5"/></svg>`},
+                   { value: "roehren", svg: `<svg viewBox="0 0 64 64"><rect x="10" y="12" width="44" height="40" fill="#37474F"/><g stroke="#B0BEC5" stroke-width="2.5" fill="#78909C"><rect x="15" y="16" width="6" height="32" rx="3"/><rect x="25" y="16" width="6" height="32" rx="3"/><rect x="35" y="16" width="6" height="32" rx="3"/><rect x="45" y="16" width="6" height="32" rx="3"/></g></svg>`}
+               ];
+               return svgs.find(d => d.value === value).svg;
           }
       };
       
@@ -1490,10 +1490,10 @@
           document.querySelectorAll('[data-translate]').forEach(el => {
               const key = el.dataset.translate;
               if (translations[lang] && translations[lang][key]) {
-                   let text = translations[lang][key];
-                   if (key !== 'resultSavingsCo2Eq' && key !== 'fanEffectText') {
-                     el.innerHTML = text;
-                   }
+                  let text = translations[lang][key];
+                  if (key !== 'resultSavingsCo2Eq' && key !== 'fanEffectText') {
+                    el.innerHTML = text;
+                  }
               }
           });
 
@@ -1765,7 +1765,7 @@
       toggleCalculationMethod();
       const initialLang = getCurrentLanguage();
       setLanguage(initialLang);
-      handleGebaeudeklasseChange(dom.gebaeudeklasseValueInput.value); 
+      handleGebaeudeklasseChange(dom.gebaeudeklasseValueInput.value);  
       handleHeizsystemChange();
       showPage(1);
       configId = generateConfigId();
@@ -1777,17 +1777,36 @@
     });
   </script>
 
-  <!-- Skript für dynamische iFrame-Höhe -->
+  <!-- KORRIGIERTES Skript für dynamische iFrame-Höhe -->
   <script>
-    const sendHeight = () => {
-      if (window.parent !== window) {
-        const height = document.body.scrollHeight;
-        window.parent.postMessage({ frameHeight: height }, '*');
-      }
-    };
-    const resizeObserver = new ResizeObserver(() => sendHeight());
-    resizeObserver.observe(document.body);
-    window.addEventListener('load', sendHeight);
+    // Dieser Event-Listener stellt sicher, dass der Code erst ausgeführt wird,
+    // nachdem das gesamte HTML-Dokument geladen und geparst wurde.
+    document.addEventListener('DOMContentLoaded', function() {
+        // Diese Funktion sendet die aktuelle Höhe des Dokuments an das übergeordnete Fenster.
+        const sendHeight = () => {
+            // scrollHeight gibt die gesamte Höhe des Inhalts an, auch wenn er nicht sichtbar ist.
+            const newHeight = document.documentElement.scrollHeight;
+            
+            // Senden der Höhe an das Elternfenster. 
+            // Der zweite Parameter gibt die erwartete Herkunft des Elternfensters an,
+            // was die Sicherheit erhöht.
+            // Die Nachricht enthält das Schlüssel-Wert-Paar `iframeHeight`, auf das
+            // das Skript auf der Shop-Seite wartet.
+            parent.postMessage({ iframeHeight: newHeight }, 'https://www.westech.shop');
+        };
+
+        // Wir verwenden einen ResizeObserver, um auf alle Größenänderungen des Inhalts zu reagieren.
+        // Das ist zuverlässiger als auf einzelne Klicks zu warten, da sich die Höhe aus vielen Gründen ändern kann.
+        const resizeObserver = new ResizeObserver(sendHeight);
+
+        // Den Observer anweisen, das body-Element der Seite zu beobachten.
+        // Da dieser Code innerhalb von 'DOMContentLoaded' ausgeführt wird, ist sichergestellt,
+        // dass 'document.body' existiert und ein gültiges Element ist.
+        resizeObserver.observe(document.body);
+
+        // Senden der initialen Höhe, sobald das DOM bereit ist.
+        sendHeight();
+    });
   </script>
 
 </body>
