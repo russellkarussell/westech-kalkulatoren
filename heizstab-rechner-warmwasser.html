@@ -13,7 +13,6 @@
       --dark-gray: #333;
       --card-shadow: 0 4px 8px rgba(0,0,0,0.1);
       
-      /* Farben für Effizienzklassen */
       --eff-aplus-color: #1dd1a1;
       --eff-a-color: #2ecc71;
       --eff-b-color: #a0d911;
@@ -56,7 +55,6 @@
       width: 100%;
     }
 
-    /* Formular und Eingabefelder */
     .config-form {
         background: #fff;
         padding: 20px;
@@ -88,7 +86,6 @@
       border: 1px solid var(--medium-gray);
     }
     
-    /* Slider-Styling */
     input[type="range"] {
       -webkit-appearance: none; width: 100%; background: transparent; margin: 0;
     }
@@ -106,7 +103,6 @@
         transform: scale(1.1);
     }
 
-    /* Modus-Umschalter & Effizienz-Klasse */
     .radio-switcher {
         display: flex;
         border: 1px solid var(--medium-gray);
@@ -126,7 +122,6 @@
     }
     .radio-switcher input[type="radio"] { display: none; }
     
-    /* Farbige Buttons */
     .radio-switcher input[type="radio"]:checked + label {
         background: var(--secondary-color);
         color: #fff;
@@ -144,19 +139,46 @@
         margin-top: 10px;
     }
     
-    /* Ergebnis-Bereich */
     .results-area h2 {
         margin-top: 0;
+        margin-bottom: 15px;
     }
 
-    #summary {
-      background: #fff; border-left: 5px solid var(--secondary-color);
-      padding: 20px; border-radius: 8px; margin-bottom: 20px;
-      box-shadow: var(--card-shadow);
+    /* Dashboard */
+    #summaryDashboard {
+        background: #fff;
+        padding: 10px 20px;
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 25px;
     }
-    #summary p { margin: 10px 0; font-size: 1.1em; }
-    #summary strong { color: var(--dark-gray); }
-
+    .summary-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--light-gray);
+    }
+     .summary-row:last-child {
+        border-bottom: none;
+    }
+    .summary-label {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 1em;
+        color: #555;
+    }
+    .summary-label .icon {
+        width: 24px;
+        height: 24px;
+        color: var(--secondary-color);
+    }
+    .summary-value {
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+    
     #stabList {
       display: grid; grid-template-columns: 1fr;
       gap: 15px;
@@ -176,11 +198,7 @@
       align-items: center;
       margin-bottom: 15px;
     }
-    .card-header h3 {
-        margin: 0;
-        color: var(--primary-color);
-        font-size: 1.2em;
-    }
+    .card-header h3 { margin: 0; color: var(--primary-color); font-size: 1.2em; }
     .product-link {
         font-size: 0.8em;
         font-weight: bold;
@@ -191,71 +209,38 @@
         padding: 4px 8px;
         border-radius: 4px;
     }
-    .product-link:hover {
-        color: var(--primary-color);
-        text-decoration: underline;
-    }
+    .product-link:hover { color: var(--primary-color); text-decoration: underline; }
 
     .stab-info p { margin: 8px 0; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--light-gray); padding-bottom: 8px;}
     .stab-info p:last-child { border-bottom: none; }
     .stab-info strong { font-weight: 500; }
     .stab-info span { font-weight: bold; }
 
-    /* Empfehlung hervorheben */
-    .stab-card.recommended {
-        border: 2px solid var(--eff-a-color);
-    }
+    .stab-card.recommended { border: 2px solid var(--eff-a-color); }
     .stab-card.recommended::before {
         content: 'Empfehlung';
-        position: absolute;
-        top: 15px;
-        right: -35px;
-        background: var(--eff-a-color);
-        color: white;
-        padding: 5px 30px;
-        transform: rotate(45deg);
-        font-size: 0.8em;
-        font-weight: bold;
+        position: absolute; top: 15px; right: -35px; background: var(--eff-a-color);
+        color: white; padding: 5px 30px; transform: rotate(45deg);
+        font-size: 0.8em; font-weight: bold;
     }
     
     .recommendation-reason {
-        font-size: 0.9em;
-        font-style: italic;
-        color: #555;
-        background-color: #f0f9eb;
-        border-left: 3px solid var(--eff-a-color);
-        padding: 10px;
-        margin-bottom: 15px;
-        border-radius: 4px;
+        font-size: 0.9em; font-style: italic; color: #555; background-color: #f0f9eb;
+        border-left: 3px solid var(--eff-a-color); padding: 10px; margin-bottom: 15px; border-radius: 4px;
     }
     
-    /* Klasse für zu langsame Heizstäbe */
-    .stab-card.too-slow {
-        border: 1px dashed var(--medium-gray);
-        background-color: #fcfcfc;
-        opacity: 0.8;
-    }
-    .stab-card.too-slow h3, .stab-card.too-slow .stab-info strong {
-        color: #888;
-    }
+    .stab-card.too-slow { border: 1px dashed var(--medium-gray); background-color: #fcfcfc; opacity: 0.8; }
+    .stab-card.too-slow h3, .stab-card.too-slow .stab-info strong { color: #888; }
     .warning-message {
-        font-size: 0.9em;
-        font-weight: bold;
-        color: var(--eff-c-color);
-        margin-top: 15px;
-        padding: 8px;
-        background-color: #feF9e7;
-        border: 1px solid var(--eff-c-color);
-        border-radius: 4px;
-        text-align: center;
+        font-size: 0.9em; font-weight: bold; color: var(--eff-c-color);
+        margin-top: 15px; padding: 8px; background-color: #feF9e7;
+        border: 1px solid var(--eff-c-color); border-radius: 4px; text-align: center;
     }
 
     #disclaimer { font-size: 0.8em; color: #777; margin-top: 15px; text-align: center; }
 
     @media (max-width: 900px) {
-        .config-container {
-            grid-template-columns: 1fr;
-        }
+        .config-container { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -339,8 +324,11 @@
         </div>
         
         <div class="results-area">
-            <h2>Ihre Ergebnisse</h2>
-            <div id="summary"></div>
+            <h2>Ihre Ergebnisse im Überblick</h2>
+            <div id="summaryDashboard">
+                <!-- Dashboard wird dynamisch gefüllt -->
+            </div>
+            <h2 style="margin-top: 20px;">Passende Heizstäbe</h2>
             <div id="stabList"></div>
             <div id="disclaimer">* Alle Berechnungen sind Richtwerte (Wirkungsgrad 90%) ohne Gewähr.</div>
         </div>
@@ -384,7 +372,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const effClassRadios = document.querySelectorAll('input[name="effClass"]');
     const desiredTimeGroup = document.getElementById('desiredTimeGroup');
     const stabListDiv = document.getElementById('stabList');
-    const summaryDiv = document.getElementById('summary');
+    const summaryDashboardDiv = document.getElementById('summaryDashboard');
 
     // 3. HILFSFUNKTIONEN
     const formatTime = (hours) => {
@@ -392,7 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const totalMin = Math.round(hours * 60);
         const h = Math.floor(totalMin / 60);
         const m = totalMin % 60;
-        return `${h} h ${m} min`;
+        return `${h}h ${m}min`;
     };
 
     const getInputs = () => {
@@ -400,10 +388,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const volume = volumeOptions[idxVol];
         const effClass = document.querySelector('input[name="effClass"]:checked').value;
         const heatLoss = EFFICIENCY_CLASSES[effClass](volume);
-
         return {
-            mode: document.querySelector('input[name="calcMode"]:checked').value,
-            V: volume,
+            mode: document.querySelector('input[name="calcMode"]:checked').value, V: volume,
             Tstart: parseFloat(document.getElementById('tStartSlider').value),
             Ttarget: parseFloat(document.getElementById('tTargetSlider').value),
             kostenProKWh: parseFloat(document.getElementById('priceSlider').value),
@@ -420,7 +406,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('priceValue').textContent = `${inputs.kostenProKWh.toFixed(2)} €`;
         document.getElementById('lossValue').textContent = `${inputs.verlust24h.toFixed(1)} kWh`;
         document.getElementById('timeValue').textContent = `${inputs.wunschZeitH.toFixed(1)} h`;
-        
         desiredTimeGroup.style.display = inputs.mode === 'power' ? 'block' : 'none';
     };
 
@@ -429,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateUIValues();
         const inputs = getInputs();
         stabListDiv.innerHTML = '';
-        summaryDiv.innerHTML = '';
+        summaryDashboardDiv.innerHTML = '';
 
         const currentSpeicher = speicher.find(s => s.volumen === inputs.V);
         if (!currentSpeicher) return;
@@ -437,7 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const deltaT = inputs.Ttarget - inputs.Tstart;
         if (deltaT <= 0) {
-            summaryDiv.innerHTML = '<p style="color: #c00;"><strong>Fehler:</strong> Zieltemperatur muss größer als die Starttemperatur sein!</p>';
+            summaryDashboardDiv.innerHTML = '<p style="color: #c00; text-align: center;"><strong>Fehler:</strong> Zieltemperatur muss größer als die Starttemperatur sein!</p>';
             return;
         }
         
@@ -455,10 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let recommendationId = null;
 
-        // --- Modus 1: Zeit berechnen ---
         if (inputs.mode === 'time') {
-            summaryDiv.innerHTML = `<p><strong>Benötigte Energie (Wasser):</strong> ${E_bedarf_kWh.toFixed(2)} kWh</p>`;
-
             let maxHours = HEATING_TIME_LIMITS.find(limit => inputs.V <= limit.volume)?.maxHours;
             if (!maxHours) { maxHours = HEATING_TIME_LIMITS[HEATING_TIME_LIMITS.length - 1].maxHours; }
 
@@ -466,7 +448,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const P_effektiv_kW = stab.leistung - P_verlust_kW;
                 const heizdauer_h = P_effektiv_kW > 0 ? E_bedarf_kWh / P_effektiv_kW : -1;
                 const E_gesamt_kWh = stab.leistung * heizdauer_h;
-                
                 stab.calculatedTime = heizdauer_h;
                 stab.calculatedCost = heizdauer_h > 0 ? (E_gesamt_kWh * inputs.kostenProKWh) : -1;
                 stab.isTooSlow = heizdauer_h > maxHours;
@@ -476,19 +457,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (validStaebe.length > 0) {
                  recommendationId = validStaebe.sort((a, b) => a.leistung - b.leistung)[0].name;
             }
-
-        // --- Modus 2: Leistung ermitteln ---
         } else {
             const P_effektiv_noetig = E_bedarf_kWh / inputs.wunschZeitH;
             const P_stab_noetig = P_effektiv_noetig + P_verlust_kW;
-            
-            summaryDiv.innerHTML = `<p><strong>Benötigte Heizleistung:</strong> ${P_stab_noetig.toFixed(2)} kW</p>`;
             
             passendeStaebe.forEach(stab => {
                 const P_effektiv_kW = stab.leistung - P_verlust_kW;
                 const heizdauer_h = P_effektiv_kW > 0 ? E_bedarf_kWh / P_effektiv_kW : -1;
                 const E_gesamt_kWh = stab.leistung * heizdauer_h;
-
                 stab.calculatedTime = heizdauer_h;
                 stab.calculatedCost = heizdauer_h > 0 ? (E_gesamt_kWh * inputs.kostenProKWh) : -1;
                 stab.isTooSlow = false;
@@ -500,18 +476,44 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
+        // Dashboard füllen
+        const recommendedStab = passendeStaebe.find(stab => stab.name === recommendationId);
+        if (recommendedStab) {
+            summaryDashboardDiv.innerHTML = `
+                <div class="summary-row">
+                    <div class="summary-label">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                        <span>Benötigte Energie</span>
+                    </div>
+                    <div class="summary-value">${E_bedarf_kWh.toFixed(2)} kWh</div>
+                </div>
+                <div class="summary-row">
+                    <div class="summary-label">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        <span>Aufheizzeit (Empfehlung)</span>
+                    </div>
+                    <div class="summary-value">${formatTime(recommendedStab.calculatedTime)}</div>
+                </div>
+                <div class="summary-row">
+                    <div class="summary-label">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                        <span>Kosten pro Aufheizung</span>
+                    </div>
+                    <div class="summary-value">${recommendedStab.calculatedCost.toFixed(2)} €</div>
+                </div>
+            `;
+        } else {
+             summaryDashboardDiv.innerHTML = '<p style="color: #888; text-align: center;">Keine passende Empfehlung möglich. Bitte passen Sie Ihre Auswahl an.</p>';
+        }
+
         // Karten für die Heizstäbe generieren
         passendeStaebe.forEach(stab => {
             const card = document.createElement('div');
             card.className = 'stab-card';
-            if (stab.name === recommendationId) {
-                card.classList.add('recommended');
-            }
-            if (stab.isTooSlow) {
-                card.classList.add('too-slow');
-            }
+            if (stab.name === recommendationId) card.classList.add('recommended');
+            if (stab.isTooSlow) card.classList.add('too-slow');
             
-            let reasonHTML = '';
+            let reasonHTML = '', warningHTML = '';
             if (stab.name === recommendationId) {
                 let reasonText = '';
                 if (inputs.mode === 'time') {
@@ -522,7 +524,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 reasonHTML = `<div class="recommendation-reason">${reasonText}</div>`;
             }
 
-            let warningHTML = '';
             if (stab.isTooSlow) {
                 warningHTML = '<div class="warning-message">Aufheizzeit zu lang</div>';
             }
@@ -544,12 +545,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
-    // 5. EVENT-LISTENER
     allSliders.forEach(slider => slider.addEventListener('input', calculateAndRender));
     modeRadios.forEach(radio => radio.addEventListener('change', calculateAndRender));
     effClassRadios.forEach(radio => radio.addEventListener('change', calculateAndRender));
 
-    // Initiale Berechnung beim Laden
     calculateAndRender();
 });
 </script>
