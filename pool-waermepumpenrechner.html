@@ -1,1 +1,437 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wärmepumpen-Konfigurator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4DBCE9;
+            --accent-color: #F39C12;
+            --text-color-dark: #34495E;
+            --text-color-light: #555;
+            --border-color: #bdc3c7;
+            --background-light: #f4f7f6;
+            --background-card: #ffffff;
+            --active-background: #e0f7fa;
+        }
+
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+            color: var(--text-color-dark);
+            background-color: var(--background-light);
+        }
+        .container {
+            max-width: 750px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: var(--background-card);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: var(--text-color-dark);  
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+        h2 {
+            margin-top: 0;
+            color: var(--primary-color);  
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        p {
+            margin-bottom: 20px;
+        }
+        form {
+            margin-bottom: 30px;
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: var(--text-color-light);
+        }
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            margin-top: 6px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            background-color: #fff;
+        }
+        select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(243, 156, 18, 0.25);  
+            outline: none;
+        }
+        
+        .slider-container {
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        input[type="range"] {
+            flex-grow: 1; margin-top: 0; accent-color: var(--accent-color); height: 6px;
+            background: #e0e0e0; border-radius: 3px; -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 20px; height: 20px;
+            background: var(--accent-color); cursor: pointer; border-radius: 50%;
+            border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px; height: 18px; background: var(--accent-color);
+            cursor: pointer; border-radius: 50%; border: 2px solid white;
+        }
+        .slider-container .slider-value {
+            font-weight: bold; color: var(--accent-color); min-width: 65px;
+            text-align: right; white-space: nowrap;
+        }
+        
+        .calculated-volume {
+            margin-top: 15px; font-size: 1em; color: var(--text-color-light);
+            text-align: right; padding: 10px; background-color: #e9ecef; border-radius: 5px;
+        }
+
+        .icon-selection-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .icon-option {
+            display: flex; flex-direction: column; align-items: center; padding: 10px;
+            border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer;
+            transition: all 0.2s ease-in-out; text-align: center; background-color: var(--background-card);
+        }
+        .icon-option:hover {
+            border-color: var(--accent-color); background-color: #fffaf0;
+        }
+        .icon-option.active {
+            border-color: var(--primary-color); background-color: var(--active-background);
+            box-shadow: 0 0 8px rgba(77, 188, 233, 0.3);
+        }
+        .icon-option svg {
+            width: 40px; height: 40px; margin-bottom: 8px; fill: var(--text-color-light);
+            transition: fill 0.2s ease-in-out;
+        }
+        .icon-option.active svg { fill: var(--primary-color); }
+        .icon-option .option-text { font-size: 0.9em; color: var(--text-color-dark); line-height: 1.2; }
+        .icon-option.active .option-text { font-weight: bold; color: var(--primary-color); }
+        
+        .location-description {
+            font-size: 0.85em;
+            color: var(--text-color-light);
+            text-align: center;
+            margin-top: 10px;
+            min-height: 1.2em;
+            transition: color 0.3s;
+        }
+
+        .input-block {
+            margin-top: 20px; padding: 20px; border: 1px solid #e0e0e0;
+            border-radius: 6px; background: #f9fafb;  
+        }
+        
+        #results {
+            margin-top: 30px; padding: 20px; border: 2px solid var(--primary-color);  
+            border-radius: 8px; background: var(--active-background);  
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        #results h2 {
+            margin-top: 0; color: var(--primary-color); border-bottom: none;
+            text-align: center; margin-bottom: 25px;
+        }
+        .result-section {
+             text-align: center;
+             border-bottom: 1px solid #cceef7;
+             padding-bottom: 20px;
+        }
+        .result-section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+            margin-top: 10px;
+        }
+
+        .result-card, .no-result-card {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 15px; text-align: center;
+        }
+        .result-image {
+            max-width: 250px; width: 100%; border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .result-model-name {
+            font-size: 1.8rem; font-weight: 700; color: var(--text-color-dark);
+            margin: 10px 0 0 0;
+        }
+        .result-details, .simulation-details {
+            font-size: 1.1rem; color: var(--text-color-light);
+            line-height: 1.3;
+        }
+        .result-details strong, .simulation-details strong {
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            display: block;
+            margin-top: 5px;
+        }
+        .result-link-button {
+            display: inline-block; padding: 12px 25px; margin-top: 15px;
+            background-color: var(--accent-color); color: white; text-decoration: none;
+            font-weight: bold; border-radius: 5px; transition: all 0.2s ease-in-out;
+        }
+        .result-link-button:hover { background-color: #d18209; transform: scale(1.05); }
+        .disclaimer { margin-top: 25px; font-size: 0.85em; color: #6c757d; text-align: center; }
+        
+        @media (max-width: 600px) {
+            body { margin: 10px; } .container { padding: 15px; }
+            h1 { font-size: 1.8rem; }
+            .slider-container { flex-direction: column; align-items: stretch; }
+            .slider-container .slider-value { text-align: left; margin-top: 5px; }
+            .details-grid { grid-template-columns: 1fr; gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Wärmepumpen-Konfigurator</h1>
+        <p>Finden Sie die perfekte Wärmepumpe für Ihren Pool und simulieren Sie wichtige Betriebsdaten wie Lautstärke und Aufheizzeit.</p>
+
+        <form id="configurator-form">
+            <input type="hidden" id="coverValue" name="coverValue" value="yes">
+            <input type="hidden" id="seasonValue" name="seasonValue" value="1">
+            <input type="hidden" id="locationValue" name="locationValue" value="3">
+            
+            <div class="input-block">
+                <h2>Pool & Standort</h2>
+                <label for="city">Standort</label>
+                 <select id="city" name="city">
+                    <option>Eisenstadt</option>
+                    <option>Graz</option>
+                    <option>Innsbruck</option>
+                    <option>Klagenfurt</option>
+                    <option>Linz</option>
+                    <option>Salzburg</option>
+                    <option>St. Pölten</option>
+                    <option selected>Wien</option>
+                </select>
+                
+                <label>Poolmaße</label>
+                <div class="slider-container"><label for="poolLengthSlider" style="min-width: 50px; margin-top:0; font-weight:normal;">Länge</label><input type="range" id="poolLengthSlider" min="1" max="15" value="8" step="0.5"><span id="poolLengthValue" class="slider-value">8.0 m</span></div>
+                <div class="slider-container"><label for="poolWidthSlider" style="min-width: 50px; margin-top:0; font-weight:normal;">Breite</label><input type="range" id="poolWidthSlider" min="1" max="10" value="4" step="0.5"><span id="poolWidthValue" class="slider-value">4.0 m</span></div>
+                <div class="slider-container"><label for="poolDepthSlider" style="min-width: 50px; margin-top:0; font-weight:normal;">Tiefe</label><input type="range" id="poolDepthSlider" min="0.5" max="3" value="1.5" step="0.1"><span id="poolDepthValue" class="slider-value">1.5 m</span></div>
+                <div id="calculated-volume-display" class="calculated-volume"></div>
+                <label>Nutzungszeitraum</label>
+                <div id="seasonIconGroup" class="icon-selection-group"></div>
+                <label>Poolabdeckung</label>
+                <div id="coverIconGroup" class="icon-selection-group"></div>
+                <div id="coverDescription" class="location-description"></div>
+
+            </div>
+
+            <div class="input-block">
+                 <h2>Schall- & Aufheizzeit-Simulation</h2>
+                 <label>Aufstellort der Wärmepumpe</label>
+                 <div id="locationIconGroup" class="icon-selection-group"></div>
+                 <div id="locationDescription" class="location-description"></div>
+                 <label for="distanceSlider">Abstand zur Grundstücksgrenze</label>
+                 <div class="slider-container"><input type="range" id="distanceSlider" min="1" max="20" value="5" step="1"><span id="distanceValue" class="slider-value">5 m</span></div>
+                 
+                 <label>Aufheizzeit-Berechnung</label>
+                 <div class="slider-container"><label for="currentTempSlider" style="min-width: 140px; margin-top:0; font-weight:normal;">Aktuelle Wassertemp.</label><input type="range" id="currentTempSlider" min="5" max="27" value="15" step="1"><span id="currentTempValue" class="slider-value">15 °C</span></div>
+                 <div class="slider-container"><label for="targetTempSlider" style="min-width: 140px; margin-top:0; font-weight:normal;">Gewünschte Wassertemp.</label><input type="range" id="targetTempSlider" min="18" max="35" value="28" step="1"><span id="targetTempValue" class="slider-value">28 °C</span></div>
+            </div>
+            
+        </form>
+
+        <div id="results">
+            <div id="result-content-container"></div>
+            <p class="disclaimer">Alle Berechnungen sind Schätzwerte. Der Schallrechner berücksichtigt keine Umgebungsgeräusche. Die Aufheizzeit gilt für die erstmalige Erwärmung ohne Wärmeverluste.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- Data Definitions ---
+            const weatherData = { 
+                "Eisenstadt": { "Ave Temp": 18.5 },
+                "Graz":       { "Ave Temp": 17.5 },
+                "Innsbruck":  { "Ave Temp": 16.0 },
+                "Klagenfurt": { "Ave Temp": 17.0 },
+                "Linz":       { "Ave Temp": 17.5 },
+                "Salzburg":   { "Ave Temp": 16.5 },
+                "St. Pölten": { "Ave Temp": 17.0 },
+                "Wien":       { "Ave Temp": 18.0 }
+            };
+            
+            const machineData = [
+                { model: 'Aquark Mr. Silence MS110', power: 7.7, poolVolume: '30-55m³', sound_1m: 36.6, url: 'https://www.westech.shop/aquark-mr-silence-ms110-11kw-poolwaermepumpe', imageUrl: 'https://www.westech.shop/media/image/b8/b1/1f/Aquark-MS110-MS130.jpg' },
+                { model: 'Aquark Mr. Silence MS130', power: 9.0, poolVolume: '35-65m³', sound_1m: 40.1, url: 'https://www.westech.shop/aquark-mr-silence-ms130-13kw-poolwaermepumpe', imageUrl: 'https://www.westech.shop/media/image/b8/b1/1f/Aquark-MS110-MS130.jpg' },
+                { model: 'Aquark Mr. Silence MS150', power: 10.5, poolVolume: '40-70m³', sound_1m: 39.3, url: 'https://www.westech.shop/aquark-mr-silence-ms150-15kw-poolwaermepumpe', imageUrl: 'https://www.westech.shop/media/image/b3/f5/a8/Aquark-MS170-MS200-MS260.jpg' }
+            ];
+            
+            machineData.forEach(m => { const p = m.poolVolume.replace('m³', '').split('-'); m.minVolume = parseInt(p[0], 10); m.maxVolume = parseInt(p[1], 10); });
+
+            const seasonDefs = [ { value: "1", text: "Sommer", subtext: "Mai-Sep", svg: `<svg viewBox="0 0 24 24"><path d="M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5S14.76,7,12,7z M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3 S10.35,9,12,9z M2,12H4c0.55,0,1-0.45,1-1s-0.45-1-1-1H2c-0.55,0-1,0.45-1,1S1.45,12,2,12z M20,12h2c0.55,0,1-0.45,1-1s-0.45-1-1-1 h-2c-0.55,0-1,0.45-1,1S19.45,12,20,12z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2 c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1S11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.02-0.39-1.41,0 c-0.39,0.39-0.39,1.02,0,1.41l1.41,1.41c0.39,0.39,1.02,0.39,1.41,0s0.39-1.02,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.02-0.39-1.41,0c-0.39,0.39-0.39,1.02,0,1.41l1.41,1.41c0.39,0.39,1.02,0.39,1.41,0s0.39-1.02,0-1.41L18.36,16.95z M19.78,5.99c0.39-0.39,0.39-1.02,0-1.41c-0.39-0.39-1.02-0.39-1.41,0l-1.41,1.41c-0.39,0.39-0.39,1.02,0,1.41 s1.02,0.39,1.41,0L19.78,5.99z M7.05,18.36c0.39-0.39,0.39-1.02,0-1.41c-0.39-0.39-1.02-0.39-1.41,0l-1.41,1.41 c-0.39,0.39-0.39,1.02,0,1.41s1.02,0.39,1.41,0L7.05,18.36z"/></svg>` }, { value: "2", text: "Erweitert", subtext: "Apr-Okt", svg: `<svg viewBox="0 0 24 24"><path d="M17.6,15.1l1.5-1.5c0.6-0.6,0.5-1.6-0.1-2.2l-1.9-1.9c-0.4-0.4-1-0.5-1.5-0.2L12,11.5L9.4,7.9c-0.4-0.6-1.2-0.8-1.9-0.5 l-2.6,1.1c-1.2,0.5-1.6,2-0.9,3l5.5,7.9c0.8,1.1,2.4,1.1,3.2,0.1L17.6,15.1z M7.5,13.3l1.9-0.8l2.1,3.2L6.1,19.9 C5.6,20.2,5,20,4.7,19.5l-1-1.7C3.2,17,3.5,16.1,4.3,15.7L7.5,13.3z"/></svg>` } ];
+            const coverDefs = [ 
+                { value: "yes", text: "Mit Abdeckung", description: "Reduziert den Wärmeverlust erheblich und verkürzt die Aufheizzeit.", svg: `<svg viewBox="0 0 24 24"><path d="M12,4c-4.4,0-8,3.6-8,8s3.6,8,8,8s8-3.6,8-8S16.4,4,12,4z M12,18c-3.3,0-6-2.7-6-6s2.7-6,6-6s6,2.7,6,6 S15.3,18,12,18z"/><path d="M2,11h20v2H2V11z"/></svg>` },
+                { value: "no", text: "Ohne Abdeckung", description: "Erhöht den Wärmeverlust und die benötigte Heizleistung.", svg: `<svg viewBox="0 0 24 24"><path d="M12,4c-4.4,0-8,3.6-8,8s3.6,8,8,8s8-3.6,8-8S16.4,4,12,4z M12,18c-3.3,0-6-2.7-6-6s2.7-6,6-6s6,2.7,6,6 S15.3,18,12,18z"/></svg>` } 
+            ];
+            const locationDefs = [
+                { value: "3", text: "Freistehend", description: "+3 dB(A): Schall kann sich frei ausbreiten.", svg: `<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>` },
+                { value: "6", text: "An einer Wand", description: "+6 dB(A): Die Wand reflektiert den Schall.", svg: `<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5 2H2v20h3"/></svg>` },
+                { value: "9", text: "In einer Ecke", description: "+9 dB(A): Schall wird von 2 Wänden stark reflektiert.", svg: `<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5 2H2v20h20v-3"/></svg>` },
+                { value: "9", text: "Zw. 2 Wänden", description: "+9 dB(A): Schall wird zwischen Wänden gefangen.", svg: `<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><path d="M5 2H2v20h3M19 2h3v20h-3"/></svg>` },
+                { value: "9", text: "Unter Vordach", description: "+9 dB(A): Das Dach reflektiert den Schall nach unten.", svg: `<svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><path d="M2 5h20v3H2z"/></svg>` }
+            ];
+            
+            // --- DOM Element Definitions ---
+            const resultContainer = document.getElementById('result-content-container');
+            const locationDescription = document.getElementById('locationDescription');
+            const coverDescription = document.getElementById('coverDescription');
+            const volumeDisplay = document.getElementById('calculated-volume-display');
+            const poolLSlider = document.getElementById('poolLengthSlider');
+            const poolWSlider = document.getElementById('poolWidthSlider');
+            const poolDSlider = document.getElementById('poolDepthSlider');
+
+            // --- Helper Functions ---
+            function setupSlider(el, valEl, unit, dec, callback) {
+                if (!el || !valEl) return;
+                const update = () => {
+                    valEl.textContent = `${parseFloat(el.value).toFixed(dec)} ${unit}`;
+                    if (callback) callback();
+                };
+                el.addEventListener('input', update);
+                update();
+            }
+
+            function createIconOptions(defs, groupEl, inputEl, descEl) {
+                groupEl.innerHTML = '';
+                defs.forEach(def => {
+                    const div = document.createElement('div');
+                    div.className = 'icon-option';
+                    div.dataset.value = def.value;
+                    div.dataset.description = def.description || '';
+                    div.innerHTML = `${def.svg}<span class="option-text">${def.text}${def.subtext ? `<br><small>${def.subtext}</small>` : ''}</span>`;
+                    if (def.value === inputEl.value) {
+                        div.classList.add('active');
+                        if (descEl) descEl.textContent = div.dataset.description;
+                    }
+                    div.addEventListener('click', function() {
+                        groupEl.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('active'));
+                        this.classList.add('active');
+                        inputEl.value = this.dataset.value;
+                        if (descEl) descEl.textContent = this.dataset.description;
+                        calculateAndDisplayAll();
+                    });
+                    groupEl.appendChild(div);
+                });
+            }
+            
+            function calculateAndDisplayAll() {
+                const city = document.getElementById('city').value, volume = calcVolume(), season = document.getElementById('seasonValue').value, cover = document.getElementById('coverValue').value;
+                const locationBonus = parseFloat(document.getElementById('locationValue').value), distance = parseFloat(document.getElementById('distanceSlider').value);
+                const currentTemp = parseFloat(document.getElementById('currentTempSlider').value), targetTemp = parseFloat(document.getElementById('targetTempSlider').value);
+
+                const suitableMachines = machineData.filter(m => volume >= m.minVolume && volume <= m.maxVolume);
+                const avgTemp = weatherData[city] ? weatherData[city]["Ave Temp"] : 14.0, heatingTime = (cover === 'yes')?10:14, factorC = avgTemp / 15.0, factorT = 12 / heatingTime;
+                let reqPower = (volume / 2.2) * factorC * factorT;
+                if (cover === 'no') reqPower *= 1.5; if (season === "2") reqPower *= 1.2;
+
+                let recMachine = null;
+                if (suitableMachines.length > 0) {
+                    for (const m of suitableMachines) { if (m.power >= reqPower) { recMachine = m; break; } }
+                    if (!recMachine) { recMachine = suitableMachines[suitableMachines.length - 1]; }
+                }
+                
+                let resultHTML = '';
+                if (recMachine) {
+                    const soundAt1m = recMachine.sound_1m + locationBonus;
+                    const soundAtDistance = soundAt1m - 20 * Math.log10(distance / 1);
+                    const tempDiff = targetTemp - currentTemp;
+                    
+                    let effectivePower = recMachine.power;
+                    if(cover === 'no'){
+                        effectivePower *= 0.75;
+                    }
+                    const heatUpHours = (tempDiff > 0 && effectivePower > 0) ? (volume * 1000 * tempDiff * 1.163) / (effectivePower * 1000) : 0;
+                    
+                    resultHTML = `
+                        <div class="result-section">
+                             <h2>Ihre empfohlene Wärmepumpe</h2>
+                             <div class="result-card">
+                                <img src="${recMachine.imageUrl}" alt="Bild von ${recMachine.model}" class="result-image" onerror="this.style.display='none'">
+                                <h3 class="result-model-name">${recMachine.model}</h3>
+                                <div class="details-grid">
+                                    <div class="result-details">Heizleistung<strong>${recMachine.power.toFixed(1)} kW</strong></div>
+                                    <div class="result-details">Empf. Poolvolumen<strong>${recMachine.poolVolume}</strong></div>
+                                </div>
+                                <a href="${recMachine.url}" target="_blank" class="result-link-button">Zum Produkt im Shop</a>
+                            </div>
+                        </div>
+                        <div class="result-section">
+                            <h2>Simulations-Ergebnisse</h2>
+                            <div class="details-grid">
+                                <div class="simulation-details">Schallpegel (${distance}m):<strong>${soundAtDistance.toFixed(1)} dB(A)</strong></div>
+                                <div class="simulation-details">Aufheizzeit (${currentTemp}°C &rarr; ${targetTemp}°C):<strong>${heatUpHours.toFixed(1)} Stunden</strong></div>
+                            </div>
+                        </div>`;
+                } else {
+                    resultHTML = `
+                        <div class="result-section">
+                            <h2>Kein passendes Modell gefunden</h2>
+                            <div class="no-result-card">
+                                 <p>Für die gewählte Poolgröße haben wir leider keine passende Wärmepumpe in unserem direkten Sortiment.</p>
+                                 <p>Für eine individuelle Beratung kontaktieren Sie bitte unseren Kundenservice.</p>
+                                 <a href="https://www.westech.shop/kontakt" target="_blank" class="result-link-button">Jetzt kontaktieren</a>
+                            </div>
+                        </div>`;
+                }
+                
+                resultContainer.innerHTML = resultHTML;
+            }
+
+            function calcVolume() {
+                const l = parseFloat(poolLSlider.value)||0, w = parseFloat(poolWSlider.value)||0, d = parseFloat(poolDSlider.value)||0, v = l*w*d;
+                volumeDisplay.innerHTML = `Berechnetes Volumen: <strong>${v.toFixed(1)} m³</strong>`;
+                return v;
+            }
+            
+            // --- Initial Setup & Event Listeners ---
+            setupSlider(poolLSlider, document.getElementById('poolLengthValue'), 'm', 1, calculateAndDisplayAll);
+            setupSlider(poolWSlider, document.getElementById('poolWidthValue'), 'm', 1, calculateAndDisplayAll);
+            setupSlider(poolDSlider, document.getElementById('poolDepthValue'), 'm', 1, calculateAndDisplayAll);
+            setupSlider(document.getElementById('distanceSlider'), document.getElementById('distanceValue'), 'm', 0, calculateAndDisplayAll);
+            setupSlider(document.getElementById('currentTempSlider'), document.getElementById('currentTempValue'), '°C', 0, calculateAndDisplayAll);
+            setupSlider(document.getElementById('targetTempSlider'), document.getElementById('targetTempValue'), '°C', 0, calculateAndDisplayAll);
+            
+            document.getElementById('city').addEventListener('change', calculateAndDisplayAll);
+
+            createIconOptions(seasonDefs, document.getElementById('seasonIconGroup'), document.getElementById('seasonValue'));
+            createIconOptions(coverDefs, document.getElementById('coverIconGroup'), document.getElementById('coverValue'), document.getElementById('coverDescription'));
+            createIconOptions(locationDefs, document.getElementById('locationIconGroup'), document.getElementById('locationValue'), locationDescription);
+            
+            calculateAndDisplayAll();
+        });
+    </script>
+</body>
+</html>
 
