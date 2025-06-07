@@ -225,7 +225,7 @@
         color: var(--text-color-light);
         margin-top: 8px;
     }
-    .derived-value-display span {
+    .derived-value-display span.highlight {
         font-weight: bold;
         color: var(--text-color-dark);
     }
@@ -560,14 +560,19 @@
                 <input type="range" id="vorlauftemperaturSlider" min="30" max="75" step="1" value="55" />
                 <span id="vorlauftemperaturValue" class="slider-value">55 °C</span>
             </div>
-            <p class="derived-scop-info" data-translate="baseScopInfo">Abgeleiteter Basis-SCOP: <span id="basisSCOPValue" style="font-weight:bold; color: var(--accent-color);">3.0</span></p>
+            <p class="derived-scop-info"><span data-translate="baseScopInfo">Abgeleiteter Basis-SCOP</span>: <span id="basisSCOPValue" style="font-weight:bold; color: var(--accent-color);">3.0</span></p>
         </div>
         <div class="input-block">
           <h3 data-translate="optimizationsTitle">Zusätzliche Optimierungen</h3>
           <p data-translate="optimizationsText">Wählen Sie optionale Komponenten aus, um die Berechnung zu verfeinern.</p>
           <div id="optimizationSelectionGroup" class="icon-selection-group"></div>
           <div id="fanEffect" class="derived-value-display hidden" style="margin-top: 10px; padding: 10px; background: var(--active-background); border-radius: 5px;">
-              <p data-translate="fanEffectText">Durch die Lüfter sinkt die benötigte Vorlauftemperatur auf <span id="fanEffectiveTemp" class="highlight">0</span>°C. Der SCOP verbessert sich dadurch auf <span id="fanEffectiveSCOP" class="highlight">0</span>.</p>
+              <p>
+                  <span data-translate="fanEffectText">Durch die Lüfter sinkt die benötigte Vorlauftemperatur auf</span>
+                  <span id="fanEffectiveTemp" class="highlight">0</span>°C.
+                  <span data-translate="fanEffectScopText">Der SCOP verbessert sich dadurch auf</span>
+                  <span id="fanEffectiveSCOP" class="highlight">0</span>.
+              </p>
           </div>
           <div id="pvOptions" class="sub-options hidden">
               <label for="pvLeistungSlider" data-translate="pvCapacityLabel">Installierte PV-Leistung (kWp)</label>
@@ -575,7 +580,9 @@
                   <input type="range" id="pvLeistungSlider" min="1" max="20" step="0.5" value="5" />
                   <span id="pvLeistungValue" class="slider-value">5.0 kWp</span>
               </div>
-              <div class="derived-value-display" data-translate="pvYieldInfo">Geschätzter Jahresertrag: <span id="pvErtragValue">5000</span> kWh</div>
+              <div class="derived-value-display">
+                  <span data-translate="pvYieldInfo">Geschätzter Jahresertrag</span>: <span id="pvErtragValue" class="highlight">5000</span> kWh
+              </div>
               <hr style="margin: 15px 0; border-style: dashed; border-color: #ccc;">
               <label for="pvAnteilSlider" data-translate="pvShareLabel">Anteil des WP-Stroms durch PV gedeckt (%)</label>
               <div class="slider-container">
@@ -597,7 +604,9 @@
                   <input type="range" id="solarthermieFlaecheSlider" min="0" max="30" step="1" value="4" />
                   <span id="solarthermieFlaecheValue" class="slider-value">4 m²</span>
               </div>
-              <div id="solarthermieErtragDisplay" class="derived-value-display" data-translate="solarYieldInfo">Geschätzter Jahresertrag: <span id="solarthermieErtragValue">0</span> kWh</div>
+              <div class="derived-value-display">
+                  <span data-translate="solarYieldInfo">Geschätzter Jahresertrag</span>: <span id="solarthermieErtragValue" class="highlight">0</span> kWh
+              </div>
               <div class="disclaimer" data-translate="solarDisclaimer">Der Ertrag reduziert den Wärmebedarf, den die Heizung decken muss.</div>
           </div>
         </div>
@@ -651,6 +660,7 @@
             </div>
             <p><span data-translate="resultHpPower">Ungefähre Heizleistung Wärmepumpe</span>: <span class="highlight" id="wpLeistung">0</span> kW</p>
             <p><span data-translate="resultCop">Angepasste JAZ/SCOP für WP</span>: <span class="highlight" id="jazEffektiv">0</span></p>
+            <p id="fanResultText" class="hidden"><small><span data-translate="fanResultLabel">davon durch Heizkörperlüfter</span>: <span id="fanResultEffect"></span></small></p>
             <p id="resultCostsNewText"><span data-translate="resultCostsNew">Heizkosten mit Wärmepumpe</span>: <span class="highlight" id="kostenWP">0</span> € / <span data-translate="unitYear">Jahr</span></p>
             <p><span data-translate="resultCo2New">CO₂-Emissionen (Wärmepumpe)</span>: <span class="highlight" id="co2WP">0</span> kg / <span data-translate="unitYear">Jahr</span></p>
             <div id="resultsComparison">
@@ -743,6 +753,8 @@
         fanEffect: document.getElementById('fanEffect'),
         fanEffectiveTemp: document.getElementById('fanEffectiveTemp'),
         fanEffectiveSCOP: document.getElementById('fanEffectiveSCOP'),
+        fanResultText: document.getElementById('fanResultText'),
+        fanResultEffect: document.getElementById('fanResultEffect'),
         wirkungsgradAltSlider: document.getElementById('wirkungsgradAltSlider'),
         wirkungsgradAltValue: document.getElementById('wirkungsgradAltValue'),
         verbrauch: document.getElementById('verbrauch'),
@@ -917,12 +929,12 @@
               floorHeatingShareLabel: "Anteil Fußbodenheizung an Wärmeabgabe (%)", floorHeatingShareDisclaimer: "Wird automatisch basierend auf Gebäudeklasse angepasst.",
               flowTempLabel: "Vorlauftemperatur (°C)", baseScopInfo: "Abgeleiteter Basis-SCOP:",
               optimizationsTitle: "Zusätzliche Optimierungen", optimizationsText: "Wählen Sie optionale Komponenten aus, um die Berechnung zu verfeinern.",
-              fanEffectText: "Durch die Lüfter sinkt die benötigte Vorlauftemperatur auf <span class='highlight'>{temp}</span>°C. Der SCOP verbessert sich dadurch auf <span class='highlight'>{scop}</span>.",
-              pvCapacityLabel: "Installierte PV-Leistung (kWp)", pvYieldInfo: "Geschätzter Jahresertrag:",
+              fanEffectText: "Durch die Lüfter sinkt die benötigte Vorlauftemperatur auf", fanEffectScopText: "Der SCOP verbessert sich dadurch auf",
+              pvCapacityLabel: "Installierte PV-Leistung (kWp)", pvYieldInfo: "Geschätzter Jahresertrag",
               pvShareLabel: "Anteil des WP-Stroms durch PV gedeckt (%)", pvPriceLabel: "Kosten für PV-Strom (€/kWh)",
               pvDisclaimer: "Geben Sie hier Ihre Gestehungskosten an. Passen Sie den Deckungsgrad an, falls Sie z.B. einen Batteriespeicher haben.",
               solarTypeLabel: "Kollektortyp", solarAreaLabel: "Kollektorfläche der Solaranlage (m²)",
-              solarYieldInfo: "Geschätzter Jahresertrag:", solarDisclaimer: "Der Ertrag reduziert den Wärmebedarf, den die Heizung decken muss.",
+              solarYieldInfo: "Geschätzter Jahresertrag", solarDisclaimer: "Der Ertrag reduziert den Wärmebedarf, den die Heizung decken muss.",
               step3Title: "Schritt 3: Investition & Kosten", investmentTitle: "Investitionskosten & Förderung Wärmepumpe",
               investmentLabel: "Investitionskosten Wärmepumpe (inkl. Einbau) in €", investmentDisclaimer: "Durchschnitt: 15.000–30.000 €. Addieren Sie Kosten für Zusatz-Optimierungen.",
               fundingLabel: "Erwartete Förderungen (einmalig) in €", fundingDisclaimer: "Reduziert die effektiven Investitionskosten.",
@@ -935,6 +947,7 @@
               resultCo2New: "CO₂-Emissionen (Wärmepumpe)", resultSavingsAnnual: "Jährliche Ersparnis (Betriebskosten)",
               resultSavingsCo2: "Jährliche CO₂-Einsparung", resultSavingsCo2Eq: "entspricht ca. {value} Fußballfeldern Waldfläche pro Jahr.",
               resultAmortization: "Amortisationszeit (nach Förderung)", unitYear: "Jahr", unitYears: "Jahre",
+              fanResultLabel: "Effekt durch Heizkörperlüfter",
               resultDisclaimer: "* Alle Werte sind ungefähre Richtwerte. Die empfohlene Heizleistung ist eine grobe Schätzung; eine detaillierte Heizlastberechnung durch einen Fachbetrieb ist für die korrekte Dimensionierung unerlässlich.",
               exportPdfButton: "PDF Exportieren", priceUpdateInfo: "Die Standard-Energiepreise im Rechner sind Richtwerte (Stand: Juni 2025) und sollten für eine genaue Berechnung mit Ihren aktuellen Tarifen abgeglichen werden.",
               prevBtn: "Zurück", nextBtn: "Weiter", pdfExports: "PDF Exporte", configId: "Konfigurations-Nr.",
@@ -964,12 +977,12 @@
               floorHeatingShareLabel: "Share of Underfloor Heating in Heat Distribution (%)", floorHeatingShareDisclaimer: "Adjusted automatically based on building class.",
               flowTempLabel: "Flow Temperature (°C)", baseScopInfo: "Derived Base SCOP:",
               optimizationsTitle: "Additional Optimizations", optimizationsText: "Select optional components to refine the calculation.",
-              fanEffectText: "With the fans, the required flow temperature drops to <span class='highlight'>{temp}</span>°C. The SCOP improves to <span class='highlight'>{scop}</span>.",
-              pvCapacityLabel: "Installed PV Capacity (kWp)", pvYieldInfo: "Estimated Annual Yield:",
+              fanEffectText: "With fans, the required flow temperature drops to", fanEffectScopText: "The SCOP thereby improves to",
+              pvCapacityLabel: "Installed PV Capacity (kWp)", pvYieldInfo: "Estimated Annual Yield",
               pvShareLabel: "Share of HP electricity covered by PV (%)", pvPriceLabel: "Cost for PV Electricity (€/kWh)",
               pvDisclaimer: "Enter your generation costs here. Adjust the coverage rate if you have a battery storage, for example.",
               solarTypeLabel: "Collector Type", solarAreaLabel: "Collector Area of Solar System (m²)",
-              solarYieldInfo: "Estimated Annual Yield:", solarDisclaimer: "The yield reduces the heat demand the heating system must cover.",
+              solarYieldInfo: "Estimated Annual Yield", solarDisclaimer: "The yield reduces the heat demand the heating system must cover.",
               step3Title: "Step 3: Investment & Costs", investmentTitle: "Investment Costs & Funding for Heat Pump",
               investmentLabel: "Investment Costs for Heat Pump (incl. installation) in €", investmentDisclaimer: "Average: €15,000–€30,000. Add costs for additional optimizations.",
               fundingLabel: "Expected Subsidies (one-time) in €", fundingDisclaimer: "Reduces the effective investment costs.",
@@ -982,6 +995,7 @@
               resultCo2New: "CO₂ Emissions (Heat Pump)", resultSavingsAnnual: "Annual Savings (Operating Costs)",
               resultSavingsCo2: "Annual CO₂ Savings", resultSavingsCo2Eq: "equals approx. {value} football fields of forest area per year.",
               resultAmortization: "Amortization Period (after funding)", unitYear: "year", unitYears: "years",
+              fanResultLabel: "Effect of radiator fans",
               resultDisclaimer: "* All values are approximate guidelines. The recommended heating output is a rough estimate; a detailed heating load calculation by a specialist is essential for correct dimensioning.",
               exportPdfButton: "Export PDF", priceUpdateInfo: "The default energy prices in the calculator are estimates (as of June 2025) and should be checked against your current rates for an accurate calculation.",
               prevBtn: "Back", nextBtn: "Next", pdfExports: "PDF Exports", configId: "Configuration No.",
@@ -1011,12 +1025,12 @@
               floorHeatingShareLabel: "Procentul de încălzire prin pardoseală în distribuția căldurii (%)", floorHeatingShareDisclaimer: "Ajustat automat în funcție de clasa clădirii.",
               flowTempLabel: "Temperatura pe tur (°C)", baseScopInfo: "SCOP de bază derivat:",
               optimizationsTitle: "Optimizări suplimentare", optimizationsText: "Selectați componente opționale pentru a rafina calculul.",
-              fanEffectText: "Cu ventilatoarele, temperatura necesară pe tur scade la <span class='highlight'>{temp}</span>°C. SCOP-ul se îmbunătățește la <span class='highlight'>{scop}</span>.",
-              pvCapacityLabel: "Capacitate PV instalată (kWp)", pvYieldInfo: "Producție anuală estimată:",
+              fanEffectText: "Cu ventilatoarele, temperatura necesară pe tur scade la", fanEffectScopText: "Astfel, SCOP-ul se îmbunătățește la",
+              pvCapacityLabel: "Capacitate PV instalată (kWp)", pvYieldInfo: "Producție anuală estimată",
               pvShareLabel: "Procentul de electricitate pentru PC acoperit de PV (%)", pvPriceLabel: "Costul electricității PV (€/kWh)",
               pvDisclaimer: "Introduceți aici costurile de producție. Ajustați rata de acoperire dacă aveți, de exemplu, un acumulator.",
               solarTypeLabel: "Tip colector", solarAreaLabel: "Suprafața colectorului solar (m²)",
-              solarYieldInfo: "Producție anuală estimată:", solarDisclaimer: "Producția reduce necesarul de căldură pe care trebuie să-l acopere sistemul de încălzire.",
+              solarYieldInfo: "Producție anuală estimată", solarDisclaimer: "Producția reduce necesarul de căldură pe care trebuie să-l acopere sistemul de încălzire.",
               step3Title: "Pasul 3: Investiție & Costuri", investmentTitle: "Costuri de investiție & Finanțare pentru pompa de căldură",
               investmentLabel: "Costuri de investiție pentru pompa de căldură (inclusiv instalare) în €", investmentDisclaimer: "Medie: 15.000–30.000 €. Adăugați costurile pentru optimizări suplimentare.",
               fundingLabel: "Subvenții preconizate (unice) în €", fundingDisclaimer: "Reduce costurile efective de investiție.",
@@ -1029,6 +1043,7 @@
               resultCo2New: "Emisii de CO₂ (Pompa de căldură)", resultSavingsAnnual: "Economii anuale (Costuri de operare)",
               resultSavingsCo2: "Economii anuale de CO₂", resultSavingsCo2Eq: "echivalează cu aprox. {value} terenuri de fotbal de pădure pe an.",
               resultAmortization: "Perioada de amortizare (după subvenție)", unitYear: "an", unitYears: "ani",
+              fanResultLabel: "Efectul ventilatoarelor de calorifer",
               resultDisclaimer: "* Toate valorile sunt orientative. Puterea de încălzire recomandată este o estimare brută; un calcul detaliat al sarcinii termice de către un specialist este esențial pentru o dimensionare corectă.",
               exportPdfButton: "Exportă PDF", priceUpdateInfo: "Prețurile implicite ale energiei din calculator sunt estimative (iunie 2025) și ar trebui verificate cu tarifele dvs. curente pentru un calcul precis.",
               prevBtn: "Înapoi", nextBtn: "Următorul", pdfExports: "Exporturi PDF", configId: "Nr. configurație",
@@ -1287,21 +1302,28 @@
         dom.solarthermieErtragValue.textContent = solarErtrag.toFixed(0);
 
         const pvLeistung = parseFloat(dom.pvLeistungSlider.value);
-        dom.pvErtragValue.textContent = (pvLeistung * config.pvYieldFactor).toFixed(0);
+        document.getElementById('pvErtragValue').textContent = (pvLeistung * config.pvYieldFactor).toFixed(0);
+
 
         const vorlaufTemp = parseFloat(dom.vorlauftemperaturSlider.value);
         const useFans = fanIcon?.classList.contains('active');
         let effektiveVorlaufTemp = vorlaufTemp;
 
-        const basisSCOP = Math.max(2.0, 7.6 - 0.08 * effektiveVorlaufTemp);
-        dom.basisSCOPValueElem.textContent = basisSCOP.toFixed(1);
+        // New SCOP calculation: Linear interpolation between (35°C, 4.8) and (55°C, 3.2)
+        const basisSCOP = 4.8 + ((vorlaufTemp - 35) / (55 - 35)) * (3.2 - 4.8);
+        dom.basisSCOPValueElem.textContent = Math.max(2.0, basisSCOP).toFixed(1);
 
         if (useFans) {
             const newEffectiveTemp = vorlaufTemp - config.heizkoerperventilatorEffekt;
-            const newEffectiveSCOP = Math.max(2.0, 7.6 - 0.08 * newEffectiveTemp);
+            const newEffectiveSCOP = 4.8 + ((newEffectiveTemp - 35) / (55 - 35)) * (3.2 - 4.8);
             
-            dom.fanEffectiveTemp.textContent = newEffectiveTemp.toFixed(0);
-            dom.fanEffectiveSCOP.textContent = newEffectiveSCOP.toFixed(1);
+            const fanEffectTextElement = dom.fanEffect.querySelector('p');
+            if (fanEffectTextElement) {
+                const tempSpan = `<span class='highlight'>${newEffectiveTemp.toFixed(0)}</span>`;
+                const scopSpan = `<span class='highlight'>${Math.max(2.0, newEffectiveSCOP).toFixed(1)}</span>`;
+                fanEffectTextElement.innerHTML = `${translations[lang].fanEffectText} ${tempSpan}°C. ${translations[lang].fanEffectScopText} ${scopSpan}.`;
+            }
+
             dom.fanEffect.classList.remove('hidden');
         } else {
             dom.fanEffect.classList.add('hidden');
@@ -1333,7 +1355,7 @@
                 effektiveVorlaufTemp -= config.heizkoerperventilatorEffekt;
             }
 
-            const jaz_final = Math.max(2.0, 7.6 - 0.08 * effektiveVorlaufTemp);
+            const jaz_final = 4.8 + ((effektiveVorlaufTemp - 35) / (55 - 35)) * (3.2 - 4.8);
             
             const stromverbrauchWP_kWh = wpBedarf_kWh > 0 && jaz_final > 0 ? wpBedarf_kWh / jaz_final : 0;
             const pvErtrag_kWh = inputs.pvLeistung * config.pvYieldFactor;
@@ -1386,7 +1408,7 @@
             effektiveVorlaufTemp -= config.heizkoerperventilatorEffekt;
         }
 
-        const jaz_final = Math.max(2.0, 7.6 - 0.08 * effektiveVorlaufTemp);
+        const jaz_final = 4.8 + ((effektiveVorlaufTemp - 35) / (55 - 35)) * (3.2 - 4.8);
         
         const stromverbrauchWP_kWh = wpBedarf_kWh > 0 && jaz_final > 0 ? wpBedarf_kWh / jaz_final : 0;
         let kostenWPVal = 0;
@@ -1434,6 +1456,15 @@
         dom.co2AltanlageElem.textContent = co2Altanlage.toFixed(0);
         dom.wpLeistungElem.textContent = wpLeistung.toFixed(1);
         dom.jazEffektivElem.textContent = jaz_final.toFixed(1);
+
+        if (inputs.useFans) {
+            const originalSCOP = 4.8 + ((inputs.vorlaufTemp - 35) / (55 - 35)) * (3.2 - 4.8);
+            dom.fanResultEffect.textContent = `(${originalSCOP.toFixed(1)} -> ${jaz_final.toFixed(1)})`;
+            dom.fanResultText.classList.remove('hidden');
+        } else {
+            dom.fanResultText.classList.add('hidden');
+        }
+
         dom.kostenWPElem.textContent = kostenWPGesamt.toFixed(2);
         dom.co2WPElem.textContent = co2WP.toFixed(0);
         dom.ersparnisElem.classList.toggle('negative', ersparnisVal < 0);
@@ -1671,12 +1702,41 @@
       }
 
       function generateConfigId() {
-        return Math.random().toString(36).substring(2, 8).toUpperCase();
+        const inputs = getCalculationInputs();
+        const values = [
+            inputs.method,
+            inputs.isVerbrauch ? inputs.verbrauch : inputs.flaeche,
+            inputs.aktuellesSystem,
+            inputs.wirkungsgradAlt,
+            inputs.aktuellerPreis,
+            inputs.gebaeudeklasse,
+            inputs.anteilFBH,
+            inputs.vorlaufTemp,
+            inputs.netzStrompreis,
+            inputs.investition,
+            inputs.foerderung,
+            inputs.wartungAlt,
+            inputs.wartungWP,
+            inputs.usePV,
+            inputs.pvLeistung,
+            inputs.pvAnteil,
+            inputs.pvStrompreis,
+            inputs.useSolarthermie,
+            inputs.solarthermieFlaeche,
+            inputs.solarthermieTyp,
+            inputs.useFans
+        ];
+        const fingerprint = values.join('|');
+        let hash = 0;
+        for (let i = 0; i < fingerprint.length; i++) {
+            const char = fingerprint.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return ('00000000' + (Math.abs(hash) >>> 0).toString(16)).slice(-8).toUpperCase();
       }
 
       // --- Initiale Einrichtung ---
-      configId = generateConfigId();
-      dom.configIdElem.textContent = configId;
       const sliders = [
           {el: dom.wirkungsgradAltSlider, val: dom.wirkungsgradAltValue, unit: "%"},
           {el: dom.flaecheSlider, val: dom.flaecheValue, unit: "m²"},
@@ -1693,7 +1753,12 @@
       ];
       sliders.forEach(s => setupSlider(s.el, s.val, s.unit, s.dec || 0));
       
-      form.addEventListener('input', updateUIOnInputChange);
+      form.addEventListener('input', () => {
+          configId = generateConfigId();
+          dom.configIdElem.textContent = configId;
+          updateUIOnInputChange();
+      });
+
       dom.radios.forEach(r => r.addEventListener('change', toggleCalculationMethod));
       dom.exportPdfButton.addEventListener('click', exportResultsToPDF);
       
@@ -1703,6 +1768,8 @@
       handleGebaeudeklasseChange(dom.gebaeudeklasseValueInput.value); 
       handleHeizsystemChange();
       showPage(1);
+      configId = generateConfigId();
+      dom.configIdElem.textContent = configId;
 
       // Initialen Zählerstand anzeigen
       const initialCount = localStorage.getItem('pdfExportCount') || 0;
