@@ -145,9 +145,9 @@
             text-align: center; margin-bottom: 25px;
         }
         .result-section {
-             text-align: center;
-             border-bottom: 1px solid #cceef7;
-             padding-bottom: 20px;
+            text-align: center;
+            border-bottom: 1px solid #cceef7;
+            padding-bottom: 20px;
         }
         .result-section:last-child {
             border-bottom: none;
@@ -236,16 +236,16 @@
             </div>
 
             <div class="input-block">
-                 <h2>Schall- & Aufheizzeit-Simulation</h2>
-                 <label>Aufstellort der Wärmepumpe</label>
-                 <div id="locationIconGroup" class="icon-selection-group"></div>
-                 <div id="locationDescription" class="location-description"></div>
-                 <label for="distanceSlider">Abstand zur Grundstücksgrenze</label>
-                 <div class="slider-container"><input type="range" id="distanceSlider" min="1" max="20" value="5" step="1"><span id="distanceValue" class="slider-value">5 m</span></div>
-                 
-                 <label>Aufheizzeit-Berechnung</label>
-                 <div class="slider-container"><label for="currentTempSlider" style="min-width: 140px; margin-top:0; font-weight:normal;">Aktuelle Wassertemp.</label><input type="range" id="currentTempSlider" min="5" max="27" value="15" step="1"><span id="currentTempValue" class="slider-value">15 °C</span></div>
-                 <div class="slider-container"><label for="targetTempSlider" style="min-width: 140px; margin-top:0; font-weight:normal;">Gewünschte Wassertemp.</label><input type="range" id="targetTempSlider" min="18" max="35" value="28" step="1"><span id="targetTempValue" class="slider-value">28 °C</span></div>
+                <h2>Schall- & Aufheizzeit-Simulation</h2>
+                <label>Aufstellort der Wärmepumpe</label>
+                <div id="locationIconGroup" class="icon-selection-group"></div>
+                <div id="locationDescription" class="location-description"></div>
+                <label for="distanceSlider">Abstand zur Grundstücksgrenze</label>
+                <div class="slider-container"><input type="range" id="distanceSlider" min="1" max="20" value="5" step="1"><span id="distanceValue" class="slider-value">5 m</span></div>
+                
+                <label>Aufheizzeit-Berechnung</label>
+                <div class="slider-container"><label for="currentTempSlider" style="min-width: 140px; margin-top:0; font-weight:normal;">Aktuelle Wassertemp.</label><input type="range" id="currentTempSlider" min="5" max="27" value="15" step="1"><span id="currentTempValue" class="slider-value">15 °C</span></div>
+                <div class="slider-container"><label for="targetTempSlider" style="min-width: 140px; margin-top:0; font-weight:normal;">Gewünschte Wassertemp.</label><input type="range" id="targetTempSlider" min="18" max="35" value="28" step="1"><span id="targetTempValue" class="slider-value">28 °C</span></div>
             </div>
             
         </form>
@@ -364,16 +364,16 @@
                     
                     resultHTML = `
                         <div class="result-section">
-                             <h2>Ihre empfohlene Wärmepumpe</h2>
-                             <div class="result-card">
-                                <img src="${recMachine.imageUrl}" alt="Bild von ${recMachine.model}" class="result-image" onerror="this.style.display='none'">
-                                <h3 class="result-model-name">${recMachine.model}</h3>
-                                <div class="details-grid">
-                                    <div class="result-details">Heizleistung<strong>${recMachine.power.toFixed(1)} kW</strong></div>
-                                    <div class="result-details">Empf. Poolvolumen<strong>${recMachine.poolVolume}</strong></div>
+                                <h2>Ihre empfohlene Wärmepumpe</h2>
+                                <div class="result-card">
+                                    <img src="${recMachine.imageUrl}" alt="Bild von ${recMachine.model}" class="result-image" onerror="this.style.display='none'">
+                                    <h3 class="result-model-name">${recMachine.model}</h3>
+                                    <div class="details-grid">
+                                        <div class="result-details">Heizleistung<strong>${recMachine.power.toFixed(1)} kW</strong></div>
+                                        <div class="result-details">Empf. Poolvolumen<strong>${recMachine.poolVolume}</strong></div>
+                                    </div>
+                                    <a href="${recMachine.url}" target="_blank" class="result-link-button">Zum Produkt im Shop</a>
                                 </div>
-                                <a href="${recMachine.url}" target="_blank" class="result-link-button">Zum Produkt im Shop</a>
-                            </div>
                         </div>
                         <div class="result-section">
                             <h2>Simulations-Ergebnisse</h2>
@@ -418,6 +418,40 @@
             createIconOptions(locationDefs, document.getElementById('locationIconGroup'), document.getElementById('locationValue'), locationDescription);
             
             calculateAndDisplayAll();
+        });
+    </script>
+    
+    <!-- ANGEPASSTES Skript für dynamische iFrame-Höhe -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Diese Funktion sendet die aktuelle Höhe des Dokuments an das übergeordnete Fenster.
+            const sendPoolHeight = () => {
+                // scrollHeight gibt die gesamte Höhe des Inhalts an, auch wenn er nicht sichtbar ist.
+                const newHeight = document.documentElement.scrollHeight;
+                
+                // Senden der Höhe an das Elternfenster. 
+                // Der Schlüssel 'poolIframeHeight' ist spezifisch für diesen Rechner,
+                // damit es nicht zu Konflikten mit anderen iFrames kommt.
+                if (window.parent) {
+                    window.parent.postMessage({ poolIframeHeight: newHeight }, 'https://www.westech.shop');
+                }
+            };
+
+            // Ein ResizeObserver reagiert auf alle Größenänderungen des Inhalts
+            // und sorgt für eine zuverlässige Aktualisierung.
+            const resizeObserver = new ResizeObserver(sendPoolHeight);
+
+            // Beobachten des body-Elements.
+            resizeObserver.observe(document.body);
+
+            // Senden der initialen Höhe und nach kurzer Verzögerung erneut,
+            // falls Bilder oder andere Ressourcen nachladen.
+            sendPoolHeight();
+            setTimeout(sendPoolHeight, 300);
+            setTimeout(sendPoolHeight, 1000);
+
+            // Zusätzlich bei jeder Benutzerinteraktion die Höhe senden.
+            document.getElementById('configurator-form').addEventListener('input', sendPoolHeight);
         });
     </script>
 </body>
