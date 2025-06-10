@@ -276,10 +276,11 @@
         color: var(--text-color-dark);
         line-height: 1.2;
     }
-      .icon-option .option-text small {
+    .icon-option .option-text small {
         font-size: 0.9em;
         color: #6c757d;
         display: block;
+        line-height: 1.3;
     }
     .icon-option.active .option-text {
         font-weight: bold;
@@ -814,33 +815,33 @@
       
       const gebaeudeklasseDefinitions = {
         de: [
-            { value: "alt_unsaniert", text: "Altbau, unsaniert", kWhText: "(~200 kWh/m²·a)"},
-            { value: "alt_teilsaniert", text: "Altbau, teilsaniert", kWhText: "(~150 kWh/m²·a)"},
-            { value: "alt_saniert", text: "Altbau, saniert", kWhText: "(~100 kWh/m²·a)"},
-            { value: "neubau", text: "Neubau", kWhText: "(~70 kWh/m²·a)"},
-            { value: "niedrigenergie", text: "Niedrigenergiehaus", kWhText: "(~30 kWh/m²·a)"}
+            { value: "alt_unsaniert", text: "Altbau, unsaniert", kWhText: "(~200 kWh/m²·a)", wText: "(Heizlast: ~100 W/m²)"},
+            { value: "alt_teilsaniert", text: "Altbau, teilsaniert", kWhText: "(~150 kWh/m²·a)", wText: "(Heizlast: ~70 W/m²)"},
+            { value: "alt_saniert", text: "Altbau, saniert", kWhText: "(~100 kWh/m²·a)", wText: "(Heizlast: ~50 W/m²)"},
+            { value: "neubau", text: "Neubau", kWhText: "(~70 kWh/m²·a)", wText: "(Heizlast: ~40 W/m²)"},
+            { value: "niedrigenergie", text: "Niedrigenergiehaus", kWhText: "(~30 kWh/m²·a)", wText: "(Heizlast: ~30 W/m²)"}
         ],
         en: [
-            { value: "alt_unsaniert", text: "Old, unrenovated", kWhText: "(~200 kWh/m²·a)" },
-            { value: "alt_teilsaniert", text: "Old, partially renovated", kWhText: "(~150 kWh/m²·a)" },
-            { value: "alt_saniert", text: "Old, renovated", kWhText: "(~100 kWh/m²·a)" },
-            { value: "neubau", text: "New building", kWhText: "(~70 kWh/m²·a)" },
-            { value: "niedrigenergie", text: "Low-energy house", kWhText: "(~30 kWh/m²·a)" }
+            { value: "alt_unsaniert", text: "Old, unrenovated", kWhText: "(~200 kWh/m²·a)", wText: "(Heat Load: ~100 W/m²)" },
+            { value: "alt_teilsaniert", text: "Old, partially renovated", kWhText: "(~150 kWh/m²·a)", wText: "(Heat Load: ~70 W/m²)" },
+            { value: "alt_saniert", text: "Old, renovated", kWhText: "(~100 kWh/m²·a)", wText: "(Heat Load: ~50 W/m²)" },
+            { value: "neubau", text: "New building", kWhText: "(~70 kWh/m²·a)", wText: "(Heat Load: ~40 W/m²)" },
+            { value: "niedrigenergie", text: "Low-energy house", kWhText: "(~30 kWh/m²·a)", wText: "(Heat Load: ~30 W/m²)" }
         ],
         ro: [
-            { value: "alt_unsaniert", text: "Clădire veche, nerenovată", kWhText: "(~200 kWh/m²·an)" },
-            { value: "alt_teilsaniert", text: "Clădire veche, parțial renovată", kWhText: "(~150 kWh/m²·an)" },
-            { value: "alt_saniert", text: "Clădire veche, renovată", kWhText: "(~100 kWh/m²·an)" },
-            { value: "neubau", text: "Clădire nouă", kWhText: "(~70 kWh/m²·an)" },
-            { value: "niedrigenergie", text: "Casă cu consum redus de energie", kWhText: "(~30 kWh/m²·an)" }
+            { value: "alt_unsaniert", text: "Clădire veche, nerenovată", kWhText: "(~200 kWh/m²·an)", wText: "(Sarcină termică: ~100 W/m²)" },
+            { value: "alt_teilsaniert", text: "Clădire veche, parțial renovată", kWhText: "(~150 kWh/m²·an)", wText: "(Sarcină termică: ~70 W/m²)" },
+            { value: "alt_saniert", text: "Clădire veche, renovată", kWhText: "(~100 kWh/m²·an)", wText: "(Sarcină termică: ~50 W/m²)" },
+            { value: "neubau", text: "Clădire nouă", kWhText: "(~70 kWh/m²·an)", wText: "(Sarcină termică: ~40 W/m²)" },
+            { value: "niedrigenergie", text: "Casă cu consum redus de energie", kWhText: "(~30 kWh/m²·an)", wText: "(Sarcină termică: ~30 W/m²)" }
         ],
         getSvg: (value) => {
              const svgs = [
-                 { value: "alt_unsaniert", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 22v30h12V32h8v20h24V22L32 4zm-4 36h-8v-8h8v8zm16 0h-8v-8h8v8z" stroke="#555" stroke-width="1.5" opacity="0.7" fill="#d3a17d"/><path d="M10 20 L10 15 L15 15 M54 20 L54 15 L49 15 M20 10 L15 15 M44 10 L49 15" stroke="#8b4513" stroke-width="2.5" fill="none" opacity="0.6"/><rect x="26" y="42" width="12" height="10" fill="#a0522d" opacity="0.8"/></svg>` },
-                 { value: "alt_teilsaniert", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 22v30h56V22L32 4zM16 50H8V30h8v20zm32 0h-8V30h8v20zM28 34h8v16h-8V34z" stroke="#555" stroke-width="1.5" fill="#e0c9a6"/><rect x="20" y="24" width="24" height="8" fill="#66bb6a" opacity="0.8"/><path d="M32 6 L10 20 M32 6 L54 20" stroke="#a0522d" stroke-width="2.5" fill="none"/></svg>` },
-                 { value: "alt_saniert", svg: `<svg viewBox="0 0 64 64"><path d="M32 2L2 20v34h60V20L32 2zm0 4.5L54.8 20H9.2L32 6.5zM58 50H6V22h52v28z" fill="#f5f5f5" stroke="#555" stroke-width="1.5"/><rect x="16" y="28" width="8" height="12" fill="#b3e5fc" stroke="#333" stroke-width="1.2"/><rect x="40" y="28" width="8" height="12" fill="#b3e5fc" stroke="#333" stroke-width="1.2"/><rect x="28" y="40" width="8" height="10" fill="#ffcc80" stroke="#333" stroke-width="1.2"/></svg>` },
-                 { value: "neubau", svg: `<svg viewBox="0 0 64 64"><rect x="6" y="18" width="52" height="36" fill="#e3f2fd" stroke="#555" stroke-width="1.5"/><polygon points="4,18 32,6 60,18" fill="#cfd8dc" stroke="#555" stroke-width="1.5"/><rect x="16" y="30" width="10" height="18" fill="#ffffff" stroke="#444" stroke-width="1.2"/><rect x="38" y="30" width="10" height="10" fill="#ffffff" stroke="#444" stroke-width="1.2"/><line x1="6" y1="28" x2="58" y2="28" stroke="#90a4ae" stroke-width="2.5"/></svg>` },
-                 { value: "niedrigenergie", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 20v30h56V20L32 4z" fill="#dcedc8" stroke="#4caf50" stroke-width="1.5"/><rect x="24" y="32" width="16" height="16" fill="#c8e6c9" stroke="#4caf50" stroke-width="1.2"/><path d="M32 12 A12 12 0 0 1 44 24 A12 12 0 0 1 32 36 A12 12 0 0 1 20 24 A12 12 0 0 1 32 12 M32 16 A4 4 0 0 0 28 20 L36 28 A4 4 0 0 0 32 16" fill="#ffee58" opacity="0.9"/><path d="M28 40 L36 40 L32 48 Z" fill="#66bb6a"/></svg>`}
+                  { value: "alt_unsaniert", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 22v30h12V32h8v20h24V22L32 4zm-4 36h-8v-8h8v8zm16 0h-8v-8h8v8z" stroke="#555" stroke-width="1.5" opacity="0.7" fill="#d3a17d"/><path d="M10 20 L10 15 L15 15 M54 20 L54 15 L49 15 M20 10 L15 15 M44 10 L49 15" stroke="#8b4513" stroke-width="2.5" fill="none" opacity="0.6"/><rect x="26" y="42" width="12" height="10" fill="#a0522d" opacity="0.8"/></svg>` },
+                  { value: "alt_teilsaniert", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 22v30h56V22L32 4zM16 50H8V30h8v20zm32 0h-8V30h8v20zM28 34h8v16h-8V34z" stroke="#555" stroke-width="1.5" fill="#e0c9a6"/><rect x="20" y="24" width="24" height="8" fill="#66bb6a" opacity="0.8"/><path d="M32 6 L10 20 M32 6 L54 20" stroke="#a0522d" stroke-width="2.5" fill="none"/></svg>` },
+                  { value: "alt_saniert", svg: `<svg viewBox="0 0 64 64"><path d="M32 2L2 20v34h60V20L32 2zm0 4.5L54.8 20H9.2L32 6.5zM58 50H6V22h52v28z" fill="#f5f5f5" stroke="#555" stroke-width="1.5"/><rect x="16" y="28" width="8" height="12" fill="#b3e5fc" stroke="#333" stroke-width="1.2"/><rect x="40" y="28" width="8" height="12" fill="#b3e5fc" stroke="#333" stroke-width="1.2"/><rect x="28" y="40" width="8" height="10" fill="#ffcc80" stroke="#333" stroke-width="1.2"/></svg>` },
+                  { value: "neubau", svg: `<svg viewBox="0 0 64 64"><rect x="6" y="18" width="52" height="36" fill="#e3f2fd" stroke="#555" stroke-width="1.5"/><polygon points="4,18 32,6 60,18" fill="#cfd8dc" stroke="#555" stroke-width="1.5"/><rect x="16" y="30" width="10" height="18" fill="#ffffff" stroke="#444" stroke-width="1.2"/><rect x="38" y="30" width="10" height="10" fill="#ffffff" stroke="#444" stroke-width="1.2"/><line x1="6" y1="28" x2="58" y2="28" stroke="#90a4ae" stroke-width="2.5"/></svg>` },
+                  { value: "niedrigenergie", svg: `<svg viewBox="0 0 64 64"><path d="M32 4L4 20v30h56V20L32 4z" fill="#dcedc8" stroke="#4caf50" stroke-width="1.5"/><rect x="24" y="32" width="16" height="16" fill="#c8e6c9" stroke="#4caf50" stroke-width="1.2"/><path d="M32 12 A12 12 0 0 1 44 24 A12 12 0 0 1 32 36 A12 12 0 0 1 20 24 A12 12 0 0 1 32 12 M32 16 A4 4 0 0 0 28 20 L36 28 A4 4 0 0 0 32 16" fill="#ffee58" opacity="0.9"/><path d="M28 40 L36 40 L32 48 Z" fill="#66bb6a"/></svg>`}
              ];
              return svgs.find(d => d.value === value).svg;
         }
@@ -908,8 +909,8 @@
           ro: [ { value: "flach", text: "Colector plat"}, { value: "roehren", text: "Colector cu tuburi vidate"} ],
           getSvg: (value) => {
                const svgs = [
-                   { value: "flach", svg: `<svg viewBox="0 0 64 64"><rect x="10" y="12" width="44" height="40" fill="#37474F"/><rect x="13" y="15" width="38" height="34" fill="#546E7A"/><path d="M17,20 l30,0 M17,26 l30,0 M17,32 l30,0 M17,38 l30,0 M17,44 l30,0" stroke="#78909C" stroke-width="1.5"/></svg>`},
-                   { value: "roehren", svg: `<svg viewBox="0 0 64 64"><rect x="10" y="12" width="44" height="40" fill="#37474F"/><g stroke="#B0BEC5" stroke-width="2.5" fill="#78909C"><rect x="15" y="16" width="6" height="32" rx="3"/><rect x="25" y="16" width="6" height="32" rx="3"/><rect x="35" y="16" width="6" height="32" rx="3"/><rect x="45" y="16" width="6" height="32" rx="3"/></g></svg>`}
+                  { value: "flach", svg: `<svg viewBox="0 0 64 64"><rect x="10" y="12" width="44" height="40" fill="#37474F"/><rect x="13" y="15" width="38" height="34" fill="#546E7A"/><path d="M17,20 l30,0 M17,26 l30,0 M17,32 l30,0 M17,38 l30,0 M17,44 l30,0" stroke="#78909C" stroke-width="1.5"/></svg>`},
+                  { value: "roehren", svg: `<svg viewBox="0 0 64 64"><rect x="10" y="12" width="44" height="40" fill="#37474F"/><g stroke="#B0BEC5" stroke-width="2.5" fill="#78909C"><rect x="15" y="16" width="6" height="32" rx="3"/><rect x="25" y="16" width="6" height="32" rx="3"/><rect x="35" y="16" width="6" height="32" rx="3"/><rect x="45" y="16" width="6" height="32" rx="3"/></g></svg>`}
                ];
                return svgs.find(d => d.value === value).svg;
           }
@@ -956,12 +957,13 @@
               pdfResultsTitle: "Ihr Ergebnis", pdfFooter: "Berechnung erstellt am {date}. Konfigurations-Nr.: {id}. Alle Angaben sind Schätzungen ohne Gewähr.",
               commentaryTitle: "Interpretation der Ergebnisse",
               commentary: {
-                negativeSavings: "In diesem Szenario sind die neuen Heizkosten höher. Dies kann an hohen Strompreisen oder einer sehr niedrigen Förderung liegen. Prüfen Sie Ihre Eingaben. Dennoch gewinnen Sie an Unabhängigkeit und steigern den Wert Ihrer Immobilie.",
-                longAmortizationLowEnergy: "Aufgrund Ihrer bereits niedrigen Heizkosten ist die rein finanzielle Amortisationszeit länger. Ihr Hauptgewinn liegt in der enormen Wertsteigerung Ihrer Immobilie, der Unabhängigkeit von fossilen Brennstoffen und dem Komfortgewinn durch Heizen und Kühlen mit einem System.",
-                longAmortizationHighCost: "Die Amortisationszeit ist eher lang. Prüfen Sie, ob Sie die Investitionskosten durch höhere Förderungen senken können. Der Wechsel sichert Ihnen dennoch mehr Komfort, Unabhängigkeit und steigert den Wert Ihrer Immobilie.",
-                shortAmortization: "Eine ausgezeichnete Investition! Der Umstieg von Ihrem alten Heizsystem führt zu hohen jährlichen Einsparungen. Die Investition macht sich schnell bezahlt, während Sie sofort von mehr Wohnkomfort und Unabhängigkeit profitieren.",
-                default: "Ein solider Wechsel. Sie senken Ihre laufenden Kosten und investieren gleichzeitig in die Zukunftssicherheit und den Wert Ihrer Immobilie. Zudem genießen Sie den Komfort eines modernen und wartungsarmen Heizsystems.",
-                newBuild: "Sie investieren von Anfang an in ein zukunftssicheres und hocheffizientes System. Die angezeigten Werte sind die prognostizierten jährlichen Betriebskosten. Sie sichern sich damit langfristig niedrige Kosten, Unabhängigkeit von fossilen Brennstoffen und einen hohen Wohnkomfort."
+                  sizingCommentary: "<b>Hinweis zur Leistung der Wärmepumpe:</b><br>Die empfohlene Heizleistung basiert auf Standard-Annahmen für die gewählte Gebäudeklasse. Für ein energetisch optimiertes Gebäude ist dieser Wert passend, da eine moderne Wärmepumpe am effizientesten ist, wenn sie lange mit geringer Leistung läuft, statt oft an- und auszugehen (Takten).<br><br>Sollte der tatsächliche Sanierungszustand Ihres Gebäudes von den Annahmen abweichen, kann die benötigte Leistung anders ausfallen. Eine professionelle Heizlastberechnung durch einen Fachbetrieb ist daher unerlässlich, um die Effizienz sicherzustellen und eine falsche Dimensionierung zu vermeiden.",
+                  negativeSavings: "In diesem Szenario sind die neuen Heizkosten höher. Dies kann an hohen Strompreisen oder einer sehr niedrigen Förderung liegen. Prüfen Sie Ihre Eingaben. Dennoch gewinnen Sie an Unabhängigkeit und steigern den Wert Ihrer Immobilie.",
+                  longAmortizationLowEnergy: "Aufgrund Ihrer bereits niedrigen Heizkosten ist die rein finanzielle Amortisationszeit länger. Ihr Hauptgewinn liegt in der enormen Wertsteigerung Ihrer Immobilie, der Unabhängigkeit von fossilen Brennstoffen und dem Komfortgewinn durch Heizen und Kühlen mit einem System.",
+                  longAmortizationHighCost: "Die Amortisationszeit ist eher lang. Prüfen Sie, ob Sie die Investitionskosten durch höhere Förderungen senken können. Der Wechsel sichert Ihnen dennoch mehr Komfort, Unabhängigkeit und steigert den Wert Ihrer Immobilie.",
+                  shortAmortization: "Eine ausgezeichnete Investition! Der Umstieg von Ihrem alten Heizsystem führt zu hohen jährlichen Einsparungen. Die Investition macht sich schnell bezahlt, während Sie sofort von mehr Wohnkomfort und Unabhängigkeit profitieren.",
+                  default: "Ein solider Wechsel. Sie senken Ihre laufenden Kosten und investieren gleichzeitig in die Zukunftssicherheit und den Wert Ihrer Immobilie. Zudem genießen Sie den Komfort eines modernen und wartungsarmen Heizsystems.",
+                  newBuild: "Sie investieren von Anfang an in ein zukunftssicheres und hocheffizientes System. Die angezeigten Werte sind die prognostizierten jährlichen Betriebskosten. Sie sichern sich damit langfristig niedrige Kosten, Unabhängigkeit von fossilen Brennstoffen und einen hohen Wohnkomfort."
               }
           },
           en: {
@@ -1004,12 +1006,13 @@
               pdfResultsTitle: "Your Result", pdfFooter: "Calculation created on {date}. Configuration No.: {id}. All figures are estimates without guarantee.",
               commentaryTitle: "Interpretation of Results",
               commentary: {
-                negativeSavings: "In this scenario, the new heating costs are higher. This might be due to high electricity prices or very low subsidies. Please check your inputs. Nevertheless, you gain independence and increase the value of your property.",
-                longAmortizationLowEnergy: "Due to your already low heating costs, the purely financial amortization period is longer. Your main benefit lies in the significant increase in your property's value, independence from fossil fuels, and the added comfort of heating and cooling with a single system.",
-                longAmortizationHighCost: "The amortization period is rather long. Check if you can reduce the investment costs with higher subsidies. Nevertheless, the switch ensures more comfort, independence, and increases the value of your property.",
-                shortAmortization: "An excellent investment! Switching from your old heating system leads to high annual savings. The investment pays off quickly, while you immediately benefit from more living comfort and independence.",
-                default: "A solid switch. You are lowering your running costs while investing in the future-proofing and value of your property. Additionally, you'll enjoy the comfort of a modern and low-maintenance heating system.",
-                newBuild: "You are investing in a future-proof and highly efficient system from the very beginning. The values shown are the projected annual operating costs. This ensures long-term low costs, independence from fossil fuels, and high living comfort."
+                  sizingCommentary: "<b>Note on Heat Pump Sizing:</b><br>The recommended heating output is based on standard assumptions for the selected building class. For an energetically optimized building, this value is appropriate, as a modern heat pump is most efficient when it runs for long periods at low power instead of frequently switching on and off (cycling).<br><br>If the actual renovation state of your building differs from these assumptions, the required output may vary. A professional heat load calculation is therefore essential to ensure efficiency and avoid incorrect sizing.",
+                  negativeSavings: "In this scenario, the new heating costs are higher. This might be due to high electricity prices or very low subsidies. Please check your inputs. Nevertheless, you gain independence and increase the value of your property.",
+                  longAmortizationLowEnergy: "Due to your already low heating costs, the purely financial amortization period is longer. Your main benefit lies in the significant increase in your property's value, independence from fossil fuels, and the added comfort of heating and cooling with a single system.",
+                  longAmortizationHighCost: "The amortization period is rather long. Check if you can reduce the investment costs with higher subsidies. Nevertheless, the switch ensures more comfort, independence, and increases the value of your property.",
+                  shortAmortization: "An excellent investment! Switching from your old heating system leads to high annual savings. The investment pays off quickly, while you immediately benefit from more living comfort and independence.",
+                  default: "A solid switch. You are lowering your running costs while investing in the future-proofing and value of your property. Additionally, you'll enjoy the comfort of a modern and low-maintenance heating system.",
+                  newBuild: "You are investing in a future-proof and highly efficient system from the very beginning. The values shown are the projected annual operating costs. This ensures long-term low costs, independence from fossil fuels, and high living comfort."
               }
           },
           ro: {
@@ -1052,12 +1055,13 @@
               pdfResultsTitle: "Rezultatul dvs.", pdfFooter: "Calcul realizat la {date}. Nr. Configurație: {id}. Toate datele sunt estimări fără garanție.",
               commentaryTitle: "Interpretarea rezultatelor",
               commentary: {
-                negativeSavings: "În acest scenariu, noile costuri de încălzire sunt mai mari. Acest lucru se poate datora prețurilor ridicate la electricitate sau subvențiilor foarte mici. Vă rugăm să verificați datele introduse. Cu toate acestea, câștigați independență și creșteți valoarea proprietății dvs.",
-                longAmortizationLowEnergy: "Datorită costurilor dvs. deja scăzute la încălzire, perioada de amortizare pur financiară este mai lungă. Beneficiul dvs. principal constă în creșterea semnificativă a valorii proprietății, independența față de combustibilii fosili și confortul sporit prin încălzire și răcire cu un singur sistem.",
-                longAmortizationHighCost: "Perioada de amortizare este destul de lungă. Verificați dacă puteți reduce costurile de investiție cu subvenții mai mari. Cu toate acestea, schimbarea vă asigură mai mult confort, independență și crește valoarea proprietății dvs.",
-                shortAmortization: "O investiție excelentă! Trecerea de la vechiul sistem de încălzire duce la economii anuale ridicate. Investiția se amortizează rapid, în timp ce beneficiați imediat de mai mult confort și independență.",
-                default: "O schimbare solidă. Vă reduceți costurile de funcționare și, în același timp, investiți în siguranța viitoare și valoarea proprietății dvs. În plus, vă veți bucura de confortul unui sistem de încălzire modern și cu întreținere redusă.",
-                newBuild: "Investiți de la început într-un sistem de viitor și foarte eficient. Valorile afișate sunt costurile anuale de funcționare prognozate. Vă asigurați astfel costuri reduse pe termen lung, independență față de combustibilii fosili și un confort ridicat al locuinței."
+                  sizingCommentary: "<b>Notă privind puterea pompei de căldură:</b><br>Puterea de încălzire recomandată se bazează pe ipoteze standard pentru clasa de clădire selectată. Pentru o clădire optimizată energetic, această valoare este potrivită, deoarece o pompă de căldură modernă este cea mai eficientă atunci când funcționează perioade lungi la putere redusă, în loc să pornească și să se oprească frecvent (ciclare).<br><br>Dacă starea reală de renovare a clădirii dumneavoastră diferă de aceste ipoteze, puterea necesară poate varia. Prin urmare, un calcul profesional al sarcinii termice este esențial pentru a asigura eficiența și a evita o dimensionare incorectă.",
+                  negativeSavings: "În acest scenariu, noile costuri de încălzire sunt mai mari. Acest lucru se poate datora prețurilor ridicate la electricitate sau subvențiilor foarte mici. Vă rugăm să verificați datele introduse. Cu toate acestea, câștigați independență și creșteți valoarea proprietății dvs.",
+                  longAmortizationLowEnergy: "Datorită costurilor dvs. deja scăzute la încălzire, perioada de amortizare pur financiară este mai lungă. Beneficiul dvs. principal constă în creșterea semnificativă a valorii proprietății, independența față de combustibilii fosili și confortul sporit prin încălzire și răcire cu un singur sistem.",
+                  longAmortizationHighCost: "Perioada de amortizare este destul de lungă. Verificați dacă puteți reduce costurile de investiție cu subvenții mai mari. Cu toate acestea, schimbarea vă asigură mai mult confort, independență și crește valoarea proprietății dvs.",
+                  shortAmortization: "O investiție excelentă! Trecerea de la vechiul sistem de încălzire duce la economii anuale ridicate. Investiția se amortizează rapid, în timp ce beneficiați imediat de mai mult confort și independență.",
+                  default: "O schimbare solidă. Vă reduceți costurile de funcționare și, în același timp, investiți în siguranța viitoare și valoarea proprietății dvs. În plus, vă veți bucura de confortul unui sistem de încălzire modern și cu întreținere redusă.",
+                  newBuild: "Investiți de la început într-un sistem de viitor și foarte eficient. Valorile afișate sunt costurile anuale de operare prognozate. Vă asigurați astfel costuri reduse pe termen lung, independență față de combustibilii fosili și un confort ridicat al locuinței."
               }
           }
       };
@@ -1130,7 +1134,8 @@
             optionDiv.className = 'icon-option';
             optionDiv.dataset.value = def.value;
             const svg = definitions.getSvg(def.value);
-            optionDiv.innerHTML = `${svg}<span class="option-text">${def.text}${def.kWhText ? `<small>${def.kWhText}</small>` : ''}</span>`;
+            const subtext = def.kWhText ? `<small>${def.kWhText}<br>${def.wText || ''}</small>` : '';
+            optionDiv.innerHTML = `${svg}<span class="option-text">${def.text}${subtext}</span>`;
             if (def.value === hiddenInputElement.value) {
                 optionDiv.classList.add('active');
             }
@@ -1525,25 +1530,35 @@
 
       function generateResultCommentary(inputs, results, lang) {
         const { ersparnisVal, amortisationNum } = results;
-        
+        let financialCommentary = '';
+        const commentaryDb = translations[lang].commentary;
+
+        // 1. Ermittle den passenden finanziellen Basiskommentar
         if (inputs.aktuellesSystem === 'keine') {
-            return translations[lang].commentary.newBuild;
-        }
-        if (ersparnisVal < 0) {
-            return translations[lang].commentary.negativeSavings;
-        } 
-        if (amortisationNum > 25) {
+            financialCommentary = commentaryDb.newBuild;
+        } else if (ersparnisVal < 0) {
+            financialCommentary = commentaryDb.negativeSavings;
+        } else if (amortisationNum > 18) { // Schwellenwert für "lange" Amortisation
             if (inputs.gebaeudeklasse === 'niedrigenergie' || inputs.gebaeudeklasse === 'neubau') {
-                return translations[lang].commentary.longAmortizationLowEnergy;
+                financialCommentary = commentaryDb.longAmortizationLowEnergy;
             } else {
-                return translations[lang].commentary.longAmortizationHighCost;
+                financialCommentary = commentaryDb.longAmortizationHighCost;
             }
-        } 
-        if (amortisationNum > 0 && amortisationNum < 10) {
-            return translations[lang].commentary.shortAmortization;
+        } else if (amortisationNum > 0 && amortisationNum < 10) {
+            financialCommentary = commentaryDb.shortAmortization;
+        } else {
+            financialCommentary = commentaryDb.default;
         }
 
-        return translations[lang].commentary.default;
+        // 2. Füge den Kommentar zur Dimensionierung NACH dem finanziellen Kommentar an, außer bei Neubau
+        if (inputs.aktuellesSystem !== 'keine') {
+            const sizingCommentary = commentaryDb.sizingCommentary;
+            // Verbindet den finanziellen Kommentar mit dem speziellen Hinweis durch eine Trennlinie
+            return financialCommentary + "<hr style='margin:15px 0; border-style:dashed; border-color: #ccc;'>" + sizingCommentary;
+        }
+
+        // Bei Neubau nur den finanziellen Kommentar zurückgeben
+        return financialCommentary;
       }
 
       async function exportResultsToPDF() {
@@ -1559,7 +1574,7 @@
         const pdfContent = document.createElement('div');
         pdfContent.style.position = 'absolute';
         pdfContent.style.left = '-9999px';
-        pdfContent.style.width = '210mm'; 
+        pdfContent.style.width = '210mm';  
         pdfContent.style.padding = '15mm';
         pdfContent.style.boxSizing = 'border-box';
         pdfContent.style.fontFamily = 'Arial, sans-serif';
@@ -1787,7 +1802,7 @@
             // scrollHeight gibt die gesamte Höhe des Inhalts an, auch wenn er nicht sichtbar ist.
             const newHeight = document.documentElement.scrollHeight;
             
-            // Senden der Höhe an das Elternfenster. 
+            // Senden der Höhe an das Elternfenster.  
             // Der zweite Parameter gibt die erwartete Herkunft des Elternfensters an,
             // was die Sicherheit erhöht.
             // Die Nachricht enthält das Schlüssel-Wert-Paar `iframeHeight`, auf das
