@@ -13,6 +13,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- noUiSlider for the range slider -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
+
     <style>
         /* Custom styles for a consistent look and feel */
         body {
@@ -21,46 +25,77 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Custom styling for range sliders to match the theme */
+        /* Custom styling for standard range sliders */
         input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-            height: 6px;
-            background: #e5e7eb; /* Tailwind gray-200 */
-            border-radius: 9999px;
-            outline: none;
-            opacity: 0.9;
+            -webkit-appearance: none; appearance: none;
+            width: 100%; height: 6px;
+            background: #e5e7eb; border-radius: 9999px;
+            outline: none; opacity: 0.9;
             transition: opacity 0.2s;
         }
-
-        input[type="range"]:hover {
-            opacity: 1;
-        }
-
-        /* Thumb for Webkit browsers (Chrome, Safari) */
+        input[type="range"]:hover { opacity: 1; }
         input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #f97316; /* Tailwind orange-500 */
-            cursor: pointer;
+            -webkit-appearance: none; appearance: none;
+            width: 20px; height: 20px;
+            background: #f97316; cursor: pointer;
+            border-radius: 50%; border: 2px solid white;
+            box-shadow: 0 0 0 2px #f97316;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px; height: 20px;
+            background: #f97316; cursor: pointer;
+            border-radius: 50%; border: 2px solid white;
+            box-shadow: 0 0 0 2px #f97316;
+        }
+        
+        /* Custom styling for the dual-handle temperature slider (nouislider) */
+        .noUi-target {
+            background: #e5e7eb;
+            border-radius: 9999px;
+            border: none;
+            box-shadow: none;
+            height: 6px;
+        }
+        .noUi-connect {
+            background: #fb923c; /* Tailwind orange-400 */
+        }
+        .noUi-handle {
             border-radius: 50%;
             border: 2px solid white;
-            box-shadow: 0 0 0 2px #f97316; /* Tailwind orange-500 */
+            box-shadow: 0 0 0 2px var(--handle-color, #f97316);
+            background-color: #ffffff; /* Ensure handle background is white */
+            cursor: pointer;
+            width: 20px !important;
+            height: 20px !important;
+            right: -10px !important;
+            top: -7px !important;
+        }
+        .noUi-handle:before, .noUi-handle:after {
+           display: none;
+        }
+        
+        /* Create the colored dots inside the handles */
+        .noUi-handle::after {
+            content: '';
+            display: block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--handle-color);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
 
-        /* Thumb for Firefox */
-        input[type="range"]::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            background: #f97316; /* Tailwind orange-500 */
-            cursor: pointer;
-            border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 0 0 2px #f97316; /* Tailwind orange-500 */
+        /* Define handle colors */
+        .noUi-handle-lower { --handle-color: #3b82f6; /* Tailwind blue-500 */ }
+        .noUi-handle-upper { --handle-color: #ef4444; /* Tailwind red-500 */ }
+        
+        .noUi-tooltips {
+            display: none; /* We use custom value displays */
         }
+
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -82,7 +117,7 @@
             <div class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
                 <form id="heaterForm">
                     <h2 class="text-xl font-semibold mb-6 text-gray-800">Konfiguration</h2>
-                    <div class="space-y-6">
+                    <div class="space-y-8">
                         <!-- Volume Slider -->
                         <div>
                             <label for="volumeSlider" class="block text-sm font-medium text-gray-700">Volumen Speicher</label>
@@ -92,30 +127,15 @@
                             </div>
                         </div>
 
-                        <!-- Start Temperature Slider -->
+                        <!-- Temperature Range Slider -->
                         <div>
-                            <label for="tStartSlider" class="block text-sm font-medium text-gray-700">Starttemperatur</label>
-                            <div class="flex items-center gap-4 mt-2">
-                                <input type="range" id="tStartSlider" min="5" max="25" step="1" value="10" />
-                                <span id="tStartValue" class="font-semibold text-orange-600 text-lg w-20 text-right">10 °C</span>
+                            <label class="block text-sm font-medium text-gray-700">Temperaturbereich</label>
+                            <div class="pt-5 px-1">
+                                <div id="tempSlider"></div>
                             </div>
-                        </div>
-
-                        <!-- Target Temperature Slider -->
-                        <div>
-                            <label for="tTargetSlider" class="block text-sm font-medium text-gray-700">Zieltemperatur</label>
-                            <div class="flex items-center gap-4 mt-2">
-                                <input type="range" id="tTargetSlider" min="30" max="75" step="5" value="60" />
-                                <span id="tTargetValue" class="font-semibold text-orange-600 text-lg w-20 text-right">60 °C</span>
-                            </div>
-                        </div>
-
-                        <!-- Electricity Price Slider -->
-                        <div>
-                            <label for="priceSlider" class="block text-sm font-medium text-gray-700">Strompreis</label>
-                            <div class="flex items-center gap-4 mt-2">
-                                <input type="range" id="priceSlider" min="0.10" max="0.50" step="0.01" value="0.30" />
-                                <span id="priceValue" class="font-semibold text-orange-600 text-lg w-20 text-right">0.30 €/kWh</span>
+                            <div class="flex justify-between text-sm mt-3">
+                                <div><span class="font-semibold text-blue-600" id="tStartValue">10</span> °C <span class="text-gray-500">(Start)</span></div>
+                                <div><span class="font-semibold text-red-600" id="tTargetValue">60</span> °C <span class="text-gray-500">(Ziel)</span></div>
                             </div>
                         </div>
                     </div>
@@ -130,18 +150,29 @@
                     <div id="error-message" class="hidden p-3 mb-3 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
                       <!-- Error content will be inserted here -->
                     </div>
-                    <div id="summary-content">
-                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-4">
-                            <div class="flex justify-between items-baseline">
+                    <div id="summary-content" class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                        <!-- Left Column: Results -->
+                        <div class="space-y-2 self-center">
+                             <div class="flex justify-between items-baseline">
                                 <span class="text-sm text-gray-500">Energiebedarf:</span>
-                                <span id="summaryEnergy" class="text-lg font-bold text-orange-600 ml-2">- kWh</span>
+                                <span id="summaryEnergy" class="text-xl font-bold text-orange-600 ml-2">- kWh</span>
                             </div>
                             <div class="flex justify-between items-baseline">
                                 <span class="text-sm text-gray-500">Geschätzte Kosten:</span>
-                                <span id="summaryCost" class="text-lg font-bold text-orange-600 ml-2">- €</span>
+                                <span id="summaryCost" class="text-xl font-bold text-orange-600 ml-2">- €</span>
                             </div>
                         </div>
-                        <p class="text-xs text-gray-400 text-center mt-3">* Richtwerte (90% Wirkungsgrad).</p>
+                        <!-- Right Column: Price Input -->
+                        <div class="self-center">
+                            <label for="priceInput" class="block text-sm font-medium text-gray-700">Strompreis</label>
+                            <div class="relative mt-1 rounded-md shadow-sm">
+                                <input type="number" id="priceInput" value="0.30" step="0.01" class="block w-full rounded-md border-0 py-1.5 pl-3 pr-16 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-orange-500 sm:text-sm sm:leading-6">
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <span class="text-gray-500 sm:text-sm">€/kWh</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-400 text-center mt-3 sm:col-span-2">* Richtwerte (90% Wirkungsgrad).</p>
                     </div>
                 </div>
 
@@ -159,17 +190,11 @@
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         // --- DATA ---
-        // Mapping from slider index to volume and required installation depth
         const storageOptions = [
-            { volumen: 170, eintiefe: 500 },
-            { volumen: 200, eintiefe: 500 },
-            { volumen: 300, eintiefe: 500 },
-            { volumen: 500, eintiefe: 650 },
-            { volumen: 800, eintiefe: 790 },
-            { volumen: 1000, eintiefe: 790 }
+            { volumen: 170, eintiefe: 500 }, { volumen: 200, eintiefe: 500 },
+            { volumen: 300, eintiefe: 500 }, { volumen: 500, eintiefe: 650 },
+            { volumen: 800, eintiefe: 790 }, { volumen: 1000, eintiefe: 790 }
         ];
-
-        // Available heating rods
         const heatingRods = [
             { name: "WPI-25 (2,5 kW, 230 V)", leistung: 2.5, laenge: 370, link: "https://www.westech.shop/heizstab-wpi-25-25kw-230v-g64-l-370-tr30-75c" },
             { name: "WPI-30 (3,0 kW, 230 V)", leistung: 3.0, laenge: 390, link: "https://www.westech.shop/heizstab-wpi-30-30kw-230v-g64-l-390-tr30-75c" },
@@ -183,15 +208,15 @@
         const ui = {
             sliders: {
                 volume: document.getElementById('volumeSlider'),
-                tStart: document.getElementById('tStartSlider'),
-                tTarget: document.getElementById('tTargetSlider'),
-                price: document.getElementById('priceSlider'),
+                temperature: document.getElementById('tempSlider'),
+            },
+            inputs: {
+                 price: document.getElementById('priceInput'),
             },
             values: {
                 volume: document.getElementById('volumeValue'),
                 tStart: document.getElementById('tStartValue'),
                 tTarget: document.getElementById('tTargetValue'),
-                price: document.getElementById('priceValue'),
             },
             summary: {
                 energy: document.getElementById('summaryEnergy'),
@@ -202,12 +227,16 @@
             rodList: document.getElementById('stabList'),
         };
 
+        // --- SLIDER INITIALIZATION ---
+        noUiSlider.create(ui.sliders.temperature, {
+            start: [10, 60],
+            connect: true,
+            step: 1,
+            range: { 'min': 5, 'max': 80 },
+            behaviour: 'drag-tap',
+        });
+        
         // --- HELPER FUNCTIONS ---
-        /**
-         * Converts decimal hours into a "h min" format.
-         * @param {number} hours - The time in hours (e.g., 2.5).
-         * @returns {string} - The formatted time string (e.g., "2 h 30 min").
-         */
         const formatTime = (hours) => {
             const totalMinutes = Math.round(hours * 60);
             const h = Math.floor(totalMinutes / 60);
@@ -216,87 +245,63 @@
         };
 
         // --- CORE LOGIC ---
-        /**
-         * Reads all current input values from the sliders.
-         * @returns {object} An object containing all input values.
-         */
         const readInputs = () => {
             const volumeIndex = parseInt(ui.sliders.volume.value, 10);
+            const tempValues = ui.sliders.temperature.noUiSlider.get(true);
             return {
-                volumeIndex: volumeIndex,
                 volume: storageOptions[volumeIndex].volumen,
                 immersionDepth: storageOptions[volumeIndex].eintiefe,
-                tStart: parseFloat(ui.sliders.tStart.value),
-                tTarget: parseFloat(ui.sliders.tTarget.value),
-                pricePerKWh: parseFloat(ui.sliders.price.value),
+                tStart: tempValues[0],
+                tTarget: tempValues[1],
+                pricePerKWh: parseFloat(ui.inputs.price.value) || 0,
             };
         };
         
-        /**
-         * Calculates energy, cost, and finds suitable heating rods.
-         * @param {object} inputs - The object from readInputs().
-         * @returns {object} An object containing the calculation results.
-         */
         const calculateResults = (inputs) => {
+            if (inputs.pricePerKWh <= 0) {
+                 return { error: 'Bitte geben Sie einen gültigen Strompreis ein.' };
+            }
             const deltaT = inputs.tTarget - inputs.tStart;
-            if (deltaT <= 0) {
+            if (deltaT <= 1) { // Require at least a 1 degree difference
                 return { error: 'Die Zieltemperatur muss höher als die Starttemperatur sein.' };
             }
-
-            const efficiency = 0.9; // 90% efficiency factor
+            const efficiency = 0.9;
             const energyWh = inputs.volume * 1.163 * deltaT;
             const totalEnergyKWh = (energyWh / 1000) / efficiency;
             const totalCost = totalEnergyKWh * inputs.pricePerKWh;
-
             const suitableRods = heatingRods
                 .filter(rod => rod.laenge <= inputs.immersionDepth)
-                .map(rod => {
-                    const heatingHours = totalEnergyKWh / rod.leistung;
-                    return {
-                        ...rod,
-                        heatingTime: formatTime(heatingHours),
-                    };
-                });
-            
-            return {
-                energy: totalEnergyKWh,
-                cost: totalCost,
-                rods: suitableRods,
-                error: null,
-            };
+                .map(rod => ({
+                    ...rod,
+                    heatingTime: formatTime(totalEnergyKWh / rod.leistung),
+                }));
+            return { energy: totalEnergyKWh, cost: totalCost, rods: suitableRods, error: null };
         };
 
-        /**
-         * Updates the entire UI based on the calculated results.
-         * @param {object} inputs - The current input values.
-         * @param {object} results - The calculated results.
-         */
         const updateUI = (inputs, results) => {
-            // Update slider value displays
+            // Update simple slider values
             ui.values.volume.textContent = `${inputs.volume} L`;
-            ui.values.tStart.textContent = `${inputs.tStart} °C`;
-            ui.values.tTarget.textContent = `${inputs.tTarget} °C`;
-            ui.values.price.textContent = `${inputs.pricePerKWh.toFixed(2)} €/kWh`;
+            
+            // Update temperature values from inputs (which are read from the slider)
+            ui.values.tStart.textContent = inputs.tStart.toFixed(0);
+            ui.values.tTarget.textContent = inputs.tTarget.toFixed(0);
 
-            // Handle errors
+            // Handle errors or show results
             if (results.error) {
                 ui.errorMessage.textContent = results.error;
                 ui.errorMessage.classList.remove('hidden');
                 ui.summary.content.classList.add('hidden');
-                ui.rodList.innerHTML = ''; // Clear list on error
+                ui.rodList.innerHTML = '';
                 return;
             }
             
-            // Show summary and hide error message
             ui.errorMessage.classList.add('hidden');
             ui.summary.content.classList.remove('hidden');
-            
-            // Update summary values
             ui.summary.energy.textContent = `${results.energy.toFixed(2)} kWh`;
             ui.summary.cost.textContent = `${results.cost.toFixed(2)} €`;
 
             // Render heating rod list
-            ui.rodList.innerHTML = ''; // Clear previous list
+            ui.rodList.innerHTML = '';
             if (results.rods.length === 0) {
                 ui.rodList.innerHTML = `<p class="text-gray-500 md:col-span-2 lg:col-span-3 text-center">Für das gewählte Speichervolumen wurde kein passender Heizstab gefunden.</p>`;
             } else {
@@ -319,9 +324,6 @@
         };
 
         // --- MAIN EXECUTION ---
-        /**
-         * The main function that runs on every input change.
-         */
         const handleUpdate = () => {
             const inputs = readInputs();
             const results = calculateResults(inputs);
@@ -329,10 +331,11 @@
         };
 
         // --- EVENT LISTENERS ---
-        // Add event listeners to all sliders
-        Object.values(ui.sliders).forEach(slider => {
-            slider.addEventListener('input', handleUpdate);
-        });
+        ui.sliders.volume.addEventListener('input', handleUpdate);
+        ui.inputs.price.addEventListener('input', handleUpdate);
+        
+        // Listener for the temperature range slider
+        ui.sliders.temperature.noUiSlider.on('update', handleUpdate);
 
         // Initial calculation on page load
         handleUpdate();
