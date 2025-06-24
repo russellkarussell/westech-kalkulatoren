@@ -274,47 +274,52 @@
         };
 
         const updateUI = (inputs, results) => {
-            // Update simple slider values
+            // Update display of input values first
             ui.values.volume.textContent = `${inputs.volume} L`;
-            
-            // Update temperature values from inputs (which are read from the slider)
             ui.values.tStart.textContent = inputs.tStart.toFixed(0);
             ui.values.tTarget.textContent = inputs.tTarget.toFixed(0);
 
             // Handle errors or show results
             if (results.error) {
+                // Show the error message
                 ui.errorMessage.textContent = results.error;
                 ui.errorMessage.classList.remove('hidden');
-                ui.summary.content.classList.add('hidden');
-                ui.rodList.innerHTML = '';
-                return;
-            }
-            
-            ui.errorMessage.classList.add('hidden');
-            ui.summary.content.classList.remove('hidden');
-            ui.summary.energy.textContent = `${results.energy.toFixed(2)} kWh`;
-            ui.summary.cost.textContent = `${results.cost.toFixed(2)} €`;
+                
+                // Reset the calculated values to their initial state
+                ui.summary.energy.textContent = `- kWh`;
+                ui.summary.cost.textContent = `- €`;
 
-            // Render heating rod list
-            ui.rodList.innerHTML = '';
-            if (results.rods.length === 0) {
-                ui.rodList.innerHTML = `<p class="text-gray-500 md:col-span-2 lg:col-span-3 text-center">Für das gewählte Speichervolumen wurde kein passender Heizstab gefunden.</p>`;
+                // Clear the list of heating rods
+                ui.rodList.innerHTML = '';
             } else {
-                results.rods.forEach(rod => {
-                    const card = document.createElement('div');
-                    card.className = 'bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md hover:border-orange-300 transition-all duration-300';
-                    card.innerHTML = `
-                        <a href="${rod.link}" target="_blank" rel="noopener noreferrer" class="font-semibold text-gray-800 hover:text-orange-600 transition-colors block text-base">
-                            ${rod.name}
-                        </a>
-                        <div class="text-sm text-gray-500 mt-2 flex flex-wrap items-center">
-                            <span>Heizdauer: <strong class="font-semibold text-gray-900">${rod.heatingTime}</strong></span>
-                            <span class="text-gray-300 mx-2">|</span>
-                            <span>Länge: <strong class="font-semibold text-gray-900">${rod.laenge} mm</strong></span>
-                        </div>
-                    `;
-                    ui.rodList.appendChild(card);
-                });
+                // No error, so hide the error message and show results
+                ui.errorMessage.classList.add('hidden');
+
+                // Update summary values
+                ui.summary.energy.textContent = `${results.energy.toFixed(2)} kWh`;
+                ui.summary.cost.textContent = `${results.cost.toFixed(2)} €`;
+
+                // Render heating rod list
+                ui.rodList.innerHTML = ''; // Clear previous list
+                if (results.rods.length === 0) {
+                    ui.rodList.innerHTML = `<p class="text-gray-500 md:col-span-2 lg:col-span-3 text-center">Für das gewählte Speichervolumen wurde kein passender Heizstab gefunden.</p>`;
+                } else {
+                    results.rods.forEach(rod => {
+                        const card = document.createElement('div');
+                        card.className = 'bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md hover:border-orange-300 transition-all duration-300';
+                        card.innerHTML = `
+                            <a href="${rod.link}" target="_blank" rel="noopener noreferrer" class="font-semibold text-gray-800 hover:text-orange-600 transition-colors block text-base">
+                                ${rod.name}
+                            </a>
+                            <div class="text-sm text-gray-500 mt-2 flex flex-wrap items-center">
+                                <span>Heizdauer: <strong class="font-semibold text-gray-900">${rod.heatingTime}</strong></span>
+                                <span class="text-gray-300 mx-2">|</span>
+                                <span>Länge: <strong class="font-semibold text-gray-900">${rod.laenge} mm</strong></span>
+                            </div>
+                        `;
+                        ui.rodList.appendChild(card);
+                    });
+                }
             }
         };
 
