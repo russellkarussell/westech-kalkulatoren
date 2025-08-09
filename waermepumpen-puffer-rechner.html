@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Wärmepumpen‑Speicher‑Kalkulator</title>
+<meta name="description" content="Berechne die optimale Pufferspeicher‑Größe für Wärmepumpen – monovalent/bivalent, EVU‑Sperrzeiten, Heizflächen, Warmwasser & Komfortzuschlag." />
+<style>
+  :root{
+    --brand:#1e70bf;
+    --brand-dark:#165c9e;
+    --ink:#0f172a;
+    --muted:#5b677a;
+    --bg:#ffffff;
+    --card:#ffffff;
+    --line:#e7edf5;
+    --soft:#f6f9fc;
+    --ok:#16a34a; --warn:#d97706; --bad:#b91c1c;
+    --shadow: 0 6px 18px rgba(20,41,66,.08);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
+  header{max-width:1040px;margin:28px auto 8px;padding:0 16px}
+  h1{margin:.2rem 0 .4rem;font-size:1.9rem}
+  .kicker{color:var(--brand);font-weight:700;letter-spacing:.02em;text-transform:uppercase;font-size:.9rem}
+  main{max-width:1040px;margin:0 auto;padding:8px 16px 48px;display:grid;grid-template-columns:1.05fr .95fr;gap:20px}
+  @media (max-width:980px){ main{grid-template-columns:1fr} }
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+  .panel h2{margin:.2rem 0 10px;font-size:1.2rem}
+  .field{margin:12px 0}
+  .label{font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .help{color:var(--muted);font-size:.92rem;margin-top:6px}
+  select,input[type="number"]{
+    width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--ink);
+    outline:none;transition:border-color .12s ease, box-shadow .12s ease;
+  }
+  select:focus,input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(30,112,191,.18)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:680px){ .row{grid-template-columns:1fr} }
+  /* Systemart Cards */
+  .sys-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .sys-card{
+    border:1.5px solid var(--line);border-radius:14px;background:var(--soft);padding:12px;
+    display:flex;gap:12px;align-items:center;cursor:pointer;transition:transform .08s ease,border-color .12s ease,background .12s ease;
+  }
+  .sys-card:hover{border-color:#cfe2f7}
+  .sys-card.active{border-color:var(--brand);background:#eef5fd;transform:translateY(-1px)}
+  .sys-title{margin:0 0 2px;font-weight:700}
+  .sys-sub{margin:0;color:var(--muted);font-size:.92rem}
+  .sys-svg{width:50px;height:50px;border-radius:12px;display:grid;place-items:center;background:#fff;border:1px solid var(--line)}
+  /* Slider + number */
+  .slider-wrap{display:grid;grid-template-columns:1fr 110px;gap:10px;align-items:center}
+  input[type="range"]{width:100%}
+  .range{-webkit-appearance:none;height:6px;border-radius:999px;background:#d8e6f7}
+  .range::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--brand);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.15);cursor:pointer}
+  .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;padding:5px 8px;font-size:.86rem}
+  .toggle{display:flex;gap:10px;align-items:center}
+  .toggle input{display:none}
+  .toggle .btn{border:1px solid var(--line);border-radius:999px;padding:8px 12px;cursor:pointer;background:#fff}
+  .toggle input:checked + .btn{border-color:var(--brand);box-shadow:0 0 0 3px rgba(30,112,191,.18)}
+  /* Tooltip ? */
+  .hint{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;
+    background:var(--brand);color:#fff;font-weight:700;font-size:.78rem;line-height:1;cursor:help;position:relative}
+  .hint .tip{
+    position:absolute;left:0;top:120%;transform:translateX(-20%);
+    min-width:280px;max-width:320px;background:#0f172a;color:#fff;border-radius:10px;padding:10px 12px;border:1px solid #1f2937;
+    box-shadow:0 10px 24px rgba(15,23,42,.25);opacity:0;pointer-events:none;transition:opacity .12s ease;z-index:20
+  }
+  .hint .tip:before{content:"";position:absolute;top:-6px;left:18px;border:6px solid transparent;border-bottom-color:#0f172a}
+  .hint:hover .tip,.hint:focus-within .tip{opacity:1}
+  /* Output */
+  .result{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:680px){ .stat-grid{grid-template-columns:1fr} }
+  .stat{background:#f9fbfe;border:1px solid #e9f1fb;border-radius:12px;padding:12px}
+  .stat h3{margin:0 0 6px;font-size:1rem;color:#2d4766}
+  .stat .big{font-size:1.6rem;font-weight:800}
+  .divider{height:1px;background:var(--line);margin:14px 0}
+  /* Gauge */
+  .gauge{position:relative;height:12px;background:#eaf2fb;border:1px solid #d7e6f9;border-radius:999px;margin-top:8px;overflow:hidden}
+  .gauge .fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444);width:0%}
+  .gauge .tick{position:absolute;top:-6px;width:2px;height:24px;background:#c4d8f2}
+  .legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;color:#5b677a;font-size:.88rem}
+  .btn-primary{background:var(--brand);border:1px solid var(--brand-dark);color:#fff;padding:10px 14px;border-radius:10px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+  .btn-primary:hover{background:var(--brand-dark)}
+  .footnote{color:var(--muted);font-size:.92rem}
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Tools &amp; Services</p>
+    <h1>Wärmepumpen‑Speicher‑Kalkulator</h1>
+    <p class="footnote">Ermittle die passende Pufferspeicher‑Größe für deine Anlage. Richtwerte – ersetzen keine individuelle Fachplanung.</p>
+  </header>
+
+  <main>
+    <!-- INPUTS -->
+    <section class="panel" aria-labelledby="inputs">
+      <h2 id="inputs">Eingaben</h2>
+
+      <!-- Systemart (Cards) -->
+      <div class="field">
+        <div class="label">Systemart</div>
+        <div class="sys-grid" id="systemCards" role="listbox" aria-label="Systemart auswählen">
+          <!-- Monovalent -->
+          <button class="sys-card active" type="button" role="option" aria-selected="true" data-value="monovalent" id="sys-mono">
+            <div class="sys-svg" aria-hidden="true">
+              <!-- Monovalent SVG: WP mit Ventilator -->
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="3" stroke="#1e70bf" fill="#fff"/>
+                <circle cx="12" cy="12" r="1.6" fill="#1e70bf"/>
+                <path d="M12 6.2c2.3 0 2.6 1.2 1.9 2.2-.7 1-2.3 1-3.2.4S9.7 6.2 12 6.2Z" fill="#1e70bf"/>
+                <path d="M17.8 12c0 2.3-1.2 2.6-2.2 1.9-.8-.7-.9-2.3-.3-3.1.6-.9.9-1.3 2.5 1.2Z" fill="#1e70bf"/>
+                <path d="M12 17.8c-2.3 0-2.6-1.2-1.9-2.2.7-1 2.3-1 3.2-.4s.9 2.6-1.3 2.6Z" fill="#1e70bf"/>
+                <path d="M6.2 12c0-2.3 1.2-2.6 2.2-1.9.8.7.9 2.3.3 3.1-.6.9-.9 1.3-2.5-1.2Z" fill="#1e70bf"/>
+              </svg>
+            </div>
+            <div>
+              <p class="sys-title">Monovalent</p>
+              <p class="sys-sub">Nur Wärmepumpe als Wärmeerzeuger</p>
+            </div>
+          </button>
+
+          <!-- Bivalent -->
+          <button class="sys-card" type="button" role="option" aria-selected="false" data-value="bivalent" id="sys-bi">
+            <div class="sys-svg" aria-hidden="true">
+              <!-- Bivalent SVG: WP + Plus + Kessel -->
+              <svg width="50" height="34" viewBox="0 0 64 32" fill="none" aria-hidden="true">
+                <!-- WP -->
+                <rect x="2" y="2" width="26" height="28" rx="4" stroke="#1e70bf" fill="#fff"/>
+                <circle cx="15" cy="16" r="2.6" fill="#1e70bf"/>
+                <!-- Plus -->
+                <rect x="30" y="12.5" width="4" height="7" rx="1" fill="#1e70bf"/>
+                <rect x="28.5" y="14" width="7" height="4" rx="1" fill="#1e70bf"/>
+                <!-- Kessel -->
+                <rect x="38" y="2" width="24" height="28" rx="4" stroke="#f59e0b" fill="#fff"/>
+                <path d="M50 21c0-4.2 5-4.7 5-9.2 0-2.2-2-4-5-4s-5 1.8-5 4c0 4.7 5 5.3 5 9.2Z" fill="#f59e0b"/>
+              </svg>
+            </div>
+            <div>
+              <p class="sys-title">Bivalent</p>
+              <p class="sys-sub">Wärmepumpe + weiterer Wärmeerzeuger</p>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Leistung -->
+      <div class="field">
+        <div class="label">Wärmepumpenleistung <span class="chip">kW</span></div>
+        <div class="slider-wrap">
+          <input id="powerRange" class="range" type="range" min="3" max="30" step="0.5" value="10" aria-label="Wärmepumpenleistung (kW)" />
+          <input id="powerNum" type="number" min="1" max="100" step="0.1" value="10" aria-label="Wärmepumpenleistung (kW) Zahleneingabe" />
+        </div>
+        <p class="help">Tipp: Häufig 6–16&nbsp;kW im Einfamilienhaus.</p>
+      </div>
+
+      <!-- Heizflächen & Warmwasser -->
+      <div class="row">
+        <div class="field">
+          <div class="label">Art der Heizflächen</div>
+          <select id="emitters" aria-label="Heizflächen">
+            <option value="flaeche">Fußboden-/Flächenheizung</option>
+            <option value="radiator">Heizkörper (Radiatoren)</option>
+            <option value="misch">Mischsystem</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="label">Warmwasserbereitung integriert?</div>
+          <div class="toggle">
+            <label><input type="radio" name="dhw" value="no" checked /><span class="btn">Nein</span></label>
+            <label><input type="radio" name="dhw" value="yes" /><span class="btn">Ja</span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- EVU & Komfort -->
+      <div class="row">
+        <div class="field">
+          <div class="label">
+            EVU‑Sperrzeiten vorhanden?
+            <span class="hint" tabindex="0" aria-label="Info zu EVU‑Sperrzeiten">?
+              <span class="tip">
+                <strong>Was sind EVU‑Sperrzeiten?</strong><br/>
+                Netzseitige Zeitfenster, in denen die Wärmepumpe abgeschaltet wird (z. B. 2–3 h/Tag).<br/>
+                <em>Faustregel:</em> +5–8 % Puffervolumen pro Sperrstunde (hier konservativ +6 %).
+              </span>
+            </span>
+          </div>
+          <div class="toggle" id="evuToggle">
+            <label><input type="radio" name="evu" value="no" checked /><span class="btn">Nein</span></label>
+            <label><input type="radio" name="evu" value="yes" /><span class="btn">Ja</span></label>
+          </div>
+          <div id="evuHoursWrap" class="field" style="display:none;margin-top:8px">
+            <div class="label">Dauer der Sperre pro Tag (h)</div>
+            <input id="evuHours" type="number" min="1" max="8" step="1" value="2" />
+            <p class="help">Je Stunde ~+6 % Volumen.</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="label">Komfort / Sicherheitszuschlag</div>
+          <select id="comfort" aria-label="Komfortzuschlag">
+            <option value="0">Minimal (0%)</option>
+            <option value="10" selected>Mittel (+10%)</option>
+            <option value="20">Hoch (+20%)</option>
+          </select>
+          <p class="help">Mehr Reserve = längere Laufzeiten, aber höhere Verluste.</p>
+        </div>
+      </div>
+
+      <!-- Platz & Ziel-VL -->
+      <div class="row">
+        <div class="field">
+          <div class="label">Platzverfügbarkeit</div>
+          <select id="space">
+            <option value="small">klein (≤ 500 l)</option>
+            <option value="mid" selected>mittel (≤ 800 l)</option>
+            <option value="large">groß (≥ 1000 l)</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="label">Ziel‑Vorlauftemperatur (optional)</div>
+          <input id="supply" type="number" min="25" max="70" step="1" placeholder="z. B. 35" />
+          <p class="help">Nur Hinweis: höhere VLT → tendenziell mehr Pufferbedarf.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- OUTPUTS -->
+    <section class="panel" aria-labelledby="outputs">
+      <h2 id="outputs">Ergebnis</h2>
+
+      <div class="result">
+        <div class="stat-grid">
+          <div class="stat">
+            <h3>Empfohlene Größe</h3>
+            <div class="big" id="resLiters">–</div>
+            <div class="help">auf ganze Liter gerundet</div>
+          </div>
+          <div class="stat">
+            <h3>Optimale Spanne</h3>
+            <div class="big" id="resRange">–</div>
+            <div class="help">für Feintuning & Standardgrößen</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="stat">
+          <h3>Nächste Standardgröße</h3>
+          <div class="big" id="resStd">–</div>
+          <div class="help">verfügbare Nennvolumen: 200, 300, 400, 500, 600, 800, 1000 l</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Gauge -->
+        <div>
+          <div class="label" style="font-weight:600">Volumen pro kW (l/kW) – Einordnung</div>
+          <div class="gauge" aria-label="Einordnung l/kW">
+            <div class="fill" id="gaugeFill" style="width:0%"></div>
+            <div class="tick" style="left:25%"></div><!-- ~20 l/kW -->
+            <div class="tick" style="left:37.5%"></div><!-- ~30 l/kW -->
+            <div class="tick" style="left:62.5%"></div><!-- ~50 l/kW -->
+            <div class="tick" style="left:100%"></div><!-- 80 l/kW -->
+          </div>
+          <div class="legend">
+            <span>~20 l/kW (mono klein)</span>
+            <span>~30–50 l/kW (typisch)</span>
+            <span>≥80 l/kW (hoch)</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <p id="resMsg" class="help" style="margin:0">–</p>
+        <p id="resWarn" class="help" style="margin-top:6px;color:#9a5b00"> </p>
+
+        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+          <a class="btn-primary" id="shopBtn" href="#" target="_blank" rel="noopener">Passenden Speicher im Shop anzeigen</a>
+          <a class="btn-primary" href="#" onclick="window.print();return false;">Als PDF speichern</a>
+        </div>
+      </div>
+
+      <div class="help" style="margin-top:12px">
+        <strong>Hinweis:</strong> Richtwert‑Berechnung. Prüfe Hydraulik (Mindestvolumenstrom), Heizflächen, Dämmung und Regelstrategie.
+      </div>
+    </section>
+  </main>
+
+<script>
+  // Elements
+  const sysCards = document.querySelectorAll('.sys-card');
+  const powerRange = document.getElementById('powerRange');
+  const powerNum   = document.getElementById('powerNum');
+  const emitters   = document.getElementById('emitters');
+  const comfort    = document.getElementById('comfort');
+  const spaceSel   = document.getElementById('space');
+  const supply     = document.getElementById('supply');
+  const evuHoursWrap = document.getElementById('evuHoursWrap');
+  const evuHours   = document.getElementById('evuHours');
+
+  const resLiters = document.getElementById('resLiters');
+  const resRange  = document.getElementById('resRange');
+  const resStd    = document.getElementById('resStd');
+  const resMsg    = document.getElementById('resMsg');
+  const resWarn   = document.getElementById('resWarn');
+  const gaugeFill = document.getElementById('gaugeFill');
+  const shopBtn   = document.getElementById('shopBtn');
+
+  // State
+  const state = {
+    system: 'monovalent',
+    power: 10,
+    emitters: 'flaeche',
+    dhw: 'no',
+    evu: 'no',
+    evuHours: 2,
+    comfort: 10,
+    space: 'mid',
+    supply: null
+  };
+
+  // Wire radios
+  document.querySelectorAll('input[name="dhw"]').forEach(r=>{
+    r.addEventListener('change', ()=>{ state.dhw = r.value; calculate(); });
+  });
+  document.querySelectorAll('input[name="evu"]').forEach(r=>{
+    r.addEventListener('change', ()=>{
+      state.evu = r.value;
+      evuHoursWrap.style.display = (state.evu==='yes') ? 'block' : 'none';
+      calculate();
+    });
+  });
+
+  // System cards
+  sysCards.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      sysCards.forEach(b=>{ b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+      btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+      state.system = btn.dataset.value;
+      calculate();
+    });
+  });
+
+  // Coupled inputs
+  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+  function fmt(n){ return Intl.NumberFormat('de-DE').format(Math.round(n)); }
+
+  powerRange.addEventListener('input', ()=>{
+    powerNum.value = Number(powerRange.value);
+    state.power = Number(powerRange.value);
+    calculate();
+  });
+  powerNum.addEventListener('input', ()=>{
+    const v = clamp(Number(powerNum.value)||0, 1, 100);
+    powerRange.value = v;
+    state.power = v;
+    calculate();
+  });
+
+  emitters.addEventListener('change', ()=>{ state.emitters = emitters.value; calculate(); });
+  comfort.addEventListener('change', ()=>{ state.comfort = Number(comfort.value); calculate(); });
+  spaceSel.addEventListener('change', ()=>{ state.space = spaceSel.value; calculate(); });
+  supply.addEventListener('input', ()=>{
+    const val = supply.value.trim();
+    state.supply = val === '' ? null : Number(val);
+    calculate();
+  });
+  evuHours.addEventListener('input', ()=>{
+    state.evuHours = clamp(Number(evuHours.value)||0, 0, 12);
+    calculate();
+  });
+
+  // Std sizes
+  const STD = [200,300,400,500,600,800,1000];
+
+  // Base factors (tunable)
+  const BASE = { mono: 25, bi: 45 }; // l/kW
+
+  function emitterFactor(type){
+    if(type==='flaeche') return 0.90;   // -10%
+    if(type==='radiator') return 1.10;  // +10%
+    return 1.00;
+  }
+  function evuFactor(hours){ return 1 + (0.06 * hours); } // ~+6% je Stunde
+  function comfortFactor(pct){ return 1 + (pct/100); }
+  function dhwFactor(val){ return val==='yes' ? 1.12 : 1.00; }
+  function supplyHintFactor(temp){
+    if(!temp) return 1.00;
+    if(temp >= 55) return 1.10;
+    if(temp >= 45) return 1.05;
+    return 1.00;
+  }
+  function spaceLimit(space){
+    if(space==='small') return 500;
+    if(space==='mid') return 800;
+    return 1200;
+  }
+  function nextStandard(vol){
+    for(const v of STD){ if(v >= vol) return v; }
+    return STD[STD.length-1];
+  }
+
+  function calculate(){
+    const P = clamp(Number(state.power)||0, 1, 100);
+    const base = (state.system==='monovalent') ? BASE.mono : BASE.bi;
+
+    let factor = 1.0;
+    factor *= emitterFactor(state.emitters);
+    if(state.evu==='yes'){ factor *= evuFactor(Number(state.evuHours)||0); }
+    factor *= comfortFactor(Number(state.comfort)||0);
+    factor *= dhwFactor(state.dhw);
+    factor *= supplyHintFactor(state.supply ? Number(state.supply) : null);
+
+    const l_per_kw = base * factor;
+    const V = l_per_kw * P;
+
+    const Vmin = V * 0.92;
+    const Vmax = V * 1.08;
+
+    const gaugePct = Math.max(0, Math.min(100, (l_per_kw/80)*100));
+    const std = nextStandard(V);
+
+    let msg = `Berechnet auf Basis von ${P.toFixed(1)} kW, Systemart „${state.system}“, Heizflächen „${labelEmitters(state.emitters)}“`;
+    if(state.evu==='yes') msg += ` und ${state.evuHours} h EVU‑Sperre`;
+    if(state.dhw==='yes') msg += ` inkl. Warmwasser`;
+    msg += `.`
+
+    let warn = '';
+    const spaceMax = spaceLimit(state.space);
+    if( (V/P) >= 80 ) warn += '⚠️ Sehr hohes l/kW‑Verhältnis (≥80). Verluste, Dämmung & Regelung prüfen. ';
+    if( std > spaceMax ) warn += `📏 Platzgrenze überschritten (gewählt: ${spaceLabel(state.space)}). Aufstellung/Variante prüfen. `;
+
+    resLiters.textContent = `${fmt(V)} Liter`;
+    resRange.textContent  = `${fmt(Vmin)}–${fmt(Vmax)} Liter`;
+    resStd.textContent    = `${fmt(std)} Liter`;
+    resMsg.textContent    = msg;
+    resWarn.textContent   = warn || ' ';
+    gaugeFill.style.width = `${gaugePct}%`;
+
+    // Simple shop deep‑link
+    let link = 'https://www.westech.shop/pufferspeicher';
+    if(std<=300) link = 'https://www.westech.shop/pufferspeicher-300l';
+    else if(std<=400) link = 'https://www.westech.shop/pufferspeicher-400l';
+    else if(std<=500) link = 'https://www.westech.shop/pufferspeicher-500l';
+    else if(std<=600) link = 'https://www.westech.shop/pufferspeicher-600l';
+    else if(std<=800) link = 'https://www.westech.shop/pufferspeicher-800l';
+    else link = 'https://www.westech.shop/pufferspeicher-1000l';
+    document.getElementById('shopBtn').href = link;
+  }
+
+  function labelEmitters(val){
+    if(val==='flaeche') return 'Flächenheizung';
+    if(val==='radiator') return 'Heizkörper';
+    return 'Mischsystem';
+  }
+  function spaceLabel(val){
+    if(val==='small') return 'klein';
+    if(val==='mid') return 'mittel';
+    return 'groß';
+  }
+
+  // Init
+  calculate();
+</script>
+</body>
+</html>
