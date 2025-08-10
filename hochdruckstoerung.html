@@ -1,0 +1,218 @@
+<!-- =========================================
+     Compact Solution Tree – Hochdruckstörung Wärmepumpe
+     Drop-in für JTL Blog (HTML + Vanilla JS, ohne externe Abhängigkeiten)
+     ========================================= -->
+<div id="hp-compact-frame" style="max-width: 560px; border: 2px solid #1e70bf; border-radius: 14px; padding: 16px; background: #f9fbfd; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+    <div id="hp-step-title" style="font-weight:700; font-size:18px; line-height:1.2;">Hochdruckstörung – Assistent</div>
+    <div style="font-size:12px; color:#5b7083;"><span id="hp-step-index">1</span>/<span id="hp-step-total">9</span></div>
+  </div>
+
+  <!-- Fortschrittsbalken -->
+  <div style="height:6px; background:#dde9f8; border-radius:999px; overflow:hidden; margin-bottom:14px;">
+    <div id="hp-progress" style="height:100%; width:0%; background:#1e70bf;"></div>
+  </div>
+
+  <!-- Inhalt -->
+  <div id="hp-step-content" style="min-height: 230px; font-size:15px; line-height:1.55;">
+    <!-- Wird per JS gefüllt -->
+    <noscript>Bitte JavaScript aktivieren, um den Assistenten zu nutzen.</noscript>
+  </div>
+
+  <!-- CTA-Zeile -->
+  <div style="display:flex; gap:8px; justify-content:center; margin-top:14px;">
+    <button id="hp-prev" type="button" style="padding:8px 12px; border-radius:8px; border:1px solid #d0d7de; background:#fff; cursor:pointer;">⬅️ Zurück</button>
+    <button id="hp-next" type="button" style="padding:8px 12px; border-radius:8px; border:0; background:#1e70bf; color:#fff; cursor:pointer;">Weiter ➡️</button>
+    <button id="hp-done" type="button" style="padding:8px 12px; border-radius:8px; border:0; background:#0f7a3a; color:#fff; display:none; cursor:pointer;">✅ Problem beseitigt!</button>
+  </div>
+
+  <!-- Hinweis -->
+  <div style="margin-top:10px; font-size:12px; color:#5b7083; text-align:center;">
+    Tipp: Nach jedem Schritt quittieren und kurz testen. Kommt die Störung wieder, gehe weiter.
+  </div>
+</div>
+
+<script>
+(function(){
+  const steps = [
+    {
+      title: "🚦 Start – Meldung „Hochdruck“",
+      html: `
+        <p>Die Wärmepumpe hat aus Sicherheitsgründen abgeschaltet. Quittiere die Störung und beobachte das Verhalten.</p>
+        <ul>
+          <li><strong>Einmalig nach Stromausfall?</strong> Kurz beobachten. Bei Wiederholung → weiter.</li>
+          <li><strong>Kommt die Meldung sofort wieder?</strong> Starte mit Schritt 1.</li>
+        </ul>
+        <p><em>Ziel:</em> Wärmestau am Verflüssiger vermeiden, damit der Druck nicht an die obere Grenze läuft.</p>
+      `
+    },
+    {
+      title: "💧 Schritt 1 – Heizungsdruck & Luft",
+      html: `
+        <p><strong>Prüfen:</strong> Liegt der <strong>Anlagendruck (kalt)</strong> bei ca. <strong>1,5–1,8 bar</strong>? Ist die Anlage entlüftet? Membran-Ausdehnungsgefäß (MAG) plausibel?</p>
+        <ul>
+          <li>✅ <strong>Ja:</strong> Weiter zu Schritt 2.</li>
+          <li>❗ <strong>Nein:</strong> Wasser nachfüllen, sauber entlüften, MAG prüfen → dann erneut testen.</li>
+        </ul>
+        <p><em>Warum?</em> Zu wenig Wasser ⇒ zu geringer Durchfluss ⇒ Wärmestau am Verflüssiger ⇒ Hochdruck.</p>
+      `
+    },
+    {
+      title: "🔁 Schritt 2 – Durchfluss (Volumenstrom)",
+      html: `
+        <p><strong>Checkliste Durchfluss:</strong></p>
+        <ul>
+          <li>Alle <strong>Thermostatventile</strong> und <strong>Zonen</strong> offen?</li>
+          <li><strong>Pumpenstufe</strong> nicht zu niedrig? <strong>Mischer/Absperrungen</strong> korrekt?</li>
+          <li><strong>ΔT (Vorlauf–Rücklauf)</strong> im Heizbetrieb ≤ <strong>5–7 K</strong>?</li>
+        </ul>
+        <p><strong>Richtwert-Formel:</strong> <code>V̇ (m³/h) ≈ 0,86 × Leistung (kW) ÷ ΔT (K)</code><br>
+        Beispiel: 10&nbsp;kW, ΔT=5&nbsp;K ⇒ <strong>≈1,72&nbsp;m³/h</strong>.</p>
+        <ul>
+          <li>✅ ΔT ≤ 7 K → Weiter zu Schritt 3.</li>
+          <li>⚠️ ΔT &gt; 7 K → Durchfluss erhöhen, hydraulischen Abgleich prüfen; dann testen.</li>
+        </ul>
+      `
+    },
+    {
+      title: "🧼 Schritt 3 – Filter & Wärmetauscher",
+      html: `
+        <p><strong>Reinigen & prüfen:</strong></p>
+        <ul>
+          <li><strong>Schmutzfänger/Magnetfilter</strong> säubern (Magnetit/Schlamm entfernen).</li>
+          <li><strong>Plattenwärmetauscher</strong> (Heizung/WW) auf Verschlammung/Kalk prüfen; bei Bedarf spülen/chemisch reinigen.</li>
+        </ul>
+        <ul>
+          <li>🧽 <strong>Verschmutzt:</strong> Reinigen → Test.</li>
+          <li>✅ <strong>Sauber:</strong> Weiter zu Schritt 4.</li>
+        </ul>
+      `
+    },
+    {
+      title: "🌬️ Schritt 4 – Luftseite (nur Luft/Wasser‑WP)",
+      html: `
+        <p><strong>Freie Luftführung sicherstellen:</strong></p>
+        <ul>
+          <li>Lamellen frei von Laub/Flusen/Staub?</li>
+          <li>Einhalte der <strong>Mindestabstände</strong> rund ums Gerät?</li>
+          <li>Keine <strong>Einhausung</strong> ohne geprüfte Luftführung?</li>
+          <li><strong>Lüfter</strong> läuft ruhig und mit Drehzahl?</li>
+        </ul>
+        <ul>
+          <li>🧹 <strong>Problem gefunden:</strong> reinigen/freilegen/instandsetzen → Test.</li>
+          <li>✅ <strong>Alles ok:</strong> Weiter zu Schritt 5.</li>
+        </ul>
+      `
+    },
+    {
+      title: "⚙️ Schritt 5 – Einstellungen (Regelung)",
+      html: `
+        <p><strong>Regler prüfen:</strong></p>
+        <ul>
+          <li><strong>Heizkurve</strong> zu steil? (Testweise etwas abflachen.)</li>
+          <li><strong>Warmwasser-Soll</strong> sehr hoch (&gt;55–60&nbsp;°C)? (Probeweise senken.)</li>
+          <li>Prioritäten/Grenzwerte plausibel? (z. B. WW-Priorität, Sperrzeiten)</li>
+        </ul>
+        <ul>
+          <li>🧯 <strong>Angepasst:</strong> Verhalten beobachten → Wenn Störung wiederkehrt → Schritt 6.</li>
+          <li>✅ <strong>Schon plausibel:</strong> Weiter zu Schritt 6.</li>
+        </ul>
+      `
+    },
+    {
+      title: "🧪 Schritt 6 – Sensorik & Ventile",
+      html: `
+        <p><strong>Komponenten checken:</strong></p>
+        <ul>
+          <li><strong>Durchflusssensor</strong> vorhanden/funktioniert? Anzeigen plausibel?</li>
+          <li><strong>Temperaturfühler</strong> korrekt montiert (Kontakt, Position)?</li>
+          <li><strong>Zonenventile</strong> öffnen sicher, <strong>Rückschlagventile</strong> nicht verklemmt?</li>
+        </ul>
+        <ul>
+          <li>🛠️ <strong>Auffälligkeiten:</strong> instandsetzen/ersetzen → Test.</li>
+          <li>✅ <strong>Keine Auffälligkeiten:</strong> Weiter zu Schritt 7.</li>
+        </ul>
+      `
+    },
+    {
+      title: "🏁 Schritt 7 – Warmwasser-Spezialfall",
+      html: `
+        <p><strong>Tritt die Störung vorwiegend im Warmwasserbetrieb auf?</strong></p>
+        <ul>
+          <li><strong>WW-Plattenwärmetauscher</strong> auf Kalk/Fouling prüfen, ggf. entkalken.</li>
+          <li><strong>ΔT/Volumenstrom</strong> im WW-Kreis prüfen (Mindestdurchfluss sicherstellen).</li>
+          <li><strong>Prioritäten/Schaltzeiten</strong> plausibel (keine unnötigen Spitzen)?</li>
+        </ul>
+        <p>Wenn trotz Optimierung weiter HP‑Störungen auftreten → nächster Schritt.</p>
+      `
+    },
+    {
+      title: "👨‍🔧 Schritt 8 – Fachbetrieb / Kältekreis",
+      html: `
+        <p><strong>Nur durch zertifizierte Kältetechniker:</strong></p>
+        <ul>
+          <li><strong>Kondensationsdruck</strong> und <strong>Hochdruckgrenze</strong> gegentesten</li>
+          <li><strong>Subcooling/Superheat</strong> bewerten</li>
+          <li><strong>Verflüssigerzustand</strong> & Kältemittelfüllmenge prüfen</li>
+        </ul>
+        <p><em>Wichtig:</em> Keine Eigenarbeiten am Kältekreis.</p>
+      `
+    },
+    {
+      title: "🎯 Ergebnis & Prävention",
+      html: `
+        <ul>
+          <li>✅ <strong>Störung behoben:</strong> Normalbetrieb & Monitoring (ΔT, Durchfluss, Filterzustand).</li>
+          <li>🧭 <strong>Teilerfolg:</strong> Heizkurve/WW‑Soll/Pumpenstufe weiter feinjustieren.</li>
+          <li>🚑 <strong>Keine Besserung:</strong> Serviceauftrag an Fachbetrieb auslösen.</li>
+        </ul>
+        <p><strong>Prävention:</strong> saubere Hydraulik, regelmäßige Filterreinigung, passende Heizkurve, ausreichender Volumenstrom.</p>
+      `
+    }
+  ];
+
+  // DOM
+  const frame = document.getElementById('hp-compact-frame');
+  const titleEl = document.getElementById('hp-step-title');
+  const contentEl = document.getElementById('hp-step-content');
+  const prevBtn = document.getElementById('hp-prev');
+  const nextBtn = document.getElementById('hp-next');
+  const doneBtn = document.getElementById('hp-done');
+  const idxEl = document.getElementById('hp-step-index');
+  const totalEl = document.getElementById('hp-step-total');
+  const progressEl = document.getElementById('hp-progress');
+
+  let i = 0;
+  totalEl.textContent = steps.length.toString();
+
+  function render(){
+    const s = steps[i];
+    titleEl.textContent = s.title;
+    contentEl.innerHTML = s.html;
+    idxEl.textContent = (i+1).toString();
+
+    // Buttons
+    prevBtn.style.display = i === 0 ? 'none' : 'inline-block';
+    nextBtn.style.display = i >= steps.length - 1 ? 'none' : 'inline-block';
+    doneBtn.style.display = i >= steps.length - 1 ? 'inline-block' : 'none';
+
+    // Progress
+    const p = ((i) / (steps.length - 1)) * 100;
+    progressEl.style.width = (isFinite(p) ? p : 0) + '%';
+  }
+
+  prevBtn.addEventListener('click', function(){ if(i>0){ i--; render(); }});
+  nextBtn.addEventListener('click', function(){ if(i<steps.length-1){ i++; render(); }});
+  doneBtn.addEventListener('click', function(){
+    titleEl.textContent = '🎉 Glückwunsch!';
+    contentEl.innerHTML = '<p>Die Hochdruckstörung scheint behoben zu sein. Behalte ΔT, Durchfluss und Filter im Blick und plane regelmäßige Wartungen ein.</p>';
+    prevBtn.style.display = 'none';
+    nextBtn.style.display = 'none';
+    doneBtn.style.display = 'none';
+    progressEl.style.width = '100%';
+    idxEl.textContent = steps.length.toString();
+  });
+
+  render();
+})();
+</script>
